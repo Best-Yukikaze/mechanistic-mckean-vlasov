@@ -40,7 +40,6 @@ def build_face_masks(fluid_mask: np.ndarray) -> FaceMasks:
 def compute_face_fluxes(
     density_per_m2: np.ndarray,
     effective_potential_joule: np.ndarray,
-    control_force_newton: np.ndarray,
     grid: CartesianGrid,
     *,
     diffusion_m2_per_s: float,
@@ -55,21 +54,19 @@ def compute_face_fluxes(
 
     density = np.asarray(density_per_m2, dtype=np.float64)
     potential = np.asarray(effective_potential_joule, dtype=np.float64)
-    control = np.asarray(control_force_newton, dtype=np.float64)
     shape = (grid.ny, grid.nx)
-    if density.shape != shape or potential.shape != shape or control.shape != shape + (2,):
-        raise ValueError("density, potential, and control force must match the grid")
+    if density.shape != shape or potential.shape != shape:
+        raise ValueError("density and effective potential must match the grid")
     if np.any(density < 0.0) or not np.all(np.isfinite(density)):
         raise ValueError("density must be finite and non-negative")
-    if not np.all(np.isfinite(potential)) or not np.all(np.isfinite(control)):
-        raise ValueError("potential and control force must be finite")
+    if not np.all(np.isfinite(potential)):
+        raise ValueError("effective potential must be finite")
 
     flux_x = np.zeros((grid.ny, grid.nx + 1), dtype=np.float64)
     flux_y = np.zeros((grid.ny + 1, grid.nx), dtype=np.float64)
 
     passive_force_x = -(potential[:, 1:] - potential[:, :-1]) / grid.dx_m
-    control_face_x = 0.5 * (control[:, 1:, 0] + control[:, :-1, 0])
-    velocity_x = mobility_m_per_newton_second * (passive_force_x + control_face_x)
+    velocity_x = mobility_m_per_newton_second * passive_force_x
     upwind_x = np.where(velocity_x >= 0.0, density[:, :-1], density[:, 1:])
     interior_x = (
         -diffusion_m2_per_s * (density[:, 1:] - density[:, :-1]) / grid.dx_m
@@ -80,8 +77,7 @@ def compute_face_fluxes(
     )
 
     passive_force_y = -(potential[1:, :] - potential[:-1, :]) / grid.dy_m
-    control_face_y = 0.5 * (control[1:, :, 1] + control[:-1, :, 1])
-    velocity_y = mobility_m_per_newton_second * (passive_force_y + control_face_y)
+    velocity_y = mobility_m_per_newton_second * passive_force_y
     upwind_y = np.where(velocity_y >= 0.0, density[:-1, :], density[1:, :])
     interior_y = (
         -diffusion_m2_per_s * (density[1:, :] - density[:-1, :]) / grid.dy_m
