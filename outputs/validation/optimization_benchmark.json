@@ -1,0 +1,71 @@
+{
+  "benchmark_scope": "implementation optimization, not model calibration",
+  "pair_potential_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+  "fft_convolution": [
+    {
+      "grid": [
+        16,
+        16
+      ],
+      "direct_seconds": 0.004478000000744942,
+      "fft_seconds": 9.049999971466605e-05,
+      "speedup": 49.48066314766248,
+      "maximum_absolute_error_joule": 1.1754943508222875e-37
+    },
+    {
+      "grid": [
+        24,
+        24
+      ],
+      "direct_seconds": 0.013859000000593369,
+      "fft_seconds": 0.00011940000149479602,
+      "speedup": 116.07202535250727,
+      "maximum_absolute_error_joule": 1.5281426560689738e-37
+    },
+    {
+      "grid": [
+        32,
+        32
+      ],
+      "direct_seconds": 0.030002099998455378,
+      "fft_seconds": 0.00017450000086682849,
+      "speedup": 171.93180429467046,
+      "maximum_absolute_error_joule": 9.4039548065783e-38
+    }
+  ],
+  "chunked_particle_force": [
+    {
+      "particle_count": 1200,
+      "chunk_size": 64,
+      "seconds": 0.07980769999994664,
+      "theoretical_displacement_array_bytes": 1228800,
+      "maximum_absolute_difference_newton": 0.0
+    },
+    {
+      "particle_count": 1200,
+      "chunk_size": 128,
+      "seconds": 0.08551860000079614,
+      "theoretical_displacement_array_bytes": 2457600,
+      "maximum_absolute_difference_newton": 0.0
+    },
+    {
+      "particle_count": 1200,
+      "chunk_size": 256,
+      "seconds": 0.08559129999957804,
+      "theoretical_displacement_array_bytes": 4915200,
+      "maximum_absolute_difference_newton": 0.0
+    },
+    {
+      "particle_count": 1200,
+      "chunk_size": 1200,
+      "seconds": 0.08623480000096606,
+      "theoretical_displacement_array_bytes": 23040000,
+      "maximum_absolute_difference_newton": 0.0
+    }
+  ],
+  "zero_interaction_fast_path": {
+    "particle_count": 100000,
+    "seconds": 0.0004490000010264339,
+    "maximum_absolute_force_newton": 0.0
+  }
+}
