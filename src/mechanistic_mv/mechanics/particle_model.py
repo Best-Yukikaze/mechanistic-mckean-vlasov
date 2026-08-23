@@ -38,7 +38,7 @@ def deterministic_acceleration_m_per_s2(
     external: ExternalPotential | None = None,
     controlled_potential: ControlledPotentialBackend | None = None,
     control: np.ndarray | None = None,
-    pair_chunk_size: int = 256,
+    pair_chunk_size: int = 64,
 ) -> np.ndarray:
     """Evaluate ``m dV/dt=-gamma V+F_ext+F_pair+F_control``."""
 
