@@ -176,6 +176,10 @@ def enforce_particle_no_flux(
     new = _points(proposed)
     if old.shape != new.shape:
         raise ValueError("previous and proposed particle arrays must match")
+    solid_geometry = tuple(obstacles)
+    for obstacle in solid_geometry:
+        if np.any(obstacle.contains(old)):
+            raise ValueError("a particle starts inside a solid obstacle")
     result = reflect_outer_walls(new, domain)
     collision_count = 0
     clearance = 16.0 * np.finfo(np.float64).eps * max(
@@ -184,7 +188,7 @@ def enforce_particle_no_flux(
     )
     for index in range(old.shape[0]):
         candidate = result[index]
-        for obstacle in obstacles:
+        for obstacle in solid_geometry:
             hit = _first_rectangle_hit(old[index], candidate, obstacle)
             if hit is None and not obstacle.contains(candidate[None, :])[0]:
                 continue
@@ -213,4 +217,3 @@ def enforce_particle_no_flux(
             candidate = contact + clearance * normal
         result[index] = candidate
     return reflect_outer_walls(result, domain), collision_count
-
