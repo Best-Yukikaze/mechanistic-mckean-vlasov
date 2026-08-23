@@ -40,7 +40,7 @@ def overdamped_langevin_step(
     external: ExternalPotential | None = None,
     controlled_potential: ControlledPotentialBackend | None = None,
     control: np.ndarray | None = None,
-    pair_chunk_size: int = 256,
+    pair_chunk_size: int = 64,
 ) -> tuple[np.ndarray, LangevinStepDiagnostics]:
     """Euler-Maruyama step for the overdamped interacting system.
 
