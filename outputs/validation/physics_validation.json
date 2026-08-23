@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-08-23T17:45:52.969768+00:00",
+  "model_status": "Phase 1-3 numerical baseline; pair/external test potentials are TEST_ONLY_NOT_FINAL_PHYSICS",
+  "primary_state": "rho(x,t)",
+  "reinforcement_learning_implemented": false,
+  "physical_parameters": {
+    "particle_mass_kg": 1e-15,
+    "drag_coefficient_kg_per_s": 1e-08,
+    "temperature_kelvin": 298.15,
+    "boltzmann_constant_joule_per_kelvin": 1.380649e-23,
+    "mobility_m_per_newton_second": 100000000.0,
+    "thermal_energy_joule": 4.1164049935e-21,
+    "diffusion_m2_per_s": 4.1164049935e-13,
+    "velocity_relaxation_time_s": 1.0000000000000001e-07
+  },
+  "test_pair_potential": {
+    "name": "test_only_gaussian_repulsion",
+    "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+    "energy_scale_joule": 6.174607490250001e-21,
+    "length_scale_m": 1.2e-06
+  },
+  "test_external_potential": {
+    "name": "test_only_harmonic_external_potential",
+    "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+    "stiffness_newton_per_m": 7e-09
+  },
+  "scenarios": {
+    "pure_diffusion_W0_V0": {
+      "initial_mass": 1.0,
+      "final_mass": 0.9999999999999999,
+      "maximum_absolute_mass_error": 1.1102230246251565e-16,
+      "minimum_density_per_m2": 2.122557609801062e-26,
+      "total_clipped_negative_mass": 0.0,
+      "maximum_abs_flux_per_m_s": 23020.23360019628,
+      "initial_mean_m": [
+        8.00000000000106e-06,
+        1.0499999999952674e-05
+      ],
+      "final_mean_m": [
+        8.00000000010331e-06,
+        1.0499999999745859e-05
+      ],
+      "initial_covariance_m2": [
+        [
+          1.209999999991381e-12,
+          2.2868538084310267e-30
+        ],
+        [
+          2.2868538084310267e-30,
+          1.959999999541598e-12
+        ]
+      ],
+      "final_covariance_m2": [
+        [
+          1.6216404977053883e-12,
+          3.010801135308176e-29
+        ],
+        [
+          3.010801135308176e-29,
+          2.3716404948497066e-12
+        ]
+      ],
+      "initial_free_energy_joule": 7.087646964924116e-21,
+      "final_free_energy_joule": 6.092614336813428e-21,
+      "maximum_energy_increment_joule": 0.0,
+      "total_fvm_substeps": 10,
+      "analytic_variance_m2": [
+        1.6216404993413809e-12,
+        2.371640498891598e-12
+      ],
+      "relative_variance_error": [
+        1.0088503622740796e-09,
+        1.7042596639496435e-09
+      ]
+    },
+    "external_only_W0": {
+      "initial_mass": 1.0,
+      "final_mass": 0.9999999999999998,
+      "maximum_absolute_mass_error": 1.1102230246251565e-16,
+      "minimum_density_per_m2": 2.122557609801062e-26,
+      "total_clipped_negative_mass": 0.0,
+      "maximum_abs_flux_per_m_s": 176855.05038589143,
+      "initial_mean_m": [
+        8.00000000000106e-06,
+        1.0499999999952674e-05
+      ],
+      "final_mean_m": [
+        8.683179943206184e-06,
+        1.0233620420144489e-05
+      ],
+      "initial_covariance_m2": [
+        [
+          1.209999999991381e-12,
+          2.2868538084310267e-30
+        ],
+        [
+          2.2868538084310267e-30,
+          1.959999999541598e-12
+        ]
+      ],
+      "final_covariance_m2": [
+        [
+          1.0967528074145887e-12,
+          4.850169741157317e-15
+        ],
+        [
+          4.850169741157317e-15,
+          1.4575240272597386e-12
+        ]
+      ],
+      "initial_free_energy_joule": 4.3557646962939555e-20,
+      "final_free_energy_joule": 3.029095034258797e-20,
+      "maximum_energy_increment_joule": 0.0,
+      "total_fvm_substeps": 30
+    },
+    "pair_only_nonzero_W": {
+      "initial_mass": 1.0,
+      "final_mass": 1.0,
+      "maximum_absolute_mass_error": 0.0,
+      "minimum_density_per_m2": 2.122557609801062e-26,
+      "total_clipped_negative_mass": 0.0,
+      "maximum_abs_flux_per_m_s": 30060.405903177125,
+      "initial_mean_m": [
+        8.00000000000106e-06,
+        1.0499999999952674e-05
+      ],
+      "final_mean_m": [
+        8.000004397207809e-06,
+        1.050000185136274e-05
+      ],
+      "initial_covariance_m2": [
+        [
+          1.209999999991381e-12,
+          2.2868538084310267e-30
+        ],
+        [
+          2.2868538084310267e-30,
+          1.959999999541598e-12
+        ]
+      ],
+      "final_covariance_m2": [
+        [
+          1.6947787150859999e-12,
+          1.4998592323865726e-23
+        ],
+        [
+          1.4998592323865726e-23,
+          2.4508148859404553e-12
+        ]
+      ],
+      "initial_free_energy_joule": 8.065032268912848e-21,
+      "final_free_energy_joule": 6.733239395852164e-21,
+      "maximum_energy_increment_joule": 0.0,
+      "total_fvm_substeps": 10
+    },
+    "complete_MV_nonzero_V_nonzero_W": {
+      "initial_mass": 1.0,
+      "final_mass": 1.0,
+      "maximum_absolute_mass_error": 1.1102230246251565e-16,
+      "minimum_density_per_m2": 2.122557609801062e-26,
+      "total_clipped_negative_mass": 0.0,
+      "maximum_abs_flux_per_m_s": 175940.17136649875,
+      "initial_mean_m": [
+        8.00000000000106e-06,
+        1.0499999999952674e-05
+      ],
+      "final_mean_m": [
+        8.687626501608e-06,
+        1.0232671563510029e-05
+      ],
+      "initial_covariance_m2": [
+        [
+          1.209999999991381e-12,
+          2.2868538084310267e-30
+        ],
+        [
+          2.2868538084310267e-30,
+          1.959999999541598e-12
+        ]
+      ],
+      "final_covariance_m2": [
+        [
+          1.1430216002015385e-12,
+          4.917282900815567e-15
+        ],
+        [
+          4.917282900815567e-15,
+          1.5026862270534407e-12
+        ]
+      ],
+      "initial_free_energy_joule": 4.453503226692829e-20,
+      "final_free_energy_joule": 3.14945016782128e-20,
+      "maximum_energy_increment_joule": 0.0,
+      "total_fvm_substeps": 30
+    },
+    "no_flux_obstacle": {
+      "initial_mass": 1.0,
+      "final_mass": 1.0000000000000002,
+      "maximum_absolute_mass_error": 1.1102230246251565e-16,
+      "minimum_density_per_m2": 1.049458455994245e-48,
+      "total_clipped_negative_mass": 0.0,
+      "maximum_abs_flux_per_m_s": 433242.3614318905,
+      "initial_mean_m": [
+        6.489093359866884e-06,
+        9.999999999999987e-06
+      ],
+      "final_mean_m": [
+        7.5740547634815445e-06,
+        9.87181570425248e-06
+      ],
+      "initial_covariance_m2": [
+        [
+          9.704248643626076e-13,
+          2.882180633376322e-30
+        ],
+        [
+          2.882180633376322e-30,
+          1.0000018432361272e-12
+        ]
+      ],
+      "final_covariance_m2": [
+        [
+          9.672298820249095e-13,
+          3.505722346140467e-15
+        ],
+        [
+          3.505722346140467e-15,
+          9.765236346045119e-13
+        ]
+      ],
+      "initial_free_energy_joule": 7.417233314751267e-20,
+      "final_free_energy_joule": 4.776483335602569e-20,
+      "maximum_energy_increment_joule": 0.0,
+      "total_fvm_substeps": 30,
+      "maximum_density_in_solid_per_m2": 0.0
+    },
+    "particle_Monte_Carlo_vs_MV": {
+      "particle_count": 900,
+      "same_external_potential": "test_only_harmonic_external_potential",
+      "same_pair_potential": "test_only_gaussian_repulsion",
+      "same_diffusion_m2_per_s": 4.1164049935e-13,
+      "mean_error_m": [
+        2.7075349187655456e-08,
+        -3.594304965630372e-08
+      ],
+      "covariance_relative_error": [
+        0.006769802103314338,
+        0.1235995385695166
+      ],
+      "relative_L2_density_error": 0.13619528487476323,
+      "JS_divergence_nats": 0.01434042055557256,
+      "centroid_trajectory_RMSE_m": 3.63655559954263e-08,
+      "MV_free_energy_joule": 2.1519883986566968e-20,
+      "particle_empirical_free_energy_joule": 2.1038934471021943e-20
+    }
+  }
+}
