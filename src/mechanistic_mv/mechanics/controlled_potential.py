@@ -31,14 +31,14 @@ class ZeroControlledPotential:
     def potential_joule(
         self, positions_m: np.ndarray, control: np.ndarray | None = None
     ) -> np.ndarray:
-        del control
+        _require_null_control(control)
         points = _points(positions_m)
         return np.zeros(points.shape[:-1], dtype=np.float64)
 
     def force_newton(
         self, positions_m: np.ndarray, control: np.ndarray | None = None
     ) -> np.ndarray:
-        del control
+        _require_null_control(control)
         return np.zeros_like(_points(positions_m))
 
 
@@ -93,3 +93,15 @@ def _points(values: np.ndarray) -> np.ndarray:
     if points.shape[-1:] != (2,) or not np.all(np.isfinite(points)):
         raise ValueError("positions must be finite and end in two components")
     return points
+
+
+def _require_null_control(control: np.ndarray | None) -> None:
+    """Reject a nonzero command when no actuator backend is installed."""
+
+    if control is None:
+        return
+    vector = np.asarray(control, dtype=np.float64)
+    if vector.shape != (2,) or not np.all(np.isfinite(vector)):
+        raise ValueError("null-backend control must be a finite two-vector")
+    if np.any(vector != 0.0):
+        raise ValueError("nonzero control requires a physical potential backend")
