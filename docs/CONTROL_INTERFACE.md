@@ -29,6 +29,10 @@ physical backend and verify `force = -gradient(potential)`.
 The current `TestOnlyUniformFieldPotential` exists only to test sign, units,
 and data flow. Its status is `TEST_ONLY_NOT_FINAL_PHYSICS`.
 
+The null backend accepts `None` or an exact zero two-vector. It raises on a
+nonzero command so a missing actuator cannot silently turn an apparent control
+experiment into uncontrolled evolution.
+
 ## Gate before controller development
 
 Select and calibrate a real approximately two-dimensional particle system with:
