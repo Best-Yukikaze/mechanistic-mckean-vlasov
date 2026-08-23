@@ -84,7 +84,7 @@ def mean_field_pair_force_newton(
     positions_m: np.ndarray,
     potential: PairPotential,
     *,
-    chunk_size: int = 256,
+    chunk_size: int = 64,
 ) -> np.ndarray:
     """Return ``(1/N) sum_{j != i} F_pair(X_i-X_j)`` in newtons."""
 

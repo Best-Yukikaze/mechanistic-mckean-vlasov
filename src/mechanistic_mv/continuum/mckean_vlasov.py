@@ -105,11 +105,9 @@ class McKeanVlasovSolver:
         effective_potential = (
             self.external_potential_joule + controlled_potential + interaction
         )
-        nonconservative_force = np.zeros((self.grid.ny, self.grid.nx, 2))
         fluxes = compute_face_fluxes(
             density,
             effective_potential,
-            nonconservative_force,
             self.grid,
             diffusion_m2_per_s=self.parameters.diffusion_m2_per_s,
             mobility_m_per_newton_second=(
