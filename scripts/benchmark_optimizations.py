@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import json
+import platform
+import subprocess
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 
 import numpy as np
+import scipy
 
 from mechanistic_mv.continuum.convolution import (
     FFTPairConvolver,
@@ -35,6 +40,24 @@ def _timed(callable_object, repeats: int = 3) -> tuple[float, object]:
     return float(min(durations)), result
 
 
+def _git_revision() -> str:
+    try:
+        return subprocess.check_output(
+            [
+                "git",
+                "-c",
+                f"safe.directory={PROJECT_ROOT.as_posix()}",
+                "rev-parse",
+                "HEAD",
+            ],
+            cwd=PROJECT_ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unavailable"
+
+
 def main() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     parameters = PhysicalParameters()
@@ -50,9 +73,11 @@ def main() -> None:
         density = rng.uniform(0.5, 1.5, size=(size, size))
         density /= np.sum(density) * grid.cell_area_m2
         convolver = FFTPairConvolver(grid, potential)
+        direct_pair_convolution_joule(density, grid, potential)
+        convolver.convolve_joule(density)
         direct_seconds, direct = _timed(
             lambda: direct_pair_convolution_joule(density, grid, potential),
-            repeats=2,
+            repeats=5,
         )
         fft_seconds, accelerated = _timed(
             lambda: convolver.convolve_joule(density), repeats=5
@@ -78,7 +103,7 @@ def main() -> None:
             lambda selected=chunk_size: mean_field_pair_force_newton(
                 positions, potential, chunk_size=selected
             ),
-            repeats=2,
+            repeats=3,
         )
         if reference is None:
             reference = np.asarray(force)
@@ -108,6 +133,20 @@ def main() -> None:
     )
     report = {
         "benchmark_scope": "implementation optimization, not model calibration",
+        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "git_revision_at_run": _git_revision(),
+        "timing_method": (
+            "one untimed warm-up for convolution, then minimum of five equal "
+            "repeats; particle force uses minimum of three repeats"
+        ),
+        "runtime": {
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "machine": platform.machine(),
+            "python": sys.version,
+            "numpy": np.__version__,
+            "scipy": scipy.__version__,
+        },
         "pair_potential_status": potential.physical_status,
         "fft_convolution": convolution_results,
         "chunked_particle_force": pair_results,

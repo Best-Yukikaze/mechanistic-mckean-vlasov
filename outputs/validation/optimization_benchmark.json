@@ -1,5 +1,16 @@
 {
   "benchmark_scope": "implementation optimization, not model calibration",
+  "generated_utc": "2026-08-23T17:54:19.182041+00:00",
+  "git_revision_at_run": "9a1af70f843d4cd4dfe5e118f11c67627c449704",
+  "timing_method": "one untimed warm-up for convolution, then minimum of five equal repeats; particle force uses minimum of three repeats",
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  },
   "pair_potential_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
   "fft_convolution": [
     {
@@ -7,9 +18,9 @@
         16,
         16
       ],
-      "direct_seconds": 0.004478000000744942,
-      "fft_seconds": 9.049999971466605e-05,
-      "speedup": 49.48066314766248,
+      "direct_seconds": 0.003443699999479577,
+      "fft_seconds": 7.680000089749228e-05,
+      "speedup": 44.83984321922088,
       "maximum_absolute_error_joule": 1.1754943508222875e-37
     },
     {
@@ -17,9 +28,9 @@
         24,
         24
       ],
-      "direct_seconds": 0.013859000000593369,
-      "fft_seconds": 0.00011940000149479602,
-      "speedup": 116.07202535250727,
+      "direct_seconds": 0.010048699999970268,
+      "fft_seconds": 9.580000005371403e-05,
+      "speedup": 104.89248428325752,
       "maximum_absolute_error_joule": 1.5281426560689738e-37
     },
     {
@@ -27,9 +38,9 @@
         32,
         32
       ],
-      "direct_seconds": 0.030002099998455378,
-      "fft_seconds": 0.00017450000086682849,
-      "speedup": 171.93180429467046,
+      "direct_seconds": 0.023907699998744647,
+      "fft_seconds": 0.00012430000060703605,
+      "speedup": 192.33869575211685,
       "maximum_absolute_error_joule": 9.4039548065783e-38
     }
   ],
@@ -37,35 +48,35 @@
     {
       "particle_count": 1200,
       "chunk_size": 64,
-      "seconds": 0.07980769999994664,
+      "seconds": 0.06426509999982954,
       "theoretical_displacement_array_bytes": 1228800,
       "maximum_absolute_difference_newton": 0.0
     },
     {
       "particle_count": 1200,
       "chunk_size": 128,
-      "seconds": 0.08551860000079614,
+      "seconds": 0.06479609999951208,
       "theoretical_displacement_array_bytes": 2457600,
       "maximum_absolute_difference_newton": 0.0
     },
     {
       "particle_count": 1200,
       "chunk_size": 256,
-      "seconds": 0.08559129999957804,
+      "seconds": 0.06318640000063169,
       "theoretical_displacement_array_bytes": 4915200,
       "maximum_absolute_difference_newton": 0.0
     },
     {
       "particle_count": 1200,
       "chunk_size": 1200,
-      "seconds": 0.08623480000096606,
+      "seconds": 0.06599699999969744,
       "theoretical_displacement_array_bytes": 23040000,
       "maximum_absolute_difference_newton": 0.0
     }
   ],
   "zero_interaction_fast_path": {
     "particle_count": 100000,
-    "seconds": 0.0004490000010264339,
+    "seconds": 0.00037290000000211876,
     "maximum_absolute_force_newton": 0.0
   }
 }

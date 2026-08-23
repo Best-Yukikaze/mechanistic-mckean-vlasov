@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import platform
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -11,6 +14,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 
 from mechanistic_mv.continuum.diagnostics import (
     density_moments,
@@ -36,6 +40,24 @@ from mechanistic_mv.particle_sim.langevin_interacting import overdamped_langevin
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "validation"
+
+
+def _git_revision() -> str:
+    try:
+        return subprocess.check_output(
+            [
+                "git",
+                "-c",
+                f"safe.directory={PROJECT_ROOT.as_posix()}",
+                "rev-parse",
+                "HEAD",
+            ],
+            cwd=PROJECT_ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unavailable"
 
 
 def _evolve(
@@ -82,8 +104,8 @@ def _scenario_metrics(
     last = density_moments(final, solver.grid)
     energies = np.asarray(trajectory["free_energy_joule"], dtype=np.float64)
     return {
-        "initial_mass": first.mass,
-        "final_mass": last.mass,
+        "initial_mass": solver.mass(initial),
+        "final_mass": solver.mass(final),
         "maximum_absolute_mass_error": trajectory["maximum_absolute_mass_error"],
         "minimum_density_per_m2": float(
             np.min(np.asarray(trajectory["minimum_density_per_m2"]))
@@ -256,15 +278,108 @@ def main() -> None:
         ).total_joule,
     }
 
+    continuum_names = (
+        "pure_diffusion_W0_V0",
+        "external_only_W0",
+        "pair_only_nonzero_W",
+        "complete_MV_nonzero_V_nonzero_W",
+        "no_flux_obstacle",
+    )
+    maximum_mass_error = max(
+        float(scenarios[name]["maximum_absolute_mass_error"])
+        for name in continuum_names
+    )
+    maximum_clipped_mass = max(
+        float(scenarios[name]["total_clipped_negative_mass"])
+        for name in continuum_names
+    )
+    maximum_energy_increment = max(
+        float(scenarios[name]["maximum_energy_increment_joule"])
+        for name in continuum_names
+    )
+    comparison = scenarios["particle_Monte_Carlo_vs_MV"]
+    checks = {
+        "continuum_mass_error": {
+            "passed": maximum_mass_error <= 1.0e-12,
+            "value": maximum_mass_error,
+            "upper_limit": 1.0e-12,
+        },
+        "no_material_negative_mass_clipping": {
+            "passed": maximum_clipped_mass == 0.0,
+            "value": maximum_clipped_mass,
+            "upper_limit": 0.0,
+        },
+        "passive_free_energy_nonincrease": {
+            "passed": maximum_energy_increment <= 1.0e-30,
+            "value_joule": maximum_energy_increment,
+            "upper_limit_joule": 1.0e-30,
+        },
+        "pure_diffusion_variance": {
+            "passed": max(diffusion_metrics["relative_variance_error"]) <= 1.0e-4,
+            "maximum_relative_error": max(
+                diffusion_metrics["relative_variance_error"]
+            ),
+            "upper_limit": 1.0e-4,
+        },
+        "obstacle_solid_density": {
+            "passed": obstacle_metrics["maximum_density_in_solid_per_m2"] == 0.0,
+            "value_per_m2": obstacle_metrics["maximum_density_in_solid_per_m2"],
+            "upper_limit_per_m2": 0.0,
+        },
+        "particle_MV_JS_divergence": {
+            "passed": comparison["JS_divergence_nats"] <= 0.05,
+            "value_nats": comparison["JS_divergence_nats"],
+            "upper_limit_nats": 0.05,
+        },
+        "particle_MV_relative_L2": {
+            "passed": comparison["relative_L2_density_error"] <= 0.25,
+            "value": comparison["relative_L2_density_error"],
+            "upper_limit": 0.25,
+        },
+        "particle_MV_centroid_trajectory": {
+            "passed": comparison["centroid_trajectory_RMSE_m"] <= 2.0e-7,
+            "value_m": comparison["centroid_trajectory_RMSE_m"],
+            "upper_limit_m": 2.0e-7,
+        },
+    }
+    overall_passed = all(bool(check["passed"]) for check in checks.values())
     report = {
         "schema_version": 1,
         "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "git_revision_at_run": _git_revision(),
+        "runtime": {
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "machine": platform.machine(),
+            "python": sys.version,
+            "numpy": np.__version__,
+            "scipy": scipy.__version__,
+        },
         "model_status": (
             "Phase 1-3 numerical baseline; pair/external test potentials are "
             "TEST_ONLY_NOT_FINAL_PHYSICS"
         ),
         "primary_state": "rho(x,t)",
         "reinforcement_learning_implemented": False,
+        "overall_passed": overall_passed,
+        "checks": checks,
+        "configuration": {
+            "continuum_domain_x_limits_m": list(domain.x_limits_m),
+            "continuum_domain_y_limits_m": list(domain.y_limits_m),
+            "continuum_grid": [grid.ny, grid.nx],
+            "continuum_number_of_steps": 10,
+            "continuum_step_duration_s": 0.05,
+            "obstacle_x_limits_m": list(obstacle.x_limits_m),
+            "obstacle_y_limits_m": list(obstacle.y_limits_m),
+            "particle_comparison_grid": [
+                comparison_grid.ny,
+                comparison_grid.nx,
+            ],
+            "particle_count": int(particles.shape[0]),
+            "particle_number_of_steps": 30,
+            "particle_step_duration_s": 0.01,
+            "random_seed": 20260824,
+        },
         "physical_parameters": parameters.as_dict(),
         "test_pair_potential": {
             "name": pair.name,
@@ -278,6 +393,7 @@ def main() -> None:
             "stiffness_newton_per_m": external.stiffness_newton_per_m,
         },
         "scenarios": scenarios,
+        "continuum_trajectories": trajectories,
     }
     report_path = OUTPUT_DIRECTORY / "physics_validation.json"
     report_path.write_text(
@@ -295,6 +411,8 @@ def main() -> None:
     )
     _plot_diagnostics(trajectories, np.asarray(mv_centroids), np.asarray(particle_centroids))
     print(report_path)
+    if not overall_passed:
+        raise RuntimeError("one or more physics validation gates failed")
 
 
 def _plot_overview(

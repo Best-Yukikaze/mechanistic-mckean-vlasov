@@ -11,8 +11,9 @@ real constitutive laws.
 - **Verification:** chunk sizes 64, 128, 256, and 1200 gave zero numerical
   difference for 1200 particles.
 - **Measured result:** the displacement array bound falls from 23.04 MB at a
-  full 1200-row block to 1.23 MB at 64 rows. Runtime remained approximately
-  0.073–0.077 s, so 256 is the default memory/speed compromise.
+  full 1200-row block to 1.23 MB at 64 rows. All measured chunk runtimes are
+  close on the recorded 1200-particle case; 64 rows is the lowest-memory tested
+  setting and is used as the default after this measurement.
 
 ## O2 — Zero-interaction fast path
 
@@ -20,18 +21,21 @@ real constitutive laws.
   displacements.
 - **Reason:** diffusion/Fokker–Planck ablations should not pay `O(N²)` cost.
 - **Verification:** 100,000 particles returned exactly zero force.
-- **Measured result:** 0.00036 s in the recorded benchmark.
+- **Measured result:** sub-millisecond in the saved benchmark. Exact timing is
+  kept only in the JSON because it varies between runs.
 
 ## O3 — Cached FFT physical convolution
 
-- **Changed:** build the translation-invariant `W` offset kernel once and use
-  zero-padded linear FFT convolution. The direct `O(cells²)` definition remains
-  available as the reference.
+- **Changed:** build the translation-invariant `W` spatial offset kernel once
+  and use zero-padded linear FFT convolution. SciPy performs the transforms on
+  each call; this implementation does not claim to cache the frequency-domain
+  kernel. The direct `O(cells²)` definition remains available as the reference.
 - **Reason:** `W*rho` is recomputed at every MV substep.
 - **Verification:** direct and FFT outputs agree within about `1.6e-37 J`, and
   tests explicitly check the required `dx*dy` factor and kernel alignment.
-- **Measured result:** speedups of 53.3x, 107.5x, and 195.0x on 16², 24², and
-  32² grids respectively in the saved benchmark.
+- **Measured result:** tens to roughly two orders of magnitude faster on the
+  saved 16²–32² cases. Exact speedups are intentionally not duplicated here;
+  the versioned JSON is the authoritative timing record.
 
 ## O4 — Cached geometry and face masks
 
@@ -67,4 +71,5 @@ real constitutive laws.
 ## Reproduce measurements
 
 Run `scripts/benchmark_optimizations.py`. Exact wall-clock values vary by
-machine; `outputs/validation/optimization_benchmark.json` is the recorded run.
+machine; `outputs/validation/optimization_benchmark.json` is the authoritative
+record and includes hardware/software metadata, timing policy, and Git revision.
