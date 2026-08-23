@@ -1,6 +1,15 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-08-23T17:53:19.171456+00:00",
+  "generated_utc": "2026-08-23T17:54:24.142149+00:00",
+  "git_revision_at_run": "9a1af70f843d4cd4dfe5e118f11c67627c449704",
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  },
   "model_status": "Phase 1-3 numerical baseline; pair/external test potentials are TEST_ONLY_NOT_FINAL_PHYSICS",
   "primary_state": "rho(x,t)",
   "reinforcement_learning_implemented": false,
