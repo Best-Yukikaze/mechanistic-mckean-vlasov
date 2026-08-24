@@ -405,7 +405,7 @@ def main() -> None:
         > 0.4,
     }
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "git_revision_at_run": _git_revision(),
         "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
