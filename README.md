@@ -14,6 +14,10 @@ equation; they are not the control environment.
 - A real particle/actuator platform and calibrated `V`, `W`, and `D` have not
   been selected. Results therefore validate the modelling and numerical chain,
   not a particular material or experiment.
+- Magnetic particles, magnetic fields, coils, magnetophoresis, and magnetic
+  dipole interactions are explicitly outside this project's selected scope.
+  The future real platform must be non-magnetic while still supplying a
+  physical controlled `V(x; u)` and a nonzero physical `W(x-y)`.
 - No environment, reward, CNN, DQN, replay buffer, or RL training is included.
 
 ## Model and units

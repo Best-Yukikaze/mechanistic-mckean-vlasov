@@ -6,11 +6,18 @@ This repository implements only the mechanics, interacting Langevin,
 McKean-Vlasov continuum, and validation phases. Do not add RL until the user
 explicitly approves it after Phase 1-4 validation.
 
+Magnetic particles, magnetic fields, coils, magnetophoresis, and magnetic
+dipole interactions are out of scope for this project. Do not select or
+implement a magnetic physical backend. The eventual real non-magnetic platform
+must still provide physically sourced ``V(x; u)``, nonzero ``W(x-y)``, and
+diffusion parameters before any test backend is promoted.
+
 ## Physical integrity
 
 - Every parameter has explicit SI units or is explicitly labelled dimensionless.
 - A pair potential must name its physical source. The bundled Gaussian backend
   is `TEST-ONLY` and must never be described as the final material model.
+- Do not reinterpret the generic potential interfaces as magnetic models.
 - Controls act through force fields. They never directly move particles or edit
   density arrays.
 - Solid obstacles are no-flux geometry, not reward penalties or artificial
