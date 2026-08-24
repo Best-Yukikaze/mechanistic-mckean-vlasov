@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 import numpy as np
@@ -25,8 +25,8 @@ class ControlledPotentialBackend(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class ZeroControlledPotential:
-    name: str = "zero_controlled_potential"
-    physical_status: str = "physical null control input"
+    name: str = field(default="zero_controlled_potential", init=False)
+    physical_status: str = field(default="physical null control input", init=False)
 
     def potential_joule(
         self, positions_m: np.ndarray, control: np.ndarray | None = None
@@ -52,8 +52,10 @@ class TestOnlyUniformFieldPotential:
 
     maximum_force_newton: float
     reference_position_m: tuple[float, float] = (0.0, 0.0)
-    name: str = "test_only_not_final_physics_uniform_field_potential"
-    physical_status: str = "TEST_ONLY_NOT_FINAL_PHYSICS"
+    name: str = field(
+        default="test_only_not_final_physics_uniform_field_potential", init=False
+    )
+    physical_status: str = field(default="TEST_ONLY_NOT_FINAL_PHYSICS", init=False)
 
     def __post_init__(self) -> None:
         reference = np.asarray(self.reference_position_m, dtype=np.float64)
@@ -61,6 +63,11 @@ class TestOnlyUniformFieldPotential:
             raise ValueError("reference_position_m must be a finite two-vector")
         if not np.isfinite(self.maximum_force_newton) or self.maximum_force_newton <= 0:
             raise ValueError("maximum_force_newton must be finite and positive")
+        object.__setattr__(
+            self,
+            "reference_position_m",
+            (float(reference[0]), float(reference[1])),
+        )
 
     def potential_joule(
         self, positions_m: np.ndarray, control: np.ndarray | None
