@@ -6,17 +6,22 @@
   "physical_status": "TEST_ONLY_NOT_CALIBRATED",
   "test_only_fixture": true,
   "overall_passed": true,
+  "minimum_supported_distance_m": 0.0,
+  "continuum_ready": true,
+  "short_range_classification": "CONTINUUM_READY",
+  "continuum_admission_status": "PASSED",
+  "usage_scope": "PARTICLES_AND_CONTINUUM",
   "kac_scaling_implemented_by_this_script": false,
   "metadata_file": "TEST_ONLY_effective_potential_metadata.json",
   "data_file": "TEST_ONLY_effective_potential.csv",
-  "generated_at_utc": "2026-08-24T08:43:28.627070+00:00",
-  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "generated_at_utc": "2026-08-24T12:02:31.064353+00:00",
+  "git_revision_at_run": "31a595e071af4db030c7a98b88cec7ca8945424d",
   "git_dirty_at_run": false,
   "command": [
-    "scripts/build_effective_potential.py",
+    "scripts\\build_effective_potential.py",
     "--test-only-fixture",
     "--output-directory",
-    "tmp/phase6_artifacts/pair_interaction"
+    "tmp\\formal_density_scaling_31a595e\\pair_interaction"
   ],
   "runtime": {
     "platform": "Windows-10-10.0.26200-SP0",

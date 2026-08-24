@@ -1,0 +1,630 @@
+{
+  "schema_name": "mechanistic_mv.density_scaling_validation",
+  "schema_version": 1,
+  "artifact_type": "DENSITY_SCALING_VALIDATION",
+  "workflow_status": "TEST_ONLY_PASSED",
+  "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+  "calibration_status": "TEST_ONLY_NOT_CALIBRATED",
+  "test_only_fixture": true,
+  "validation_scope": "TEST_ONLY_DENSITY_CONTRACT_REGRESSION_NOT_HYDROGEL_PHYSICAL_VALIDATION",
+  "formulas": {
+    "density": "n(x)=N*rho(x)",
+    "pair_potential": "W_Kac(r)=N*W_pair(r)",
+    "particle_force": "(1/N)*sum_j F_Kac=sum_j F_pair",
+    "particle_energy": "sum(W_Kac)/(2N)=sum(W_pair)/2",
+    "convolution": "W_Kac*rho=W_pair*n",
+    "flux": "J_n=N*J_rho",
+    "finite_volume_step": "n^(k+1)=N*rho^(k+1)",
+    "free_energy": "F_number=N*F_probability when n_ref=N*rho_ref"
+  },
+  "parameters": {
+    "fixture_name": "TEST_ONLY_GAUSSIAN_REPULSION_NOT_HYDROGEL",
+    "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+    "population_count": 6,
+    "seed": 20260831,
+    "rng_bit_generator": "PCG64",
+    "physical_parameters": {
+      "particle_mass_kg": 1.3e-15,
+      "drag_coefficient_kg_per_s": 1.2e-08,
+      "temperature_kelvin": 301.2,
+      "boltzmann_constant_joule_per_kelvin": 1.380649e-23,
+      "mobility_m_per_newton_second": 83333333.33333333,
+      "thermal_energy_joule": 4.158514788e-21,
+      "diffusion_m2_per_s": 3.4654289899999994e-13,
+      "velocity_relaxation_time_s": 1.0833333333333334e-07
+    },
+    "domain_x_m": [
+      0.0,
+      7.3e-06
+    ],
+    "domain_y_m": [
+      0.0,
+      4.7e-06
+    ],
+    "grid_shape": [
+      6,
+      7
+    ],
+    "initial_centre_m": [
+      3.4e-06,
+      2.18e-06
+    ],
+    "initial_standard_deviation_m": 7.3e-07,
+    "single_pair_energy_scale_joule": 1.5386504715599998e-21,
+    "kac_energy_scale_joule": 9.231902829359999e-21,
+    "pair_length_scale_m": 9.3e-07,
+    "particle_dt_s": 0.00075,
+    "particle_pair_chunk_size": 3,
+    "continuum_cfl_safety": 0.83,
+    "finite_volume_dt_s": 0.0008,
+    "particle_positions_m": [
+      [
+        9e-07,
+        8e-07
+      ],
+      [
+        2.05e-06,
+        1.25e-06
+      ],
+      [
+        3.4e-06,
+        9.5e-07
+      ],
+      [
+        1.55e-06,
+        2.85e-06
+      ],
+      [
+        4.65e-06,
+        3.3e-06
+      ],
+      [
+        6.25e-06,
+        3.95e-06
+      ]
+    ],
+    "parameter_source": "fixed TEST_ONLY density-contract regression fixture; not calibrated"
+  },
+  "thresholds": {
+    "empirical_probability_mass": {
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "empirical_number_mass": {
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "initial_probability_mass": {
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "initial_number_mass": {
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "empirical_number_equals_N_probability": {
+      "maximum_allowed_absolute_error": 0.0,
+      "absolute_tolerance": 0.0,
+      "relative_tolerance": 0.0,
+      "unit": "1/m^2",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "initial_number_equals_N_probability": {
+      "maximum_allowed_absolute_error": 0.0008076975523487004,
+      "absolute_tolerance": 0.0,
+      "relative_tolerance": 5e-16,
+      "unit": "1/m^2",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "kac_potential_scale": {
+      "maximum_allowed_absolute_error": 0.0,
+      "absolute_tolerance": 0.0,
+      "relative_tolerance": 0.0,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "particle_force_equivalence": {
+      "maximum_allowed_absolute_error": 1.209088106980386e-30,
+      "absolute_tolerance": 1e-30,
+      "relative_tolerance": 2e-16,
+      "unit": "N",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "one_step_langevin_equivalence": {
+      "maximum_allowed_absolute_error": 1e-21,
+      "absolute_tolerance": 1e-21,
+      "relative_tolerance": 0.0,
+      "unit": "m",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "particle_total_energy_equivalence": {
+      "maximum_allowed_absolute_error": 1e-32,
+      "absolute_tolerance": 1e-32,
+      "relative_tolerance": 0.0,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "direct_convolution_convention_equivalence": {
+      "maximum_allowed_absolute_error": 2.6531966466550445e-35,
+      "absolute_tolerance": 1e-35,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "fft_convolution_convention_equivalence": {
+      "maximum_allowed_absolute_error": 2.6531966466550445e-35,
+      "absolute_tolerance": 1e-35,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "probability_direct_fft_equivalence": {
+      "maximum_allowed_absolute_error": 1.2021310977700296e-33,
+      "absolute_tolerance": 1e-34,
+      "relative_tolerance": 2e-13,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "number_direct_fft_equivalence": {
+      "maximum_allowed_absolute_error": 1.2021310977700294e-33,
+      "absolute_tolerance": 1e-34,
+      "relative_tolerance": 2e-13,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "solver_interaction_equivalence": {
+      "maximum_allowed_absolute_error": 2.6531966466550445e-35,
+      "absolute_tolerance": 1e-35,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "x_face_number_flux_equals_N_probability_flux": {
+      "maximum_allowed_absolute_error": 2.1913034493846243e-09,
+      "absolute_tolerance": 1e-22,
+      "relative_tolerance": 3e-15,
+      "unit": "1/(m*s)",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "y_face_number_flux_equals_N_probability_flux": {
+      "maximum_allowed_absolute_error": 2.1006972612383086e-09,
+      "absolute_tolerance": 1e-22,
+      "relative_tolerance": 3e-15,
+      "unit": "1/(m*s)",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "one_fvm_step_number_equals_N_probability": {
+      "maximum_allowed_absolute_error": 0.004840891256929324,
+      "absolute_tolerance": 1e-07,
+      "relative_tolerance": 3e-15,
+      "unit": "1/m^2",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "continuum_entropy_energy_scaling": {
+      "maximum_allowed_absolute_error": 1.0002502106649302e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "continuum_external_energy_scaling": {
+      "maximum_allowed_absolute_error": 1e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "continuum_interaction_energy_scaling": {
+      "maximum_allowed_absolute_error": 1.0003731048125364e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "continuum_total_free_energy_scaling": {
+      "maximum_allowed_absolute_error": 1.0006233154774665e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    }
+  },
+  "checks": {
+    "empirical_probability_mass": {
+      "passed": true,
+      "formula": "integral(rho dx)=1; integral(n dx)=N",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 1.0,
+      "reference_value": 1.0
+    },
+    "empirical_number_mass": {
+      "passed": true,
+      "formula": "integral(rho dx)=1; integral(n dx)=N",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 6.0,
+      "reference_value": 6.0
+    },
+    "initial_probability_mass": {
+      "passed": true,
+      "formula": "integral(rho dx)=1; integral(n dx)=N",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 1.0,
+      "reference_value": 1.0
+    },
+    "initial_number_mass": {
+      "passed": true,
+      "formula": "integral(rho dx)=1; integral(n dx)=N",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 8.526512829121202e-14,
+      "absolute_tolerance": 8.526512829121202e-14,
+      "relative_tolerance": 0.0,
+      "unit": "1",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 6.0,
+      "reference_value": 6.0
+    },
+    "empirical_number_equals_N_probability": {
+      "passed": true,
+      "formula": "n_empirical=N*rho_empirical",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 0.0,
+      "absolute_tolerance": 0.0,
+      "relative_tolerance": 0.0,
+      "unit": "1/m^2",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "initial_number_equals_N_probability": {
+      "passed": true,
+      "formula": "n_initial=N*rho_initial",
+      "maximum_absolute_error": 0.000244140625,
+      "maximum_relative_error": 2.1951179052152718e-16,
+      "maximum_allowed_absolute_error": 0.0008076975523487004,
+      "absolute_tolerance": 0.0,
+      "relative_tolerance": 5e-16,
+      "unit": "1/m^2",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "kac_potential_scale": {
+      "passed": true,
+      "formula": "W_Kac=N*W_pair",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 0.0,
+      "absolute_tolerance": 0.0,
+      "relative_tolerance": 0.0,
+      "unit": "J",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 9.231902829359999e-21,
+      "reference_value": 9.231902829359999e-21
+    },
+    "particle_force_equivalence": {
+      "passed": true,
+      "formula": "(1/N)*sum(F_Kac)=sum(F_pair)",
+      "maximum_absolute_error": 3.944304526105059e-31,
+      "maximum_relative_error": 1.2364018529306275e-15,
+      "maximum_allowed_absolute_error": 1.209088106980386e-30,
+      "absolute_tolerance": 1e-30,
+      "relative_tolerance": 2e-16,
+      "unit": "N",
+      "evaluated_value_count": 12,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "one_step_langevin_equivalence": {
+      "passed": true,
+      "formula": "same drift and same seeded Brownian increment",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 1e-21,
+      "absolute_tolerance": 1e-21,
+      "relative_tolerance": 0.0,
+      "unit": "m",
+      "evaluated_value_count": 12,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "one_step_langevin_no_collision": {
+      "passed": true,
+      "formula": "fixture remains away from the reflecting boundary",
+      "observed": [
+        0,
+        0
+      ],
+      "required": [
+        0,
+        0
+      ]
+    },
+    "particle_total_energy_equivalence": {
+      "passed": true,
+      "formula": "sum(W_Kac)/(2N)=sum(W_pair)/2",
+      "maximum_absolute_error": 3.76158192263132e-37,
+      "maximum_relative_error": 1.947779107527131e-16,
+      "maximum_allowed_absolute_error": 1e-32,
+      "absolute_tolerance": 1e-32,
+      "relative_tolerance": 0.0,
+      "unit": "J",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 1.931215869445773e-21,
+      "reference_value": 1.9312158694457726e-21
+    },
+    "direct_convolution_convention_equivalence": {
+      "passed": true,
+      "formula": "W_pair*n=W_Kac*rho (Direct)",
+      "maximum_absolute_error": 7.52316384526264e-37,
+      "maximum_relative_error": 3.33672769232546e-16,
+      "maximum_allowed_absolute_error": 2.6531966466550445e-35,
+      "absolute_tolerance": 1e-35,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "fft_convolution_convention_equivalence": {
+      "passed": true,
+      "formula": "W_pair*n=W_Kac*rho (FFT)",
+      "maximum_absolute_error": 1.504632769052528e-36,
+      "maximum_relative_error": 6.2495707701409515e-15,
+      "maximum_allowed_absolute_error": 2.6531966466550445e-35,
+      "absolute_tolerance": 1e-35,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "probability_direct_fft_equivalence": {
+      "passed": true,
+      "formula": "FFT(W_Kac*rho)=Direct(W_Kac*rho)",
+      "maximum_absolute_error": 2.256949153578792e-36,
+      "maximum_relative_error": 5.985066546902365e-15,
+      "maximum_allowed_absolute_error": 1.2021310977700296e-33,
+      "absolute_tolerance": 1e-34,
+      "relative_tolerance": 2e-13,
+      "unit": "J",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "number_direct_fft_equivalence": {
+      "passed": true,
+      "formula": "FFT(W_pair*n)=Direct(W_pair*n)",
+      "maximum_absolute_error": 2.256949153578792e-36,
+      "maximum_relative_error": 9.821647666711536e-15,
+      "maximum_allowed_absolute_error": 1.2021310977700294e-33,
+      "absolute_tolerance": 1e-34,
+      "relative_tolerance": 2e-13,
+      "unit": "J",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "solver_interaction_equivalence": {
+      "passed": true,
+      "formula": "W_pair*n=W_Kac*rho inside both solvers",
+      "maximum_absolute_error": 1.504632769052528e-36,
+      "maximum_relative_error": 6.2495707701409515e-15,
+      "maximum_allowed_absolute_error": 2.6531966466550445e-35,
+      "absolute_tolerance": 1e-35,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "x_face_number_flux_equals_N_probability_flux": {
+      "passed": true,
+      "formula": "J_n,x=N*J_rho,x",
+      "maximum_absolute_error": 4.0745362639427185e-10,
+      "maximum_relative_error": 1.5209828409844132e-15,
+      "maximum_allowed_absolute_error": 2.1913034493846243e-09,
+      "absolute_tolerance": 1e-22,
+      "relative_tolerance": 3e-15,
+      "unit": "1/(m*s)",
+      "evaluated_value_count": 48,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "y_face_number_flux_equals_N_probability_flux": {
+      "passed": true,
+      "formula": "J_n,y=N*J_rho,y",
+      "maximum_absolute_error": 3.2014213502407074e-10,
+      "maximum_relative_error": 1.7387480586751699e-15,
+      "maximum_allowed_absolute_error": 2.1006972612383086e-09,
+      "absolute_tolerance": 1e-22,
+      "relative_tolerance": 3e-15,
+      "unit": "1/(m*s)",
+      "evaluated_value_count": 49,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "one_fvm_step_number_equals_N_probability": {
+      "passed": true,
+      "formula": "n^(k+1)=N*rho^(k+1)",
+      "maximum_absolute_error": 0.000244140625,
+      "maximum_relative_error": 2.1932895792677944e-16,
+      "maximum_allowed_absolute_error": 0.004840891256929324,
+      "absolute_tolerance": 1e-07,
+      "relative_tolerance": 3e-15,
+      "unit": "1/m^2",
+      "evaluated_value_count": 42,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty"
+    },
+    "one_fvm_substep_each": {
+      "passed": true,
+      "formula": "requested dt is below half of both initial stable dt values",
+      "observed": [
+        1,
+        1
+      ],
+      "required": [
+        1,
+        1
+      ]
+    },
+    "continuum_entropy_energy_scaling": {
+      "passed": true,
+      "formula": "F_number[n;W_pair]=N*F_probability[rho;W_Kac]",
+      "maximum_absolute_error": 4.513898307157584e-36,
+      "maximum_relative_error": 5.412117395257531e-16,
+      "maximum_allowed_absolute_error": 1.0002502106649302e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 8.340355497670785e-21,
+      "reference_value": 8.34035549767078e-21
+    },
+    "continuum_external_energy_scaling": {
+      "passed": true,
+      "formula": "F_number[n;W_pair]=N*F_probability[rho;W_Kac]",
+      "maximum_absolute_error": 0.0,
+      "maximum_relative_error": 0.0,
+      "maximum_allowed_absolute_error": 1e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 0.0,
+      "reference_value": 0.0
+    },
+    "continuum_interaction_energy_scaling": {
+      "passed": true,
+      "formula": "F_number[n;W_pair]=N*F_probability[rho;W_Kac]",
+      "maximum_absolute_error": 3.009265538105056e-36,
+      "maximum_relative_error": 2.4196408920450225e-16,
+      "maximum_allowed_absolute_error": 1.0003731048125364e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 1.2436827084541858e-20,
+      "reference_value": 1.2436827084541855e-20
+    },
+    "continuum_total_free_energy_scaling": {
+      "passed": true,
+      "formula": "F_number[n;W_pair]=N*F_probability[rho;W_Kac]",
+      "maximum_absolute_error": 6.018531076210112e-36,
+      "maximum_relative_error": 2.896702212821954e-16,
+      "maximum_allowed_absolute_error": 1.0006233154774665e-31,
+      "absolute_tolerance": 1e-31,
+      "relative_tolerance": 3e-15,
+      "unit": "J",
+      "evaluated_value_count": 1,
+      "tolerance_source": "pre-registered independent Experiment Lab float64 error budget; relative limits are small multiples of machine precision except the Direct/FFT transform gate, absolute floors protect near-zero SI values, and mass uses 64*eps*N; no gate is looser than the existing Physics regression limits; not material, FEM, or experimental uncertainty",
+      "observed_value": 2.0777182582212644e-20,
+      "reference_value": 2.0777182582212638e-20
+    }
+  },
+  "rejection_gates": {
+    "scaling_mismatch": {
+      "passed": true,
+      "expected_outcome": "REJECTED",
+      "observed_outcome": "REJECTED",
+      "exception_type": "ValueError",
+      "reason": "density/potential scaling mismatch: PROBABILITY requires KAC_NORMALIZED_PROBABILITY, got UNSCALED_SINGLE_PAIR",
+      "expected_message_fragment": "scaling mismatch",
+      "requirement": "probability particles require a Kac-normalized potential"
+    },
+    "population_mismatch": {
+      "passed": true,
+      "expected_outcome": "REJECTED",
+      "observed_outcome": "REJECTED",
+      "exception_type": "ValueError",
+      "reason": "Kac scaling population_count does not match the runtime population",
+      "expected_message_fragment": "runtime population",
+      "requirement": "declared Kac population must equal the runtime particle count"
+    },
+    "probability_mass_mismatch": {
+      "passed": true,
+      "expected_outcome": "REJECTED",
+      "observed_outcome": "REJECTED",
+      "exception_type": "ValueError",
+      "reason": "density mass does not match its convention: expected 1, got 6; the solver does not renormalize inputs",
+      "expected_message_fragment": "density mass",
+      "requirement": "probability density must integrate to one"
+    },
+    "number_mass_mismatch": {
+      "passed": true,
+      "expected_outcome": "REJECTED",
+      "observed_outcome": "REJECTED",
+      "exception_type": "ValueError",
+      "reason": "density mass does not match its convention: expected 6, got 1; the solver does not renormalize inputs",
+      "expected_message_fragment": "density mass",
+      "requirement": "number density must integrate to population N"
+    },
+    "particle_only_short_range": {
+      "passed": true,
+      "expected_outcome": "REJECTED",
+      "observed_outcome": "REJECTED",
+      "exception_type": "ValueError",
+      "reason": "continuum convolution requires a physically defined pair potential at zero displacement; this particle-only backend has no short-range closure down to r=0",
+      "expected_message_fragment": "zero displacement",
+      "requirement": "r_min>0 is PARTICLE_ONLY_SHORT_RANGE_UNRESOLVED and cannot form a continuum kernel",
+      "minimum_supported_distance_m": 5e-07,
+      "continuum_ready": false,
+      "short_range_classification": "PARTICLE_ONLY_SHORT_RANGE_UNRESOLVED"
+    }
+  },
+  "overall_passed": true,
+  "deterministic_evidence_sha256": "dd3e61f24dc736ec7b63abf3377831175acc7533ed7a4de6814862cbb0f68ad6",
+  "overall_conclusion": "TEST_ONLY_PROBABILITY_AND_NUMBER_CONVENTIONS_EQUIVALENT",
+  "scientific_limitations": [
+    "the Gaussian pair law is TEST_ONLY_NOT_FINAL_PHYSICS",
+    "this validates implementation scaling, not Hydrogel contact mechanics",
+    "tolerances are deterministic float64 regression budgets",
+    "the one-step checks are not long-time convergence evidence"
+  ],
+  "generated_at_utc": "2026-08-24T12:02:33.021525+00:00",
+  "git_revision_at_run": "31a595e071af4db030c7a98b88cec7ca8945424d",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts\\validate_density_scaling.py",
+    "--test-only-fixture",
+    "--output",
+    "tmp\\formal_density_scaling_31a595e\\density_scaling\\TEST_ONLY_density_scaling_validation.json"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}

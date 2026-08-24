@@ -9,6 +9,11 @@
   "calibration_id": "TEST_ONLY_NOT_CALIBRATED",
   "test_only_fixture": true,
   "validation_scope": "PAIR_FORCE_ARTIFACT_INTEGRITY_AND_IMPLEMENTATION_CONSISTENCY_ONLY",
+  "minimum_supported_distance_m": 0.0,
+  "continuum_ready": true,
+  "short_range_classification": "CONTINUUM_READY",
+  "continuum_admission_status": "PASSED",
+  "usage_scope": "PARTICLES_AND_CONTINUUM",
   "overall_passed": true,
   "data_file": "TEST_ONLY_effective_potential.csv",
   "data_file_sha256": "f7d5f67937088e195a7972cafc4d124f8e87e2452b73dfa7bbd7d0798e3b8a56",
@@ -37,7 +42,8 @@
   "short_range_closure_provenance": {
     "method": "TEST_ONLY_ANALYTIC_DEFINITION_COVERS_R_EQUALS_ZERO",
     "source": "analytic Phase 6 regression fixture",
-    "calibration_id": "TEST_ONLY_NOT_CALIBRATED"
+    "calibration_id": "TEST_ONLY_NOT_CALIBRATED",
+    "minimum_distance_m": 0.0
   },
   "physical_provenance": null,
   "units": {
@@ -60,8 +66,12 @@
     "validation_status": "PASSED",
     "time_scale_status": "UNVERIFIED",
     "scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+    "native_scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
     "reference_distance_m": 4e-06,
-    "reference_force_tolerance_newton": 0.0
+    "reference_force_tolerance_newton": 0.0,
+    "minimum_supported_distance_m": 0.0,
+    "continuum_ready": true,
+    "short_range_classification": "CONTINUUM_READY"
   },
   "force_potential_consistency": {
     "passed": true,
@@ -79,8 +89,8 @@
       "timing_statistic": "median wall-clock seconds",
       "pchip_repeats": 9,
       "trapezoid_repeats": 9,
-      "pchip_exact_antiderivative_seconds": 1.569999585626647e-05,
-      "node_trapezoid_seconds": 5.699999746866524e-06,
+      "pchip_exact_antiderivative_seconds": 1.8699996871873736e-05,
+      "node_trapezoid_seconds": 7.200011168606579e-06,
       "maximum_difference_joule": 2.604166666666773e-21,
       "implementation_equivalence_verdict": "DIAGNOSTIC_ONLY_NO_INDEPENDENT_PHYSICAL_ERROR_BUDGET",
       "physical_equivalence_verdict": "NOT_ESTABLISHED_NO_INDEPENDENT_PHYSICAL_ERROR_BUDGET",
@@ -91,31 +101,36 @@
       "vectorized_repeats": 9,
       "scalar_repeats": 5,
       "evaluated_displacements": 1024,
-      "vectorized_seconds": 8.769999840296805e-05,
-      "scalar_seconds": 0.04759650000050897,
-      "scalar_over_vectorized_speed_ratio": 542.719508178442,
+      "vectorized_seconds": 9.099999442696571e-05,
+      "scalar_seconds": 0.05657549999887124,
+      "scalar_over_vectorized_speed_ratio": 621.7088292711633,
       "maximum_energy_difference_joule": 0.0,
       "maximum_force_component_difference_newton": 0.0,
       "relative_tolerance": 1e-14,
       "tolerance_source": "existing vector/scalar regression gate",
       "implementation_equivalence_verdict": "EQUIVALENT_WITHIN_EXISTING_NUMERICAL_GATE",
       "physical_equivalence_verdict": "NOT_ESTABLISHED_IMPLEMENTATION_COMPARISON_ONLY",
-      "passed": true
+      "passed": true,
+      "evaluated_radius_range_m": [
+        0.0,
+        4e-06
+      ]
     }
   },
   "scientific_limitations": [
     "F=-dW/dr checks interpolation/integration consistency, not contact physics",
     "PCHIP-vs-trapezoid has no independent physical error budget",
-    "PHYSICAL input status means the supplied provenance passed its upstream gates; this script does not recalibrate material or contact physics"
+    "PHYSICAL input status means the supplied provenance passed its upstream gates; this script does not recalibrate material or contact physics",
+    "r_min>0 remains particle-only; this script does not prepend r=0 or extrapolate a short-range closure"
   ],
-  "generated_at_utc": "2026-08-24T08:43:28.627070+00:00",
-  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "generated_at_utc": "2026-08-24T12:02:31.064353+00:00",
+  "git_revision_at_run": "31a595e071af4db030c7a98b88cec7ca8945424d",
   "git_dirty_at_run": false,
   "command": [
-    "scripts/build_effective_potential.py",
+    "scripts\\build_effective_potential.py",
     "--test-only-fixture",
     "--output-directory",
-    "tmp/phase6_artifacts/pair_interaction"
+    "tmp\\formal_density_scaling_31a595e\\pair_interaction"
   ],
   "runtime": {
     "platform": "Windows-10-10.0.26200-SP0",

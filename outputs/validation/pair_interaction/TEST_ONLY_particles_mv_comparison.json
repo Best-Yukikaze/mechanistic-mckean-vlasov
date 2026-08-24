@@ -12,11 +12,15 @@
     "name": "hydrogel_effective_pair:TEST_ONLY_NOT_CALIBRATED_phase6_smooth_radial_force",
     "dataset_id": "TEST_ONLY_NOT_CALIBRATED_phase6_smooth_radial_force",
     "source_data_sha256": "f7d5f67937088e195a7972cafc4d124f8e87e2452b73dfa7bbd7d0798e3b8a56",
-    "source_metadata_sha256": "54a897f91072eeca0fafb17cba9bf2c7045bdbf523e2b525dc71c961cfa0b5bc",
+    "source_metadata_sha256": "a968a882d9fe344903bc0e8dc25ea928302e9fbe2277368572f0da32eaa147ad",
     "input_mode": "VALIDATED_TEST_ONLY_EFFECTIVE_ARTIFACT",
     "scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
     "same_python_object_used_by_particles_and_continuum": true,
     "force_potential_validation_passed": true,
+    "minimum_supported_distance_m": 0.0,
+    "continuum_ready": true,
+    "short_range_classification": "CONTINUUM_READY",
+    "continuum_admission_status": "PASSED",
     "shared_object_interpretation": "implementation reuse only; not evidence of physical calibration"
   },
   "configuration": {
@@ -275,23 +279,23 @@
     ]
   },
   "timing": {
-    "continuum_steps_seconds": 0.002358900004765019,
-    "particle_steps_seconds": 0.17207020000205375,
-    "final_metrics_seconds": 0.0003654999964055605,
-    "total_seconds": 0.1793799000006402
+    "continuum_steps_seconds": 0.0032058999786386266,
+    "particle_steps_seconds": 0.20252740001888014,
+    "final_metrics_seconds": 0.00046999999904073775,
+    "total_seconds": 0.21293180000793654
   },
-  "generated_at_utc": "2026-08-24T08:43:29.919589+00:00",
-  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "generated_at_utc": "2026-08-24T12:02:32.088340+00:00",
+  "git_revision_at_run": "31a595e071af4db030c7a98b88cec7ca8945424d",
   "git_dirty_at_run": false,
   "command": [
-    "scripts/compare_particles_mv.py",
+    "scripts\\compare_particles_mv.py",
     "--test-only-fixture",
     "--effective-potential-csv",
-    "tmp/phase6_artifacts/pair_interaction/TEST_ONLY_effective_potential.csv",
+    "tmp\\formal_density_scaling_31a595e\\pair_interaction\\TEST_ONLY_effective_potential.csv",
     "--effective-potential-metadata",
-    "tmp/phase6_artifacts/pair_interaction/TEST_ONLY_effective_potential_metadata.json",
+    "tmp\\formal_density_scaling_31a595e\\pair_interaction\\TEST_ONLY_effective_potential_metadata.json",
     "--output-directory",
-    "tmp/phase6_artifacts/pair_interaction"
+    "tmp\\formal_density_scaling_31a595e\\pair_interaction"
   ],
   "runtime": {
     "platform": "Windows-10-10.0.26200-SP0",
