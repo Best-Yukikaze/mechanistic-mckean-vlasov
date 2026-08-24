@@ -262,6 +262,17 @@ class MechanicalModelTests(unittest.TestCase):
         reflected = reflect_outer_walls(np.asarray([[-1.0, 12.0]]), domain)
         np.testing.assert_allclose(reflected, np.asarray([[1.0, 8.0]]))
 
+    def test_no_obstacle_in_domain_fast_path_returns_independent_copy(self) -> None:
+        domain = RectangularDomain((0.0, 10.0), (0.0, 10.0))
+        previous = np.asarray([[2.0, 3.0], [7.0, 8.0]])
+        proposed = np.asarray([[2.5, 3.5], [6.5, 7.5]])
+        constrained, collisions = enforce_particle_no_flux(
+            previous, proposed, domain
+        )
+        np.testing.assert_array_equal(constrained, proposed)
+        self.assertFalse(np.shares_memory(constrained, proposed))
+        self.assertEqual(collisions, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
