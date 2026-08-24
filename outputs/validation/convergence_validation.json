@@ -1,7 +1,7 @@
 {
-  "schema_version": 2,
-  "generated_utc": "2026-08-24T01:08:08.496238+00:00",
-  "git_revision_at_run": "1dba9d49c0d7faccc9d39b5ededb1361f1f03c6f",
+  "schema_version": 3,
+  "generated_utc": "2026-08-24T01:15:39.803775+00:00",
+  "git_revision_at_run": "1fd1d5cb7616c297ea312604dc967c87f8b8ac29",
   "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
   "runtime": {
     "platform": "Windows-10-10.0.26200-SP0",
@@ -126,8 +126,10 @@
     "multi_seed_max_relative_L2_below_0p35": true,
     "multi_seed_max_mean_error_below_3e-7_m": true,
     "multi_seed_max_covariance_error_below_0p35": true,
-    "particle_count_mean_L2_improves_250_to_1000": true,
-    "particle_count_mean_JS_improves_250_to_1000": true,
+    "particle_count_mean_L2_decreases_at_each_count": true,
+    "particle_count_mean_JS_decreases_at_each_count": true,
+    "particle_count_each_seed_L2_decreases_at_each_count": true,
+    "particle_count_each_seed_JS_decreases_at_each_count": true,
     "particle_count_L2_empirical_order_above_0p2": true,
     "particle_count_JS_empirical_order_above_0p4": true
   },
@@ -415,6 +417,10 @@
     "empirical_order": {
       "relative_L2_density_error": 0.4138881752162121,
       "JS_divergence_nats": 0.7118960545507937
+    },
+    "each_seed_decreases_at_each_count": {
+      "relative_L2_density_error": true,
+      "JS_divergence_nats": true
     }
   }
 }
