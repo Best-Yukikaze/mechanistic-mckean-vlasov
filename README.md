@@ -25,6 +25,12 @@ environment.
   `F_pair -> W_eff` PCHIP integration path are implemented. A real contact FEM
   result is not: calibrated material values, particle geometry, mesh,
   boundary/bath conditions, and distance-sweep data were not supplied.
+- Real contact inputs now have a fail-closed collection contract: the project
+  can write a 110-leaf JSON template with no numerical values, then preflight
+  a supplied manifest against field units, provenance, time-scale, scaling,
+  and short-range gates. A `READY_FOR_CONTACT_SOLVER` preflight still means
+  only that the input is ready to hand to a future solver; it never means that
+  contact data, `F_pair`, or `W_eff` already exist.
 - The continuum solver, interacting-particle validation model, no-flux
   geometry, deterministic validation, and Monte Carlo comparison remain
   implemented.
@@ -222,6 +228,34 @@ uncalibrated values. `run_pair_contact_sweep.py` currently exits `BLOCKED` and
 does not create a fake force curve. Use each new script's `--help` for the
 required real-data inputs. Reproducible artifacts are written to
 `outputs/validation/`.
+
+## Collecting real contact inputs later
+
+When calibrated values and provenance are available, first create a blank
+input manifest. It contains 110 leaf fields, all `null`; it is a collection
+form, not physical data and not a test fixture.
+
+```powershell
+$env:PYTHONPATH = "src"
+& "D:\conda environment\envs\dl\python.exe" scripts\run_pair_contact_sweep.py `
+  --write-input-template outputs\validation\pair_interaction\my_contact_input.json
+```
+
+Fill every required field with its physical value or text record, its source
+and verification record, then preflight it:
+
+```powershell
+& "D:\conda environment\envs\dl\python.exe" scripts\run_pair_contact_sweep.py `
+  --input-manifest outputs\validation\pair_interaction\my_contact_input.json
+```
+
+The preflight writes a field-level status report and the SHA-256 of the exact
+manifest bytes. Missing, unverified, malformed, or `TEST_ONLY` input remains
+`BLOCKED`. A fully verified physical manifest can reach
+`READY_FOR_CONTACT_SOLVER`, but the current report still says
+`CONTACT_FEM_BACKEND_UNAVAILABLE` and `CONTACT_RESULTS_NOT_GENERATED`, produces
+no `pair_force.csv` or curve, and exits blocked until a genuine FEM/contact
+backend is implemented.
 
 ## Validation scope
 
