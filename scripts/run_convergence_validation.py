@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import platform
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -12,6 +14,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 
 from mechanistic_mv.continuum.diagnostics import (
     density_moments,
@@ -253,6 +256,48 @@ def main() -> None:
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "git_revision_at_run": _git_revision(),
         "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
+        "runtime": {
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "machine": platform.machine(),
+            "python": sys.version,
+            "numpy": np.__version__,
+            "scipy": scipy.__version__,
+        },
+        "configuration": {
+            "physical_parameters": parameters.as_dict(),
+            "domain_x_limits_m": list(domain.x_limits_m),
+            "domain_y_limits_m": list(domain.y_limits_m),
+            "pure_diffusion": {
+                "grid_sizes": [24, 48, 96],
+                "initial_centre_m": [10.0e-6, 10.0e-6],
+                "initial_variance_m2": 1.0e-12,
+                "final_time_s": 0.2,
+            },
+            "complete_MV_CFL": {
+                "grid_size": 32,
+                "cfl_safeties": [0.9, 0.45, 0.225, 0.1125],
+                "final_time_s": 0.5,
+                "pair_energy_scale_joule": 1.5
+                * parameters.thermal_energy_joule,
+                "pair_length_scale_m": 1.1e-6,
+                "external_centre_m": [10.0e-6, 10.0e-6],
+                "external_stiffness_newton_per_m": 8.0e-9,
+            },
+            "particle_MV_multi_seed": {
+                "grid_size": 20,
+                "seeds": list(range(20260824, 20260829)),
+                "particle_count_per_seed": 500,
+                "number_of_steps": 20,
+                "step_duration_s": 0.01,
+                "initial_mean_m": [8.8e-6, 10.4e-6],
+                "initial_standard_deviation_m": 1.4e-6,
+                "pair_energy_scale_joule": parameters.thermal_energy_joule,
+                "pair_length_scale_m": 1.2e-6,
+                "external_centre_m": [10.0e-6, 10.0e-6],
+                "external_stiffness_newton_per_m": 6.0e-9,
+            },
+        },
         "overall_passed": all(checks.values()),
         "checks": checks,
         "pure_diffusion_grid_refinement": grid_records,
