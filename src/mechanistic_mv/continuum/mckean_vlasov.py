@@ -11,6 +11,12 @@ from ..mechanics.controlled_potential import (
     ControlledPotentialBackend,
     ZeroControlledPotential,
 )
+from ..mechanics.density_scaling import (
+    DensityConvention,
+    expected_density_mass,
+    validate_density_convention,
+    validate_population_count,
+)
 from ..mechanics.external_force import ExternalPotential, ZeroExternalPotential
 from ..mechanics.geometry import CartesianGrid, RectangleObstacle
 from ..mechanics.pair_potential import PairPotential
@@ -64,6 +70,8 @@ class McKeanVlasovSolver:
         external: ExternalPotential | None = None,
         controlled_potential: ControlledPotentialBackend | None = None,
         cfl_safety: float = 0.9,
+        density_convention: DensityConvention = DensityConvention.PROBABILITY,
+        population_count: int | None = None,
     ) -> None:
         self.grid = grid
         self.parameters = parameters
@@ -71,6 +79,18 @@ class McKeanVlasovSolver:
         self.obstacles = tuple(obstacles)
         self.external = external or ZeroExternalPotential()
         self.controlled_potential = controlled_potential or ZeroControlledPotential()
+        self.density_convention = validate_density_convention(density_convention)
+        declared_population = getattr(pair_potential, "scaling_population_count", None)
+        if population_count is None and declared_population is not None:
+            population_count = declared_population
+        self.population_count = validate_population_count(
+            population_count,
+            required=self.density_convention is DensityConvention.NUMBER,
+        )
+        self.expected_density_mass = expected_density_mass(
+            self.density_convention,
+            self.population_count,
+        )
         self.cfl_safety = float(cfl_safety)
         if not np.isfinite(self.cfl_safety) or not 0.0 < self.cfl_safety <= 1.0:
             raise ValueError("cfl_safety must lie in (0, 1]")
@@ -89,9 +109,14 @@ class McKeanVlasovSolver:
             raise ValueError(
                 "external potential must return one finite value per grid cell"
             )
-        self.convolver = FFTPairConvolver(grid, pair_potential)
+        self.convolver = FFTPairConvolver(
+            grid,
+            pair_potential,
+            density_convention=self.density_convention,
+            population_count=self.population_count,
+        )
         fluid_area = np.sum(self.fluid_mask) * grid.cell_area_m2
-        self.reference_density_per_m2 = 1.0 / fluid_area
+        self.reference_density_per_m2 = self.expected_density_mass / fluid_area
 
     def pair_convolution_joule(self, density_per_m2: np.ndarray) -> np.ndarray:
         density = self._validated_density(density_per_m2)
@@ -230,6 +255,8 @@ class McKeanVlasovSolver:
             self.external_potential_joule + controlled,
             interaction,
             fluid_mask=self.fluid_mask,
+            density_convention=self.density_convention,
+            population_count=self.population_count,
         )
 
     def _controlled_potential_grid(
@@ -256,4 +283,12 @@ class McKeanVlasovSolver:
         solid_values = density[~self.fluid_mask]
         if np.any(solid_values != 0.0):
             raise ValueError("solid cells must contain exactly zero density")
+        mass = float(np.sum(density) * self.grid.cell_area_m2)
+        mass_tolerance = 1.0e-11 * max(self.expected_density_mass, 1.0)
+        if abs(mass - self.expected_density_mass) > mass_tolerance:
+            raise ValueError(
+                "density mass does not match its convention: expected "
+                f"{self.expected_density_mass:.16g}, got {mass:.16g}; "
+                "the solver does not renormalize inputs"
+            )
         return density

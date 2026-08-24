@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .controlled_potential import ControlledPotentialBackend, ZeroControlledPotential
+from .density_scaling import DensityConvention
 from .external_force import ExternalPotential, ZeroExternalPotential
 from .pair_potential import PairPotential, mean_field_pair_force_newton
 from .parameters import PhysicalParameters
@@ -39,6 +40,7 @@ def deterministic_acceleration_m_per_s2(
     controlled_potential: ControlledPotentialBackend | None = None,
     control: np.ndarray | None = None,
     pair_chunk_size: int = 64,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
 ) -> np.ndarray:
     """Evaluate ``m dV/dt=-gamma V+F_ext+F_pair+F_control``."""
 
@@ -48,7 +50,10 @@ def deterministic_acceleration_m_per_s2(
         -parameters.drag_coefficient_kg_per_s * state.velocities_m_per_s
         + selected_external.force_newton(state.positions_m)
         + mean_field_pair_force_newton(
-            state.positions_m, pair_potential, chunk_size=pair_chunk_size
+            state.positions_m,
+            pair_potential,
+            chunk_size=pair_chunk_size,
+            density_convention=density_convention,
         )
         + selected_controlled_potential.force_newton(state.positions_m, control)
     )

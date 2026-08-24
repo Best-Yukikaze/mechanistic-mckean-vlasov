@@ -18,6 +18,7 @@ from mechanistic_mv.continuum.mckean_vlasov import (
 )
 from mechanistic_mv.continuum.weak_form import weak_form_residual
 from mechanistic_mv.mechanics.controlled_potential import TestOnlyUniformFieldPotential
+from mechanistic_mv.mechanics.density_scaling import PairForceScaling
 from mechanistic_mv.mechanics.geometry import (
     CartesianGrid,
     RectangleObstacle,
@@ -62,6 +63,10 @@ class ConvolutionTests(unittest.TestCase):
         class NonfinitePairPotential:
             name = "invalid_nonfinite_pair"
             physical_status = "INVALID_TEST_BACKEND"
+            pair_force_scaling = PairForceScaling.KAC_NORMALIZED_PROBABILITY
+            scaling_population_count = None
+            minimum_supported_distance_m = 0.0
+            continuum_ready = True
 
             def potential_joule(self, displacement_m: np.ndarray) -> np.ndarray:
                 return np.full(displacement_m.shape[:-1], np.nan)

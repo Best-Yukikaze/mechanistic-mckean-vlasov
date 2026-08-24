@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ..mechanics.density_scaling import DensityConvention, expected_density_mass
 from ..mechanics.geometry import CartesianGrid
 
 
@@ -29,8 +30,14 @@ def free_energy_components(
     pair_convolution_joule: np.ndarray,
     *,
     fluid_mask: np.ndarray | None = None,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
+    population_count: int | None = None,
 ) -> FreeEnergyComponents:
-    """Discretize entropy, external, and half-counted interaction energies."""
+    """Discretize the free energy for probability or number density.
+
+    For ``n=N*rho`` and ``W_Kac=N*W_pair``, using
+    ``n_ref=N*rho_ref`` gives ``F_number=N*F_probability``.
+    """
 
     density = np.asarray(density_per_m2, dtype=np.float64)
     external = np.asarray(external_potential_joule, dtype=np.float64)
@@ -40,6 +47,15 @@ def free_energy_components(
         raise ValueError("energy arrays must have grid shape")
     if np.any(density < 0.0) or not np.all(np.isfinite(density)):
         raise ValueError("density must be finite and non-negative")
+    expected_density_mass(density_convention, population_count)
+    scalars = np.asarray(
+        [thermal_energy_joule, reference_density_per_m2],
+        dtype=np.float64,
+    )
+    if not np.all(np.isfinite(scalars)) or np.any(scalars <= 0.0):
+        raise ValueError("thermal energy and reference density must be positive")
+    if not np.all(np.isfinite(external)) or not np.all(np.isfinite(interaction)):
+        raise ValueError("external and interaction potentials must be finite")
     mask = np.ones(shape, dtype=bool) if fluid_mask is None else np.asarray(fluid_mask)
     if mask.shape != shape or mask.dtype != bool:
         raise ValueError("fluid_mask must be boolean with grid shape")

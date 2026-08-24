@@ -403,7 +403,7 @@ class PairDataAndInterpolationTests(unittest.TestCase):
         table = test_only_force_table(
             scaling=PairForceScaling.UNSCALED_SINGLE_PAIR
         )
-        with self.assertRaisesRegex(ValueError, "unscaled physical single-pair"):
+        with self.assertRaisesRegex(ValueError, "scaling mismatch"):
             HydrogelEffectivePairPotential(
                 table,
                 derivative_absolute_tolerance_newton=1.0e-20,
@@ -450,13 +450,20 @@ class PairDataAndInterpolationTests(unittest.TestCase):
                 finite_difference_step_fraction=1.0e-4,
             )
 
-        with self.assertRaisesRegex(ValueError, "must cover r=0"):
-            HydrogelEffectivePairPotential(
-                test_only_force_table(minimum_distance_m=0.5e-6),
-                derivative_absolute_tolerance_newton=1.0e-20,
-                derivative_relative_tolerance=2.0e-7,
-                finite_difference_step_fraction=1.0e-4,
-            )
+        particle_only = HydrogelEffectivePairPotential(
+            test_only_force_table(minimum_distance_m=0.5e-6),
+            derivative_absolute_tolerance_newton=1.0e-20,
+            derivative_relative_tolerance=2.0e-7,
+            finite_difference_step_fraction=1.0e-4,
+        )
+        self.assertFalse(particle_only.continuum_ready)
+        grid = CartesianGrid(
+            RectangularDomain((0.0, 2.0e-6), (0.0, 2.0e-6)),
+            4,
+            4,
+        )
+        with self.assertRaisesRegex(ValueError, "zero displacement"):
+            FFTPairConvolver(grid, particle_only)
 
     def test_pchip_integral_is_compared_with_direct_trapezoid(self) -> None:
         potential = test_only_effective_potential()

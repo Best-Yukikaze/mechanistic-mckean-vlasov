@@ -6,11 +6,16 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from ..density_scaling import (
+    DensityConvention,
+    PairForceScaling,
+    expected_pair_force_scaling,
+    validate_density_convention,
+)
 from ..hydrogel.equilibrium import TimeScaleStatus
 from ..hydrogel.parameters import TEST_ONLY_NOT_CALIBRATED
 from .data_model import (
     PairDataValidationStatus,
-    PairForceScaling,
     PairForceTable,
 )
 from .interpolation import PchipIntegratedForceLaw
@@ -73,24 +78,31 @@ def validate_force_potential_consistency(
 
 @dataclass(frozen=True, slots=True)
 class HydrogelEffectivePairPotential:
-    """Use one validated radial law in particles and continuum convolution.
+    """Use one validated radial law with an explicit density convention.
 
-    The current particle model uses ``(1/N) sum F`` and the continuum density
-    integrates to one.  Consequently this backend rejects unscaled single-pair
-    data instead of silently changing the physical interaction strength.
+    The default remains probability density with Kac-scaled force data. Number
+    density explicitly accepts only unscaled single-pair data. A table starting
+    at ``r_min>0`` is particle-only: interpolation stays fail-closed below
+    ``r_min`` and continuum constructors reject it before building a kernel.
     """
 
     force_data: PairForceTable
     derivative_absolute_tolerance_newton: float
     derivative_relative_tolerance: float
     finite_difference_step_fraction: float
+    density_convention: DensityConvention = DensityConvention.PROBABILITY
     name: str = field(init=False)
     physical_status: str = field(init=False)
+    pair_force_scaling: PairForceScaling = field(init=False)
     scaling_semantics: str = field(init=False)
+    scaling_population_count: int | None = field(init=False)
+    minimum_supported_distance_m: float = field(init=False)
+    continuum_ready: bool = field(init=False)
     validation_report: ForcePotentialValidationReport = field(init=False)
     _law: PchipIntegratedForceLaw = field(init=False, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        validate_density_convention(self.density_convention)
         metadata = self.force_data.metadata
         if metadata.validation_status is not PairDataValidationStatus.PASSED:
             raise ValueError("pair-force data must have validation_status=PASSED")
@@ -102,16 +114,12 @@ class HydrogelEffectivePairPotential:
                 "a physical Hydrogel pair reduction requires a verified "
                 "tau_gel << tau_swarm assessment"
             )
-        if self.force_data.metadata.scaling is not PairForceScaling.KAC_NORMALIZED_PROBABILITY:
+        expected_scaling = expected_pair_force_scaling(self.density_convention)
+        if metadata.scaling is not expected_scaling:
             raise ValueError(
-                "current MV rho has unit mass and particle forces use 1/N; "
-                "an unscaled physical single-pair table cannot be used directly"
-            )
-        if self.force_data.center_distance_m[0] != 0.0:
-            raise ValueError(
-                "the continuum convolution evaluates W at zero displacement; "
-                "the force table must cover r=0 because no short-range closure "
-                "or extrapolation was supplied"
+                "density/potential scaling mismatch: "
+                f"{self.density_convention.name} requires {expected_scaling.name}, "
+                f"got {metadata.scaling.name}"
             )
         law = PchipIntegratedForceLaw(self.force_data)
         report = validate_force_potential_consistency(
@@ -132,9 +140,23 @@ class HydrogelEffectivePairPotential:
             self, "name", f"hydrogel_effective_pair:{self.force_data.metadata.dataset_id}"
         )
         object.__setattr__(self, "physical_status", self.force_data.metadata.physical_status)
+        object.__setattr__(self, "pair_force_scaling", metadata.scaling)
         object.__setattr__(
-            self, "scaling_semantics", self.force_data.metadata.scaling.value
+            self, "scaling_semantics", metadata.scaling.value
         )
+        evidence = metadata.scaling_conversion
+        object.__setattr__(
+            self,
+            "scaling_population_count",
+            None if evidence is None else evidence.population_count,
+        )
+        minimum_distance = float(self.force_data.center_distance_m[0])
+        object.__setattr__(
+            self,
+            "minimum_supported_distance_m",
+            minimum_distance,
+        )
+        object.__setattr__(self, "continuum_ready", minimum_distance == 0.0)
 
     def radial_potential_joule(self, radius_m: np.ndarray | float) -> np.ndarray:
         return self._law.potential_joule(radius_m)
@@ -155,12 +177,8 @@ class HydrogelEffectivePairPotential:
         displacement = _validated_displacement(displacement_m)
         radius = np.linalg.norm(displacement, axis=-1)
         flat_radius = radius.reshape(-1)
-        flat_radial_force = np.zeros_like(flat_radius)
+        flat_radial_force = self.radial_force_newton(flat_radius)
         nonzero = flat_radius > 0.0
-        if np.any(nonzero):
-            flat_radial_force[nonzero] = self.radial_force_newton(
-                flat_radius[nonzero]
-            )
         flat_factor = np.zeros_like(flat_radius)
         np.divide(
             flat_radial_force,

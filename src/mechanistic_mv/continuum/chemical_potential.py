@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from ..mechanics.density_scaling import DensityConvention, expected_density_mass
 
 def chemical_potential_joule(
     density_per_m2: np.ndarray,
@@ -13,6 +14,8 @@ def chemical_potential_joule(
     pair_convolution_joule: np.ndarray,
     *,
     diagnostic_density_floor_per_m2: float | None = None,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
+    population_count: int | None = None,
 ) -> np.ndarray:
     """Return ``mu=kBT log(rho/rho_ref)+V+W*rho`` in joules.
 
@@ -28,6 +31,9 @@ def chemical_potential_joule(
         raise ValueError("density and potentials must have matching shapes")
     if np.any(density < 0.0) or not np.all(np.isfinite(density)):
         raise ValueError("density must be finite and non-negative")
+    if not np.all(np.isfinite(external)) or not np.all(np.isfinite(interaction)):
+        raise ValueError("external and interaction potentials must be finite")
+    expected_density_mass(density_convention, population_count)
     scalar_values = np.asarray(
         [thermal_energy_joule, reference_density_per_m2], dtype=np.float64
     )

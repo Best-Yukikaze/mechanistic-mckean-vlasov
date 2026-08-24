@@ -7,6 +7,11 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy.fft import irfftn, next_fast_len, rfftn
 
+from ..mechanics.density_scaling import (
+    DensityConvention,
+    require_continuum_ready,
+    validate_pair_potential_scaling,
+)
 from ..mechanics.geometry import CartesianGrid
 from ..mechanics.pair_potential import PairPotential, ZeroPairPotential
 
@@ -15,9 +20,18 @@ def direct_pair_convolution_joule(
     density_per_m2: np.ndarray,
     grid: CartesianGrid,
     potential: PairPotential,
+    *,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
+    population_count: int | None = None,
 ) -> np.ndarray:
-    """Evaluate ``(W*rho)(x)`` by the O(number-of-cells squared) definition."""
+    """Evaluate ``W_Kac*rho`` or ``W_pair*n`` by direct quadrature."""
 
+    validate_pair_potential_scaling(
+        potential,
+        density_convention,
+        population_count=population_count,
+    )
+    require_continuum_ready(potential)
     density = _density(density_per_m2, grid)
     if isinstance(potential, ZeroPairPotential):
         return np.zeros_like(density)
@@ -39,12 +53,20 @@ class FFTPairConvolver:
 
     grid: CartesianGrid
     potential: PairPotential
+    density_convention: DensityConvention = DensityConvention.PROBABILITY
+    population_count: int | None = None
     _full_shape: tuple[int, int] = field(init=False, repr=False)
     _fft_shape: tuple[int, int] = field(init=False, repr=False)
     _kernel_spectrum: np.ndarray | None = field(init=False, repr=False)
     _zero_interaction: bool = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
+        validate_pair_potential_scaling(
+            self.potential,
+            self.density_convention,
+            population_count=self.population_count,
+        )
+        require_continuum_ready(self.potential)
         self._zero_interaction = isinstance(self.potential, ZeroPairPotential)
         if self._zero_interaction:
             self._full_shape = (self.grid.ny, self.grid.nx)

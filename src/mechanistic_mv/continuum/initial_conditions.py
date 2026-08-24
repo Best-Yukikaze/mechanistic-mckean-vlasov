@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from ..mechanics.density_scaling import DensityConvention, expected_density_mass
 from ..mechanics.geometry import CartesianGrid
 
 
@@ -13,8 +14,10 @@ def gaussian_density(
     standard_deviation_m: tuple[float, float] | float,
     *,
     fluid_mask: np.ndarray | None = None,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
+    population_count: int | None = None,
 ) -> np.ndarray:
-    """Create a unit-mass Gaussian density in 1/m^2.
+    """Create a Gaussian probability or number density in ``1/m^2``.
 
     Normalization is performed once while constructing the initial condition;
     the time integrator must conserve this mass without later renormalization.
@@ -41,17 +44,23 @@ def gaussian_density(
     mass = float(np.sum(density) * grid.cell_area_m2)
     if not np.isfinite(mass) or mass <= 0.0:
         raise ValueError("Gaussian has no mass in the fluid region")
-    return density / mass
+    target_mass = expected_density_mass(density_convention, population_count)
+    return target_mass * density / mass
 
 
 def uniform_density(
-    grid: CartesianGrid, *, fluid_mask: np.ndarray | None = None
+    grid: CartesianGrid,
+    *,
+    fluid_mask: np.ndarray | None = None,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
+    population_count: int | None = None,
 ) -> np.ndarray:
-    """Return a unit-mass uniform density over fluid cells."""
+    """Return a uniform probability or number density over fluid cells."""
 
     mask = _validated_mask(fluid_mask, (grid.ny, grid.nx))
     density = mask.astype(np.float64)
-    return density / (np.sum(density) * grid.cell_area_m2)
+    target_mass = expected_density_mass(density_convention, population_count)
+    return target_mass * density / (np.sum(density) * grid.cell_area_m2)
 
 
 def _validated_mask(mask: np.ndarray | None, shape: tuple[int, int]) -> np.ndarray:

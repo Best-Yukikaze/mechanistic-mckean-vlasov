@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 
 import numpy as np
 
 from ..hydrogel.equilibrium import TimeScaleAssessment, TimeScaleStatus
 from ..hydrogel.parameters import HydrogelParameters
+from ..density_scaling import PairForceScaling, validate_population_count
 from .geometry import TwoSphereGeometry
 
 
@@ -69,15 +70,6 @@ class ContactSolveStatus(str, Enum):
     CONVERGED = "CONVERGED"
     FAILED = "FAILED"
     NOT_RUN = "NOT_RUN"
-
-
-class PairForceScaling(str, Enum):
-    """Scaling meaning of the tabulated force and its integrated potential."""
-
-    KAC_NORMALIZED_PROBABILITY = (
-        "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE"
-    )
-    UNSCALED_SINGLE_PAIR = "UNSCALED_PHYSICAL_SINGLE_PAIR"
 
 
 @dataclass(frozen=True, slots=True)
@@ -378,6 +370,47 @@ class PairContactSweepMetadata:
 
 
 @dataclass(frozen=True, slots=True)
+class PairScalingConversionEvidence:
+    """Immutable proof that a single-pair table was numerically Kac-scaled."""
+
+    source_dataset_id: str
+    population_count: int
+    population_count_provenance: str
+    source_scaling: PairForceScaling = PairForceScaling.UNSCALED_SINGLE_PAIR
+    target_scaling: PairForceScaling = PairForceScaling.KAC_NORMALIZED_PROBABILITY
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "source_dataset_id",
+            _required_text(self.source_dataset_id, "source_dataset_id"),
+        )
+        object.__setattr__(
+            self,
+            "population_count_provenance",
+            _required_text(
+                self.population_count_provenance,
+                "population_count_provenance",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "population_count",
+            validate_population_count(self.population_count, required=True),
+        )
+        if self.source_scaling is not PairForceScaling.UNSCALED_SINGLE_PAIR:
+            raise ValueError("conversion source_scaling must be UNSCALED_SINGLE_PAIR")
+        if self.target_scaling is not PairForceScaling.KAC_NORMALIZED_PROBABILITY:
+            raise ValueError(
+                "conversion target_scaling must be KAC_NORMALIZED_PROBABILITY"
+            )
+
+    @property
+    def force_multiplier(self) -> int:
+        return self.population_count
+
+
+@dataclass(frozen=True, slots=True)
 class PairForceMetadata:
     """Required provenance and validation semantics; units are fixed to SI."""
 
@@ -390,6 +423,8 @@ class PairForceMetadata:
     scaling: PairForceScaling
     reference_distance_m: float
     reference_force_tolerance_newton: float
+    native_scaling: PairForceScaling | None = None
+    scaling_conversion: PairScalingConversionEvidence | None = None
 
     def __post_init__(self) -> None:
         for name in ("dataset_id", "source", "physical_status", "solver_status"):
@@ -400,6 +435,28 @@ class PairForceMetadata:
             raise TypeError("validation_status must be a PairDataValidationStatus")
         if not isinstance(self.time_scale_status, TimeScaleStatus):
             raise TypeError("time_scale_status must be a TimeScaleStatus")
+        native_scaling = self.native_scaling
+        if native_scaling is None:
+            native_scaling = self.scaling
+            object.__setattr__(self, "native_scaling", native_scaling)
+        if not isinstance(native_scaling, PairForceScaling):
+            raise TypeError("native_scaling must be a PairForceScaling value")
+        if self.scaling_conversion is None:
+            if self.scaling is not native_scaling:
+                raise ValueError(
+                    "changing PairForceScaling requires explicit numerical "
+                    "conversion evidence"
+                )
+        else:
+            evidence = self.scaling_conversion
+            if not isinstance(evidence, PairScalingConversionEvidence):
+                raise TypeError(
+                    "scaling_conversion must be PairScalingConversionEvidence"
+                )
+            if native_scaling is not evidence.source_scaling:
+                raise ValueError("native_scaling must match conversion source_scaling")
+            if self.scaling is not evidence.target_scaling:
+                raise ValueError("scaling must match conversion target_scaling")
         object.__setattr__(
             self,
             "reference_distance_m",
@@ -591,3 +648,46 @@ def pair_force_table_from_contact_sweep(
     if not isinstance(sweep, PairContactSweep):
         raise TypeError("sweep must be PairContactSweep")
     return sweep.to_pair_force_table()
+
+
+def convert_single_pair_table_to_kac(
+    force_data: PairForceTable,
+    *,
+    population_count: int,
+    population_count_provenance: str,
+) -> PairForceTable:
+    """Return ``F_Kac=N*F_pair`` with auditable, immutable provenance."""
+
+    if not isinstance(force_data, PairForceTable):
+        raise TypeError("force_data must be PairForceTable")
+    metadata = force_data.metadata
+    if metadata.scaling is not PairForceScaling.UNSCALED_SINGLE_PAIR:
+        raise ValueError("conversion requires an UNSCALED_SINGLE_PAIR source table")
+    if metadata.native_scaling is not PairForceScaling.UNSCALED_SINGLE_PAIR:
+        raise ValueError("source table native_scaling must be UNSCALED_SINGLE_PAIR")
+    if metadata.scaling_conversion is not None:
+        raise ValueError("source table already contains scaling conversion evidence")
+    count = validate_population_count(population_count, required=True)
+    provenance = _required_text(
+        population_count_provenance,
+        "population_count_provenance",
+    )
+    evidence = PairScalingConversionEvidence(
+        source_dataset_id=metadata.dataset_id,
+        population_count=count,
+        population_count_provenance=provenance,
+    )
+    converted_metadata = replace(
+        metadata,
+        scaling=PairForceScaling.KAC_NORMALIZED_PROBABILITY,
+        reference_force_tolerance_newton=(
+            metadata.reference_force_tolerance_newton * count
+        ),
+        native_scaling=PairForceScaling.UNSCALED_SINGLE_PAIR,
+        scaling_conversion=evidence,
+    )
+    return PairForceTable(
+        force_data.center_distance_m,
+        force_data.radial_force_newton * count,
+        converted_metadata,
+    )

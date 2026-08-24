@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from ..mechanics.density_scaling import DensityConvention, validate_density_convention
 from ..mechanics.geometry import CartesianGrid
 
 
@@ -12,14 +13,16 @@ def empirical_density(
     grid: CartesianGrid,
     *,
     fluid_mask: np.ndarray | None = None,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
 ) -> np.ndarray:
-    """Deposit particles by cell counts and return density in 1/m^2."""
+    """Deposit counts as ``rho`` with integral 1 or ``n`` with integral N."""
 
     positions = np.asarray(positions_m, dtype=np.float64)
     if positions.ndim != 2 or positions.shape[1] != 2 or positions.shape[0] == 0:
         raise ValueError("positions_m must have shape (N, 2), N > 0")
     if not np.all(np.isfinite(positions)):
         raise ValueError("positions_m must be finite")
+    convention = validate_density_convention(density_convention)
     counts, _, _ = np.histogram2d(
         positions[:, 1],
         positions[:, 0],
@@ -28,7 +31,12 @@ def empirical_density(
     )
     if int(np.sum(counts)) != positions.shape[0]:
         raise ValueError("one or more particles lie outside the grid domain")
-    density = counts / (positions.shape[0] * grid.cell_area_m2)
+    normalization = (
+        positions.shape[0]
+        if convention is DensityConvention.PROBABILITY
+        else 1
+    )
+    density = counts / (normalization * grid.cell_area_m2)
     if fluid_mask is not None:
         mask = np.asarray(fluid_mask)
         if mask.shape != density.shape or mask.dtype != bool:
@@ -36,4 +44,3 @@ def empirical_density(
         if np.any(density[~mask] != 0.0):
             raise ValueError("particles were deposited inside a solid cell")
     return density
-

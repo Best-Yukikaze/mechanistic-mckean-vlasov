@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 import numpy as np
 
+from .density_scaling import (
+    DensityConvention,
+    PairForceScaling,
+    expected_pair_force_scaling,
+    validate_density_convention,
+    validate_pair_potential_scaling,
+)
 
 KAC_NORMALIZED_PROBABILITY_SCALING = (
-    "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE"
+    PairForceScaling.KAC_NORMALIZED_PROBABILITY.value
 )
+UNSCALED_SINGLE_PAIR_SCALING = PairForceScaling.UNSCALED_SINGLE_PAIR.value
 
 
 class PairPotential(Protocol):
@@ -23,7 +31,11 @@ class PairPotential(Protocol):
 
     name: str
     physical_status: str
+    pair_force_scaling: PairForceScaling
     scaling_semantics: str
+    scaling_population_count: int | None
+    minimum_supported_distance_m: float
+    continuum_ready: bool
 
     def radial_potential_joule(self, radius_m: np.ndarray) -> np.ndarray: ...
 
@@ -42,7 +54,21 @@ class ZeroPairPotential:
 
     name: str = "zero_pair_potential"
     physical_status: str = "physical null interaction; W=0 special case"
-    scaling_semantics: str = KAC_NORMALIZED_PROBABILITY_SCALING
+    density_convention: DensityConvention = DensityConvention.PROBABILITY
+    scaling_population_count: int | None = field(default=None, init=False)
+    minimum_supported_distance_m: float = field(default=0.0, init=False)
+    continuum_ready: bool = field(default=True, init=False)
+
+    def __post_init__(self) -> None:
+        validate_density_convention(self.density_convention)
+
+    @property
+    def pair_force_scaling(self) -> PairForceScaling:
+        return expected_pair_force_scaling(self.density_convention)
+
+    @property
+    def scaling_semantics(self) -> str:
+        return self.pair_force_scaling.value
 
     def radial_potential_joule(self, radius_m: np.ndarray) -> np.ndarray:
         return np.zeros_like(_radii(radius_m))
@@ -73,14 +99,26 @@ class TestOnlyGaussianRepulsion:
     length_scale_m: float
     name: str = "test_only_gaussian_repulsion"
     physical_status: str = "TEST_ONLY_NOT_FINAL_PHYSICS"
-    scaling_semantics: str = KAC_NORMALIZED_PROBABILITY_SCALING
+    density_convention: DensityConvention = DensityConvention.PROBABILITY
+    scaling_population_count: int | None = field(default=None, init=False)
+    minimum_supported_distance_m: float = field(default=0.0, init=False)
+    continuum_ready: bool = field(default=True, init=False)
 
     def __post_init__(self) -> None:
+        validate_density_convention(self.density_convention)
         values = np.asarray(
             [self.energy_scale_joule, self.length_scale_m], dtype=np.float64
         )
         if not np.all(np.isfinite(values)) or np.any(values <= 0.0):
             raise ValueError("Gaussian test-potential scales must be positive")
+
+    @property
+    def pair_force_scaling(self) -> PairForceScaling:
+        return expected_pair_force_scaling(self.density_convention)
+
+    @property
+    def scaling_semantics(self) -> str:
+        return self.pair_force_scaling.value
 
     def radial_potential_joule(self, radius_m: np.ndarray) -> np.ndarray:
         radius = _radii(radius_m)
@@ -130,17 +168,28 @@ def mean_field_pair_force_newton(
     potential: PairPotential,
     *,
     chunk_size: int = 64,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
 ) -> np.ndarray:
-    """Return ``(1/N) sum_{j != i} F_pair(X_i-X_j)`` in newtons."""
+    """Return the convention-consistent pair force on each particle.
+
+    Probability density uses ``(1/N) sum F_Kac``; number density uses
+    ``sum F_pair``. The default preserves the original probability convention.
+    """
 
     positions = _displacements(positions_m)
     if positions.ndim != 2 or positions.shape[0] < 2:
         raise ValueError("positions_m must have shape (N, 2), N >= 2")
     if isinstance(chunk_size, bool) or not isinstance(chunk_size, int) or chunk_size <= 0:
         raise ValueError("chunk_size must be a positive integer")
+    validate_pair_potential_scaling(
+        potential,
+        density_convention,
+        population_count=positions.shape[0],
+    )
     if isinstance(potential, ZeroPairPotential):
         return np.zeros_like(positions)
     count = positions.shape[0]
+    divisor = count if density_convention is DensityConvention.PROBABILITY else 1
     result = np.empty_like(positions)
     for start in range(0, count, chunk_size):
         stop = min(start + chunk_size, count)
@@ -150,7 +199,7 @@ def mean_field_pair_force_newton(
         off_diagonal = np.ones(displacement.shape[:-1], dtype=bool)
         off_diagonal[local_rows, start + local_rows] = False
         forces[off_diagonal] = potential.force_newton(displacement[off_diagonal])
-        result[start:stop] = np.sum(forces, axis=1) / count
+        result[start:stop] = np.sum(forces, axis=1) / divisor
     if not np.all(np.isfinite(result)):
         raise FloatingPointError("pair force produced non-finite values")
     return result

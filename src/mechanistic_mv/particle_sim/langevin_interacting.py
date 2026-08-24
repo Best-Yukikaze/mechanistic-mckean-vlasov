@@ -11,6 +11,7 @@ from ..mechanics.controlled_potential import (
     ControlledPotentialBackend,
     ZeroControlledPotential,
 )
+from ..mechanics.density_scaling import DensityConvention
 from ..mechanics.external_force import ExternalPotential, ZeroExternalPotential
 from ..mechanics.geometry import (
     RectangleObstacle,
@@ -41,10 +42,12 @@ def overdamped_langevin_step(
     controlled_potential: ControlledPotentialBackend | None = None,
     control: np.ndarray | None = None,
     pair_chunk_size: int = 64,
+    density_convention: DensityConvention = DensityConvention.PROBABILITY,
 ) -> tuple[np.ndarray, LangevinStepDiagnostics]:
     """Euler-Maruyama step for the overdamped interacting system.
 
-    ``dX=M(F_ext+F_pair+F_control)dt+sqrt(2D) dB``.
+    ``dX=M(F_ext+F_pair+F_control)dt+sqrt(2D) dB``. The pair term is
+    ``(1/N) sum F_Kac`` in probability mode and ``sum F_pair`` in number mode.
     """
 
     positions = np.asarray(positions_m, dtype=np.float64)
@@ -62,7 +65,10 @@ def overdamped_langevin_step(
     force = (
         selected_external.force_newton(positions)
         + mean_field_pair_force_newton(
-            positions, pair_potential, chunk_size=pair_chunk_size
+            positions,
+            pair_potential,
+            chunk_size=pair_chunk_size,
+            density_convention=density_convention,
         )
         + selected_controlled_potential.force_newton(positions, control)
     )
