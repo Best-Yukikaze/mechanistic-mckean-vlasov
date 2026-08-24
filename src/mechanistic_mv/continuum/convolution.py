@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-from scipy.signal import fftconvolve
+from scipy.fft import irfftn, next_fast_len, rfftn
 
 from ..mechanics.geometry import CartesianGrid
-from ..mechanics.pair_potential import PairPotential
+from ..mechanics.pair_potential import PairPotential, ZeroPairPotential
 
 
 def direct_pair_convolution_joule(
@@ -19,6 +19,8 @@ def direct_pair_convolution_joule(
     """Evaluate ``(W*rho)(x)`` by the O(number-of-cells squared) definition."""
 
     density = _density(density_per_m2, grid)
+    if isinstance(potential, ZeroPairPotential):
+        return np.zeros_like(density)
     x, y = grid.mesh_m()
     sources = np.stack((x.ravel(), y.ravel()), axis=-1)
     weights = density.ravel() * grid.cell_area_m2
@@ -31,13 +33,22 @@ def direct_pair_convolution_joule(
 
 @dataclass(slots=True)
 class FFTPairConvolver:
-    """Cached zero-padded linear convolution for a translation-invariant W."""
+    """Frequency-cached linear convolution for a translation-invariant W."""
 
     grid: CartesianGrid
     potential: PairPotential
-    _kernel_joule: np.ndarray = field(init=False, repr=False)
+    _full_shape: tuple[int, int] = field(init=False, repr=False)
+    _fft_shape: tuple[int, int] = field(init=False, repr=False)
+    _kernel_spectrum: np.ndarray | None = field(init=False, repr=False)
+    _zero_interaction: bool = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
+        self._zero_interaction = isinstance(self.potential, ZeroPairPotential)
+        if self._zero_interaction:
+            self._full_shape = (self.grid.ny, self.grid.nx)
+            self._fft_shape = (self.grid.ny, self.grid.nx)
+            self._kernel_spectrum = None
+            return
         x_offsets = np.arange(-(self.grid.nx - 1), self.grid.nx) * self.grid.dx_m
         y_offsets = np.arange(-(self.grid.ny - 1), self.grid.ny) * self.grid.dy_m
         offset_x, offset_y = np.meshgrid(x_offsets, y_offsets, indexing="xy")
@@ -48,11 +59,27 @@ class FFTPairConvolver:
         expected = (2 * self.grid.ny - 1, 2 * self.grid.nx - 1)
         if kernel.shape != expected or not np.all(np.isfinite(kernel)):
             raise ValueError("pair potential returned an invalid convolution kernel")
-        self._kernel_joule = kernel
+        self._full_shape = (
+            self.grid.ny + kernel.shape[0] - 1,
+            self.grid.nx + kernel.shape[1] - 1,
+        )
+        self._fft_shape = tuple(
+            next_fast_len(length, real=True) for length in self._full_shape
+        )
+        self._kernel_spectrum = rfftn(kernel, self._fft_shape)
 
     def convolve_joule(self, density_per_m2: np.ndarray) -> np.ndarray:
         density = _density(density_per_m2, self.grid)
-        full = fftconvolve(density, self._kernel_joule, mode="full")
+        if self._zero_interaction:
+            return np.zeros_like(density)
+        if self._kernel_spectrum is None:
+            raise RuntimeError("nonzero convolution kernel spectrum is unavailable")
+        density_spectrum = rfftn(density, self._fft_shape)
+        padded = irfftn(
+            density_spectrum * self._kernel_spectrum,
+            self._fft_shape,
+        )
+        full = padded[: self._full_shape[0], : self._full_shape[1]]
         y0, x0 = self.grid.ny - 1, self.grid.nx - 1
         result = full[y0 : y0 + self.grid.ny, x0 : x0 + self.grid.nx]
         result *= self.grid.cell_area_m2

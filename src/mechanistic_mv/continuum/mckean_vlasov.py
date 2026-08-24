@@ -82,8 +82,13 @@ class McKeanVlasovSolver:
         self.external_potential_joule = np.asarray(
             self.external.potential_joule(self.cell_positions_m), dtype=np.float64
         )
-        if self.external_potential_joule.shape != (grid.ny, grid.nx):
-            raise ValueError("external potential must return one value per grid cell")
+        if (
+            self.external_potential_joule.shape != (grid.ny, grid.nx)
+            or not np.all(np.isfinite(self.external_potential_joule))
+        ):
+            raise ValueError(
+                "external potential must return one finite value per grid cell"
+            )
         self.convolver = FFTPairConvolver(grid, pair_potential)
         fluid_area = np.sum(self.fluid_mask) * grid.cell_area_m2
         self.reference_density_per_m2 = 1.0 / fluid_area
@@ -96,17 +101,24 @@ class McKeanVlasovSolver:
         self, density_per_m2: np.ndarray, control: np.ndarray | None = None
     ) -> tuple[FaceFluxes, np.ndarray]:
         density = self._validated_density(density_per_m2)
-        interaction = self.convolver.convolve_joule(density)
-        flat_positions = self.cell_positions_m.reshape(-1, 2)
-        controlled_potential = np.asarray(
-            self.controlled_potential.potential_joule(flat_positions, control),
-            dtype=np.float64,
-        ).reshape(self.grid.ny, self.grid.nx)
+        controlled_potential = self._controlled_potential_grid(control)
+        return self._face_fluxes_with_controlled_potential(
+            density, controlled_potential
+        )
+
+    def _face_fluxes_with_controlled_potential(
+        self,
+        density_per_m2: np.ndarray,
+        controlled_potential_joule: np.ndarray,
+    ) -> tuple[FaceFluxes, np.ndarray]:
+        interaction = self.convolver.convolve_joule(density_per_m2)
         effective_potential = (
-            self.external_potential_joule + controlled_potential + interaction
+            self.external_potential_joule
+            + controlled_potential_joule
+            + interaction
         )
         fluxes = compute_face_fluxes(
-            density,
+            density_per_m2,
             effective_potential,
             self.grid,
             diffusion_m2_per_s=self.parameters.diffusion_m2_per_s,
@@ -149,8 +161,11 @@ class McKeanVlasovSolver:
         minimum_stable_dt = np.inf
         clipped_mass = 0.0
         maximum_abs_flux = 0.0
+        controlled_potential = self._controlled_potential_grid(control)
         while remaining > max(np.finfo(np.float64).eps * requested_dt, 0.0):
-            fluxes, _ = self.face_fluxes(density, control)
+            fluxes, _ = self._face_fluxes_with_controlled_potential(
+                density, controlled_potential
+            )
             maximum_abs_flux = max(
                 maximum_abs_flux,
                 float(np.max(np.abs(fluxes.x_per_m_s))),
@@ -206,12 +221,7 @@ class McKeanVlasovSolver:
     ) -> FreeEnergyComponents:
         density = self._validated_density(density_per_m2)
         interaction = self.convolver.convolve_joule(density)
-        controlled = np.asarray(
-            self.controlled_potential.potential_joule(
-                self.cell_positions_m.reshape(-1, 2), control
-            ),
-            dtype=np.float64,
-        ).reshape(self.grid.ny, self.grid.nx)
+        controlled = self._controlled_potential_grid(control)
         return free_energy_components(
             density,
             self.grid,
@@ -221,6 +231,21 @@ class McKeanVlasovSolver:
             interaction,
             fluid_mask=self.fluid_mask,
         )
+
+    def _controlled_potential_grid(
+        self, control: np.ndarray | None
+    ) -> np.ndarray:
+        flat_positions = self.cell_positions_m.reshape(-1, 2)
+        values = np.asarray(
+            self.controlled_potential.potential_joule(flat_positions, control),
+            dtype=np.float64,
+        )
+        expected = (flat_positions.shape[0],)
+        if values.shape != expected or not np.all(np.isfinite(values)):
+            raise ValueError(
+                "controlled potential must return one finite value per grid cell"
+            )
+        return values.reshape(self.grid.ny, self.grid.nx)
 
     def _validated_density(self, values: np.ndarray) -> np.ndarray:
         density = np.asarray(values, dtype=np.float64)
