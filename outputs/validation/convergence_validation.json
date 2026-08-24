@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-08-24T00:29:22.580736+00:00",
+  "git_revision_at_run": "ead77d90a0e0d459345b6f1bb8a3b84c25f532b8",
+  "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
+  "overall_passed": true,
+  "checks": {
+    "pure_diffusion_error_decreases": true,
+    "pure_diffusion_finest_relative_L2_below_1e-3": true,
+    "fine_grid_observed_order_above_1p5": true,
+    "CFL_refinement_error_decreases": true,
+    "CFL_next_finest_relative_L2_below_2e-3": true,
+    "multi_seed_max_JS_below_0p08": true,
+    "multi_seed_max_relative_L2_below_0p35": true,
+    "multi_seed_max_mean_error_below_3e-7_m": true,
+    "multi_seed_max_covariance_error_below_0p35": true
+  },
+  "pure_diffusion_grid_refinement": [
+    {
+      "grid_size": 24,
+      "relative_L2_density_error": 0.0040163666717940106,
+      "mass_error": 1.1102230246251565e-16,
+      "substeps": 1
+    },
+    {
+      "grid_size": 48,
+      "relative_L2_density_error": 0.0026242983670475076,
+      "mass_error": 1.1102230246251565e-16,
+      "substeps": 3,
+      "observed_order_from_previous_grid": 0.6139592301934751
+    },
+    {
+      "grid_size": 96,
+      "relative_L2_density_error": 0.0006427529127073088,
+      "mass_error": 3.3306690738754696e-16,
+      "substeps": 9,
+      "observed_order_from_previous_grid": 2.029595607167316
+    }
+  ],
+  "complete_MV_CFL_refinement": [
+    {
+      "cfl_safety": 0.9,
+      "substeps": 16,
+      "mass_error": 2.220446049250313e-16,
+      "relative_L2_to_finest_CFL": 0.008185947703184693
+    },
+    {
+      "cfl_safety": 0.45,
+      "substeps": 32,
+      "mass_error": 2.220446049250313e-16,
+      "relative_L2_to_finest_CFL": 0.003475656281046339
+    },
+    {
+      "cfl_safety": 0.225,
+      "substeps": 63,
+      "mass_error": 2.220446049250313e-16,
+      "relative_L2_to_finest_CFL": 0.0011542255285982984
+    },
+    {
+      "cfl_safety": 0.1125,
+      "substeps": 126,
+      "mass_error": 0.0,
+      "relative_L2_to_finest_CFL": 0.0
+    }
+  ],
+  "particle_MV_multi_seed": {
+    "records": [
+      {
+        "seed": 20260824,
+        "particle_count": 500,
+        "mean_error_norm_m": 6.672644359890638e-08,
+        "maximum_diagonal_covariance_relative_error": 0.08956784355005487,
+        "relative_L2_density_error": 0.21393582993391658,
+        "JS_divergence_nats": 0.017617834813694385
+      },
+      {
+        "seed": 20260825,
+        "particle_count": 500,
+        "mean_error_norm_m": 6.343226623992832e-08,
+        "maximum_diagonal_covariance_relative_error": 0.0636470882898031,
+        "relative_L2_density_error": 0.1924051868374581,
+        "JS_divergence_nats": 0.021187712787866922
+      },
+      {
+        "seed": 20260826,
+        "particle_count": 500,
+        "mean_error_norm_m": 9.406828066183792e-08,
+        "maximum_diagonal_covariance_relative_error": 0.08233799660814561,
+        "relative_L2_density_error": 0.21523635394312288,
+        "JS_divergence_nats": 0.01991149646189691
+      },
+      {
+        "seed": 20260827,
+        "particle_count": 500,
+        "mean_error_norm_m": 1.9645427090714858e-08,
+        "maximum_diagonal_covariance_relative_error": 0.09757958275501259,
+        "relative_L2_density_error": 0.20172187965112706,
+        "JS_divergence_nats": 0.021576177338442606
+      },
+      {
+        "seed": 20260828,
+        "particle_count": 500,
+        "mean_error_norm_m": 8.292210532571436e-08,
+        "maximum_diagonal_covariance_relative_error": 0.06595584026048938,
+        "relative_L2_density_error": 0.19887111555422549,
+        "JS_divergence_nats": 0.02142189986800129
+      }
+    ],
+    "summary": {
+      "mean_error_norm_m": {
+        "mean": 6.535890458342038e-08,
+        "sample_standard_deviation": 2.840773846097095e-08,
+        "maximum": 9.406828066183792e-08
+      },
+      "maximum_diagonal_covariance_relative_error": {
+        "mean": 0.07981767029270112,
+        "sample_standard_deviation": 0.014752470231777544,
+        "maximum": 0.09757958275501259
+      },
+      "relative_L2_density_error": {
+        "mean": 0.20443407318397006,
+        "sample_standard_deviation": 0.00987381953731619,
+        "maximum": 0.21523635394312288
+      },
+      "JS_divergence_nats": {
+        "mean": 0.020343024253980425,
+        "sample_standard_deviation": 0.0016591422151456623,
+        "maximum": 0.021576177338442606
+      }
+    }
+  }
+}

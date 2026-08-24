@@ -12,6 +12,7 @@ from time import perf_counter
 
 import numpy as np
 import scipy
+from scipy.signal import fftconvolve
 
 from mechanistic_mv.continuum.convolution import (
     FFTPairConvolver,
@@ -58,6 +59,26 @@ def _git_revision() -> str:
         return "unavailable"
 
 
+def _spatial_kernel(
+    grid: CartesianGrid, potential: TestOnlyGaussianRepulsion
+) -> np.ndarray:
+    x_offsets = np.arange(-(grid.nx - 1), grid.nx) * grid.dx_m
+    y_offsets = np.arange(-(grid.ny - 1), grid.ny) * grid.dy_m
+    offset_x, offset_y = np.meshgrid(x_offsets, y_offsets, indexing="xy")
+    return potential.potential_joule(np.stack((offset_x, offset_y), axis=-1))
+
+
+def _spatial_kernel_cached_fftconvolve(
+    density: np.ndarray, grid: CartesianGrid, kernel: np.ndarray
+) -> np.ndarray:
+    full = fftconvolve(density, kernel, mode="full")
+    y0, x0 = grid.ny - 1, grid.nx - 1
+    return (
+        full[y0 : y0 + grid.ny, x0 : x0 + grid.nx]
+        * grid.cell_area_m2
+    )
+
+
 def main() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     parameters = PhysicalParameters()
@@ -73,23 +94,36 @@ def main() -> None:
         density = rng.uniform(0.5, 1.5, size=(size, size))
         density /= np.sum(density) * grid.cell_area_m2
         convolver = FFTPairConvolver(grid, potential)
+        kernel = _spatial_kernel(grid, potential)
         direct_pair_convolution_joule(density, grid, potential)
+        _spatial_kernel_cached_fftconvolve(density, grid, kernel)
         convolver.convolve_joule(density)
         direct_seconds, direct = _timed(
             lambda: direct_pair_convolution_joule(density, grid, potential),
             repeats=5,
         )
-        fft_seconds, accelerated = _timed(
+        scipy_fft_seconds, scipy_fft = _timed(
+            lambda: _spatial_kernel_cached_fftconvolve(density, grid, kernel),
+            repeats=5,
+        )
+        cached_seconds, accelerated = _timed(
             lambda: convolver.convolve_joule(density), repeats=5
         )
         convolution_results.append(
             {
                 "grid": [size, size],
                 "direct_seconds": direct_seconds,
-                "fft_seconds": fft_seconds,
-                "speedup": direct_seconds / fft_seconds,
+                "spatial_kernel_cached_fftconvolve_seconds": scipy_fft_seconds,
+                "frequency_kernel_cached_seconds": cached_seconds,
+                "direct_to_frequency_cached_speedup": direct_seconds
+                / cached_seconds,
+                "frequency_cache_speedup_over_fftconvolve": scipy_fft_seconds
+                / cached_seconds,
                 "maximum_absolute_error_joule": float(
                     np.max(np.abs(np.asarray(direct) - np.asarray(accelerated)))
+                ),
+                "maximum_absolute_fft_implementation_difference_joule": float(
+                    np.max(np.abs(np.asarray(scipy_fft) - np.asarray(accelerated)))
                 ),
             }
         )
@@ -131,13 +165,21 @@ def main() -> None:
         ),
         repeats=5,
     )
+    zero_grid = CartesianGrid(domain, 128, 128)
+    zero_density = np.ones((zero_grid.ny, zero_grid.nx), dtype=np.float64)
+    zero_density /= np.sum(zero_density) * zero_grid.cell_area_m2
+    zero_convolver = FFTPairConvolver(zero_grid, ZeroPairPotential())
+    zero_continuum_seconds, zero_continuum = _timed(
+        lambda: zero_convolver.convolve_joule(zero_density), repeats=100
+    )
     report = {
         "benchmark_scope": "implementation optimization, not model calibration",
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "git_revision_at_run": _git_revision(),
         "timing_method": (
-            "one untimed warm-up for convolution, then minimum of five equal "
-            "repeats; particle force uses minimum of three repeats"
+            "one untimed warm-up for each convolution implementation, then "
+            "minimum of five equal repeats; particle force uses minimum of "
+            "three repeats; zero-continuum path uses minimum of 100 repeats"
         ),
         "runtime": {
             "platform": platform.platform(),
@@ -154,6 +196,13 @@ def main() -> None:
             "particle_count": int(zero_positions.shape[0]),
             "seconds": zero_seconds,
             "maximum_absolute_force_newton": float(np.max(np.abs(zero_force))),
+        },
+        "zero_continuum_convolution_fast_path": {
+            "grid": [zero_grid.ny, zero_grid.nx],
+            "seconds_per_call": zero_continuum_seconds,
+            "maximum_absolute_potential_joule": float(
+                np.max(np.abs(zero_continuum))
+            ),
         },
     }
     OUTPUT_PATH.write_text(

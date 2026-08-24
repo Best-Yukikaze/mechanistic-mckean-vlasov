@@ -24,18 +24,29 @@ real constitutive laws.
 - **Measured result:** sub-millisecond in the saved benchmark. Exact timing is
   kept only in the JSON because it varies between runs.
 
-## O3 — Cached FFT physical convolution
+## O3 — Frequency-cached FFT physical convolution
 
-- **Changed:** build the translation-invariant `W` spatial offset kernel once
-  and use zero-padded linear FFT convolution. SciPy performs the transforms on
-  each call; this implementation does not claim to cache the frequency-domain
-  kernel. The direct `O(cells²)` definition remains available as the reference.
+- **Changed:** build the translation-invariant `W` offset kernel once, choose a
+  zero-padded fast transform shape, and cache the kernel's real-valued frequency
+  transform. Each call now transforms only the changing density. The direct
+  `O(cells²)` definition and spatial-kernel-cached `fftconvolve` benchmark remain
+  as independent references.
 - **Reason:** `W*rho` is recomputed at every MV substep.
 - **Verification:** direct and FFT outputs agree within about `1.6e-37 J`, and
   tests explicitly check the required `dx*dy` factor and kernel alignment.
-- **Measured result:** tens to roughly two orders of magnitude faster on the
-  saved 16²–32² cases. Exact speedups are intentionally not duplicated here;
-  the versioned JSON is the authoritative timing record.
+- **Measured result:** the saved benchmark reports both direct-to-cached and
+  `fftconvolve`-to-frequency-cache speedups. Exact timings are intentionally not
+  duplicated here; the versioned JSON is the authoritative record.
+
+## O3b — Zero-interaction continuum fast path
+
+- **Changed:** a `ZeroPairPotential` returns an exact zero cell array without
+  building a kernel or running any transform.
+- **Reason:** pure diffusion and Fokker–Planck ablations must not pay for a
+  nonlocal interaction that is mathematically absent.
+- **Verification:** the direct and optimized zero-potential paths return exact
+  zeros; the unit and benchmark cases cover repeated calls.
+- **Measured result:** the 128² per-call timing is stored in the benchmark JSON.
 
 ## O4 — Cached geometry and face masks
 
@@ -67,6 +78,18 @@ real constitutive laws.
   mass; maximum absolute mass error is `1.11e-16`.
 - **Measured result:** the 0.5 s validation horizon uses 10 substeps for
   diffusion/pair-only cases and 30 for stronger external/full/obstacle cases.
+
+## O7 — Static controlled-potential reuse
+
+- **Changed:** evaluate `V_control(x;u)` once per requested solver step and reuse
+  it across all adaptive MV substeps while the held input `u` is unchanged.
+- **Reason:** the RL/control time-scale contract holds one command across those
+  substeps, so recomputing the same field has no physical or numerical benefit.
+- **Verification:** a counting test forces multiple FVM substeps and observes
+  exactly one controlled-potential evaluation. Shape and finite-value checks
+  reject malformed backends before flux construction.
+- **Measured result:** benefit scales with the cost of the future real actuator
+  backend and the number of adaptive substeps; no fake actuator is benchmarked.
 
 ## Reproduce measurements
 
