@@ -91,6 +91,26 @@ real constitutive laws.
 - **Measured result:** benefit scales with the cost of the future real actuator
   backend and the number of adaptive substeps; no fake actuator is benchmarked.
 
+## O8 — Complete-displacement specular no-flux reflection
+
+- **Changed:** particle boundary handling now advances to the earliest outer or
+  rectangular-solid face, reflects the untravelled displacement, and continues
+  until the complete integration-step displacement has been resolved. Corner
+  contacts reflect both face-normal components. A vectorized zero-collision
+  fast path remains active when there are no obstacles and all proposals stay
+  inside the outer domain.
+- **Reason:** stopping at first obstacle contact discarded tangential and
+  post-impact motion, creating an artificial residence-time bias next to solid
+  boundaries. Reflecting the remaining displacement is the specular discrete
+  realization of particle no penetration used by this backend.
+- **Verification:** analytical oblique and obstacle-then-wall trajectories have
+  exact expected endpoints; 200 randomized large displacements and 300
+  Brownian particles over 12 steps remain in the fluid and preserve unit
+  empirical mass.
+- **Measured result:** no separate timing claim is made. The common
+  obstacle-free, no-collision path returns before the per-particle swept-path
+  solver, while colliding paths now pay only for the reflections they require.
+
 ## Reproduce measurements
 
 Run `scripts/benchmark_optimizations.py`. Exact wall-clock values vary by

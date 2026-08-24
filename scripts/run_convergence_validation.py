@@ -201,6 +201,64 @@ def _particle_multi_seed_study(
     return records
 
 
+def _particle_count_study(
+    parameters: PhysicalParameters,
+    domain: RectangularDomain,
+) -> list[dict[str, float | int]]:
+    """Measure empirical particle--MV error as particle count increases."""
+
+    grid = CartesianGrid(domain, 20, 20)
+    pair = TestOnlyGaussianRepulsion(
+        parameters.thermal_energy_joule, 1.2e-6
+    )
+    external = HarmonicTestPotential((10.0e-6, 10.0e-6), 6.0e-9)
+    solver = McKeanVlasovSolver(grid, parameters, pair, external=external)
+    continuum = gaussian_density(grid, (8.8e-6, 10.4e-6), 1.4e-6)
+    for _ in range(20):
+        continuum, _ = solver.step(continuum, 0.01)
+    continuum_moments = density_moments(continuum, grid)
+
+    records = []
+    for particle_count in (250, 500, 1000):
+        for seed in range(20260901, 20260906):
+            rng = np.random.default_rng(seed)
+            particles = rng.normal(
+                np.asarray([8.8e-6, 10.4e-6]),
+                1.4e-6,
+                size=(particle_count, 2),
+            )
+            for _ in range(20):
+                particles, _ = overdamped_langevin_step(
+                    particles,
+                    parameters,
+                    pair,
+                    domain,
+                    dt_s=0.01,
+                    rng=rng,
+                    external=external,
+                )
+            sampled = empirical_density(particles, grid)
+            sampled_moments = density_moments(sampled, grid)
+            records.append(
+                {
+                    "particle_count": particle_count,
+                    "seed": seed,
+                    "mean_error_norm_m": float(
+                        np.linalg.norm(
+                            sampled_moments.mean_m - continuum_moments.mean_m
+                        )
+                    ),
+                    "relative_L2_density_error": relative_l2_error(
+                        sampled, continuum, grid
+                    ),
+                    "JS_divergence_nats": jensen_shannon_divergence(
+                        sampled, continuum, grid
+                    ),
+                }
+            )
+    return records
+
+
 def _summary(records: list[dict[str, float | int]], key: str) -> dict[str, float]:
     values = np.asarray([record[key] for record in records], dtype=np.float64)
     return {
@@ -210,6 +268,29 @@ def _summary(records: list[dict[str, float | int]], key: str) -> dict[str, float
     }
 
 
+def _particle_count_summary(
+    records: list[dict[str, float | int]],
+) -> list[dict[str, float | int]]:
+    summary = []
+    for particle_count in sorted({int(record["particle_count"]) for record in records}):
+        selected = [
+            record for record in records
+            if int(record["particle_count"]) == particle_count
+        ]
+        summary.append(
+            {
+                "particle_count": particle_count,
+                "replicates": len(selected),
+                "relative_L2_density_error": _summary(
+                    selected, "relative_L2_density_error"
+                ),
+                "JS_divergence_nats": _summary(selected, "JS_divergence_nats"),
+                "mean_error_norm_m": _summary(selected, "mean_error_norm_m"),
+            }
+        )
+    return summary
+
+
 def main() -> None:
     OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
     parameters = PhysicalParameters()
@@ -217,6 +298,8 @@ def main() -> None:
     grid_records = _pure_diffusion_grid_study(parameters, domain)
     cfl_records = _cfl_refinement_study(parameters, domain)
     particle_records = _particle_multi_seed_study(parameters, domain)
+    particle_count_records = _particle_count_study(parameters, domain)
+    particle_count_summary = _particle_count_summary(particle_count_records)
 
     grid_errors = [
         float(record["relative_L2_density_error"]) for record in grid_records
@@ -234,6 +317,32 @@ def main() -> None:
             "JS_divergence_nats",
         )
     }
+    particle_counts = np.asarray(
+        [record["particle_count"] for record in particle_count_summary],
+        dtype=np.float64,
+    )
+    particle_count_l2_means = np.asarray(
+        [
+            record["relative_L2_density_error"]["mean"]
+            for record in particle_count_summary
+        ],
+        dtype=np.float64,
+    )
+    particle_count_js_means = np.asarray(
+        [
+            record["JS_divergence_nats"]["mean"]
+            for record in particle_count_summary
+        ],
+        dtype=np.float64,
+    )
+    particle_count_empirical_orders = {
+        "relative_L2_density_error": float(
+            -np.polyfit(np.log(particle_counts), np.log(particle_count_l2_means), 1)[0]
+        ),
+        "JS_divergence_nats": float(
+            -np.polyfit(np.log(particle_counts), np.log(particle_count_js_means), 1)[0]
+        ),
+    }
     checks = {
         "pure_diffusion_error_decreases": grid_errors[0] > grid_errors[1] > grid_errors[2],
         "pure_diffusion_finest_relative_L2_below_1e-3": grid_errors[-1] < 1.0e-3,
@@ -250,9 +359,23 @@ def main() -> None:
             "maximum_diagonal_covariance_relative_error"
         ]["maximum"]
         < 0.35,
+        "particle_count_mean_L2_improves_250_to_1000": bool(
+            particle_count_l2_means[0] > particle_count_l2_means[-1]
+        ),
+        "particle_count_mean_JS_improves_250_to_1000": bool(
+            particle_count_js_means[0] > particle_count_js_means[-1]
+        ),
+        "particle_count_L2_empirical_order_above_0p2": particle_count_empirical_orders[
+            "relative_L2_density_error"
+        ]
+        > 0.2,
+        "particle_count_JS_empirical_order_above_0p4": particle_count_empirical_orders[
+            "JS_divergence_nats"
+        ]
+        > 0.4,
     }
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "git_revision_at_run": _git_revision(),
         "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
@@ -297,6 +420,19 @@ def main() -> None:
                 "external_centre_m": [10.0e-6, 10.0e-6],
                 "external_stiffness_newton_per_m": 6.0e-9,
             },
+            "particle_count_convergence": {
+                "grid_size": 20,
+                "particle_counts": [250, 500, 1000],
+                "seeds": list(range(20260901, 20260906)),
+                "number_of_steps": 20,
+                "step_duration_s": 0.01,
+                "initial_mean_m": [8.8e-6, 10.4e-6],
+                "initial_standard_deviation_m": 1.4e-6,
+                "pair_energy_scale_joule": parameters.thermal_energy_joule,
+                "pair_length_scale_m": 1.2e-6,
+                "external_centre_m": [10.0e-6, 10.0e-6],
+                "external_stiffness_newton_per_m": 6.0e-9,
+            },
         },
         "overall_passed": all(checks.values()),
         "checks": checks,
@@ -306,12 +442,22 @@ def main() -> None:
             "records": particle_records,
             "summary": particle_summary,
         },
+        "particle_count_convergence": {
+            "records": particle_count_records,
+            "summary_by_particle_count": particle_count_summary,
+            "empirical_order": particle_count_empirical_orders,
+        },
     }
     output_path = OUTPUT_DIRECTORY / "convergence_validation.json"
     output_path.write_text(
         json.dumps(report, indent=2, allow_nan=False), encoding="utf-8"
     )
-    _plot(grid_records, cfl_records, particle_records)
+    _plot(
+        grid_records,
+        cfl_records,
+        particle_records,
+        particle_count_summary,
+    )
     print(output_path)
     if not report["overall_passed"]:
         raise RuntimeError("one or more convergence validation gates failed")
@@ -321,8 +467,9 @@ def _plot(
     grid_records: list[dict[str, float | int]],
     cfl_records: list[dict[str, float | int]],
     particle_records: list[dict[str, float | int]],
+    particle_count_summary: list[dict[str, float | int]],
 ) -> None:
-    fig, axes = plt.subplots(1, 3, figsize=(14, 4), constrained_layout=True)
+    fig, axes = plt.subplots(1, 4, figsize=(18, 4), constrained_layout=True)
     axes[0].loglog(
         [record["grid_size"] for record in grid_records],
         [record["relative_L2_density_error"] for record in grid_records],
@@ -359,6 +506,29 @@ def _plot(
     axes[2].set_xlabel("seed suffix")
     axes[2].set_title("particle--MV across seeds")
     axes[2].legend()
+
+    counts = [record["particle_count"] for record in particle_count_summary]
+    for metric, label in (
+        ("relative_L2_density_error", "relative L2"),
+        ("JS_divergence_nats", "JS [nats]"),
+    ):
+        axes[3].errorbar(
+            counts,
+            [record[metric]["mean"] for record in particle_count_summary],
+            yerr=[
+                record[metric]["sample_standard_deviation"]
+                for record in particle_count_summary
+            ],
+            marker="o",
+            capsize=3,
+            label=label,
+        )
+    axes[3].set_xscale("log")
+    axes[3].set_yscale("log")
+    axes[3].set_title("particle-count convergence")
+    axes[3].set_xlabel("particle count")
+    axes[3].set_ylabel("mean error across 5 seeds")
+    axes[3].legend()
     for axis in axes:
         axis.grid(alpha=0.25)
     fig.savefig(OUTPUT_DIRECTORY / "convergence_validation.png", dpi=180)
