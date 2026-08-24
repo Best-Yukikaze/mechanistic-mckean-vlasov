@@ -28,6 +28,14 @@ environment.
 - The continuum solver, interacting-particle validation model, no-flux
   geometry, deterministic validation, and Monte Carlo comparison remain
   implemented.
+- Probability density and number density are now separate, checked conventions:
+  `integral(rho)=1` uses a Kac-scaled potential and a `1/N` particle sum,
+  while `integral(n)=N` uses the unscaled single-pair potential and an
+  unscaled particle sum. The old probability convention remains the default.
+- A force table starting at `r_min>0` is retained as valid particle-only data.
+  It is rejected before continuum-kernel construction because the convolution
+  evaluates zero displacement; the code never prepends a synthetic `r=0`
+  sample or invents a short-range closure.
 - The included Gaussian pair potential, harmonic trap, and uniform-field
   controlled potential are labelled `TEST_ONLY_NOT_FINAL_PHYSICS`.
 - The supplied Hydrogel source names `N*nu`, `chi`, `phi0`, `Delta mu/(kT)`,
@@ -69,14 +77,30 @@ W_eff(r) = -integral_[r_ref,r] F_pair(s) ds,
 F_pair(r) = -dW_eff/dr.
 ```
 
-Raw contact FEM output has `UNSCALED_SINGLE_PAIR` semantics. Because this code
-uses a unit-mass probability density and a `1/N` particle interaction sum, raw
-single-pair data cannot be relabelled as a Kac-scaled MV potential. The
-population/concentration scaling and its provenance must be supplied
-explicitly.
+Raw contact FEM output has `UNSCALED_SINGLE_PAIR` semantics. It can be consumed
+directly with number density `n`, or converted to the probability-density/Kac
+form only by the explicit numerical conversion
+
+```text
+n = N rho,
+F_Kac = N F_pair,
+W_Kac = N W_pair.
+```
+
+The conversion multiplies the table values and records the positive integer
+population and its provenance. Merely relabelling the scaling enum is rejected.
 
 For mobility `M` in m/(N s), thermal energy `k_B T` in J, external potential
-`V` in J, pair potential `W` in J, and normalized density `rho` in 1/m²,
+`V` in J, pair potential `W` in J, and density in 1/m², the same physical
+system has two equivalent representations:
+
+```text
+probability: integral(rho dx)=1,  interaction=W_Kac*rho
+number:      integral(n dx)=N,    interaction=W_pair*n
+W_Kac*rho = W_pair*n.
+```
+
+Writing the probability convention explicitly,
 
 ```text
 F[rho; u] = kBT ∫ rho(log(rho/rho_ref) - 1) dx
@@ -98,6 +122,10 @@ The supplied v2 specification writes the nondimensional/mobility-one form
 retains `M` explicitly so every term has SI units. Setting `M=1` recovers that
 short form. The `W=0` Fokker–Planck equation is available only as a test and
 ablation limit; the main model retains the nonlocal `W*rho` term.
+
+With reference density `n_ref=N*rho_ref`, the number-density free energy is
+`N` times the probability-density free energy, while both conventions produce
+the same interaction field and particle trajectories.
 
 The preferred control contract is conservative:
 
@@ -134,6 +162,10 @@ dX_i = M[F_ext(X_i) + F_control(X_i;u)
        + (1/N) sum_(j != i) F_pair(X_i-X_j)] dt + sqrt(2D) dB_i,
 F_pair(r) = -grad W(r).
 ```
+
+That displayed equation is the probability/Kac form. The equivalent physical
+single-pair form replaces the interaction term by
+`sum_(j != i) F_pair(X_i-X_j)` and uses number density in the continuum.
 
 The code also contains the second-order mother equation only to document the
 overdamped reduction and validate force/energy interfaces. It is not the main
@@ -181,6 +213,7 @@ $env:PYTHONPATH = "src"
 & "D:\conda environment\envs\dl\python.exe" scripts\run_hydrogel_validation.py --test-only-fixture
 & "D:\conda environment\envs\dl\python.exe" scripts\run_pair_contact_sweep.py
 & "D:\conda environment\envs\dl\python.exe" scripts\build_effective_potential.py --test-only-fixture
+& "D:\conda environment\envs\dl\python.exe" scripts\validate_density_scaling.py --test-only-fixture
 ```
 
 These commands run tests and short physics simulations; they do not train a
@@ -213,6 +246,12 @@ The suite covers:
     and Kac-scaling admission gates.
 13. A fixed-seed, explicitly test-only shared-potential particle/MV regression;
     it is a code check, not a statistical or material-validation claim.
+14. Probability/number-density equivalence for mass, particle force and energy,
+    seeded Langevin motion, direct/FFT convolution, flux, one FVM step, and
+    free energy, plus explicit mismatch rejection.
+15. Short-range admission: `r_min>0` remains particle-only and is blocked before
+    any particle-versus-MV comparison; `r_min=0` is continuum-ready only after
+    the other physical, provenance, time-scale, and scaling gates pass.
 
 See `OPTIMIZATION_LOG.md` for every performance change and its measured effect.
 

@@ -162,6 +162,32 @@ real constitutive laws.
   optimization: invalid data fail before expensive simulations, while valid
   loading remains negligible relative to continuum or particle evolution.
 
+## O12 — Explicit density scaling and short-range admission
+
+- **Changed:** added a shared probability/number-density contract. Probability
+  density requires a Kac potential and `1/N` particle sum; number density
+  requires an unscaled single-pair potential and an unscaled particle sum. The
+  single-pair-to-Kac conversion now performs the numerical `N` multiplication
+  and preserves immutable population provenance. A nonzero force-table
+  `r_min` is classified as particle-only and rejected before a continuum FFT
+  kernel or particle-versus-MV comparison is created.
+- **Reason:** the former unit-mass-only path could not directly represent raw
+  physical single-pair mechanics, and requiring every real contact table to
+  contain `r=0` encouraged an unphysical synthetic sample. Explicit contracts
+  make the two normalizations equivalent without changing the model and keep
+  unresolved short-range physics visible.
+- **Verification:** the integrated suite contains 96 passing tests. The saved
+  deterministic `N=6` TEST_ONLY report has 24 positive checks and five expected
+  rejection gates. Maximum relative discrepancies include `1.24e-15` for
+  particle force, `1.74e-15` for face flux, `2.19e-16` for one FVM step, and
+  `2.90e-16` for total continuum free-energy scaling; the seeded Langevin step
+  is identical. The evidence hash is
+  `dd3e61f24dc736ec7b63abf3377831175acc7533ed7a4de6814862cbb0f68ad6`.
+- **Measured result:** no performance speedup is claimed. This is a modelling
+  and evidence-quality optimization: scaling, mass, population, and short-range
+  mismatches now fail before expensive numerical evolution. The report remains
+  `TEST_ONLY_NOT_FINAL_PHYSICS` and does not validate Hydrogel contact data.
+
 ## Reproduce measurements
 
 Run `scripts/benchmark_optimizations.py`. Exact wall-clock values vary by

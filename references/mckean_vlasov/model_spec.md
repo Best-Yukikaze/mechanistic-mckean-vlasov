@@ -6,12 +6,17 @@ instructions.
 
 - The primary equation is the controlled McKean–Vlasov density equation.
 - The required physical reduction is
-  `Hydrogel Gibbs law -> two-particle contact -> F_pair -> W_eff -> W_eff*rho`.
+  `Hydrogel Gibbs law -> two-particle contact -> F_pair -> W_pair*n`, with the
+  equivalent Kac form `W_Kac*rho` available after explicit population scaling.
 - A nonzero, physically derived and validation-gated `W_eff` is mandatory
   before physical claims; `W=0` is only the Fokker–Planck test/ablation.
-- Raw two-particle mechanics has unscaled single-pair semantics. The current
-  unit-mass probability density and `1/N` particle sum require a separately
-  justified Kac/population scaling.
+- Raw two-particle mechanics has unscaled single-pair semantics. It pairs with
+  number density `n` satisfying `integral(n)=N`. The equivalent unit-mass form
+  uses `rho=n/N`, a `1/N` particle sum, and the explicitly converted
+  `W_Kac=N*W_pair`; the population and provenance are mandatory.
+- A table with `r_min>0` is particle-only until a physically validated
+  short-range closure down to zero separation is supplied. Continuum use is
+  blocked rather than extrapolated.
 - A real external controller must map `u -> V(x;u)` and then act through
   `-gradient(V)`. It never edits density directly.
 - The interacting overdamped particle SDE provides microscopic validation.
