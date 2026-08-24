@@ -46,10 +46,11 @@ def compute_face_fluxes(
     mobility_m_per_newton_second: float,
     face_masks: FaceMasks,
 ) -> FaceFluxes:
-    """Return ``J=-D grad(rho)+rho M(-grad Phi+F_control)`` on faces.
+    """Return ``J=-D grad(rho)-M rho grad(Phi_effective)`` on faces.
 
     The advective density is first-order upwind, while the diffusive gradient
-    is centred. Closed outer/solid faces are set exactly to zero.
+    is centred. ``Phi_effective`` already contains external, controlled, and
+    pair mean-field potentials. Closed outer/solid faces are exactly zero.
     """
 
     density = np.asarray(density_per_m2, dtype=np.float64)
