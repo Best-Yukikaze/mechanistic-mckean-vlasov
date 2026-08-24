@@ -15,6 +15,22 @@ diffusion parameters before any test backend is promoted.
 ## Physical integrity
 
 - Every parameter has explicit SI units or is explicitly labelled dimensionless.
+- McKean–Vlasov is the main control-state equation. Hydrogel variables
+  `F`, `P`, `C`, and `mu_gel` remain material/contact-scale variables and must
+  never become density-state channels.
+- The formal material source is the supplied Hong/Guo Hydrogel Model II Gibbs
+  formulation. Missing equations, parameters, boundary conditions, or closure
+  assumptions must raise an explicit error or remain `BLOCKED`; do not invent
+  a substitute material law.
+- The final `W_eff` must be derived from validated Hydrogel two-particle
+  mechanics. Gaussian, Morse, Hertz, quadratic, or other hand-selected laws
+  may exist only as explicitly labelled baselines or test fixtures.
+- A physical pair reduction requires an explicit `tau_gel << tau_swarm`
+  assessment. Missing time scales or a missing quantitative criterion are
+  `UNVERIFIED`, not passing.
+- Raw contact data are unscaled single-pair mechanics. Conversion to the
+  unit-mass/Kac MV convention requires an explicit population or concentration
+  scale and provenance; changing an enum or label is not a conversion.
 - A pair potential must name its physical source. The bundled Gaussian backend
   is `TEST-ONLY` and must never be described as the final material model.
 - Do not reinterpret the generic potential interfaces as magnetic models.
@@ -24,6 +40,15 @@ diffusion parameters before any test backend is promoted.
   obstacle potentials.
 - A solver must not hide instability through routine clipping and
   renormalization.
+- Controller code may interact with physics only through
+  `u -> ControlledPotential -> V(x;u)`. It may not modify `rho`, particle
+  positions, Hydrogel data, or `W_eff`.
+- Physics changes require physics-validation tests. Performance changes must
+  preserve a slower or analytic equivalence reference.
+- Experiment Lab may measure, reject, and report physics but may not rewrite
+  equations or relax gates to obtain a pass.
+- Every temporary model or generated fixture must be labelled
+  `TEST_ONLY_NOT_FINAL_PHYSICS` or `TEST_ONLY_NOT_CALIBRATED` as appropriate.
 
 ## User-facing update protocol
 
@@ -58,6 +83,10 @@ May edit:
 Must not change the control contract or validation acceptance definitions
 without coordinator approval.
 
+Owns the corresponding mathematics: Hydrogel free/Gibbs energy, constitutive
+conjugacy, stress, time-scale reduction, two-particle equilibrium/contact,
+`F_pair`, `W_eff`, the particle SDE, and the MV continuum equation.
+
 ### MV Controller Contract
 
 May edit:
@@ -71,6 +100,10 @@ Must not change the physical equations or evaluation definitions. This module
 is the analogue of the reference project's DQN Controller, but currently owns
 only the conservative physical control contract because RL is not yet approved.
 
+Owns the corresponding mathematics: `u -> V_control`,
+`F_control=-grad(V_control)`, dimensional mobility, and the boundary between
+control commands and the physics engine.
+
 ### MV Experiment Lab
 
 May edit:
@@ -82,6 +115,10 @@ May edit:
 
 This module owns final evidence and acceptance gates but must not silently
 rewrite physics or controller behaviour.
+
+Owns the corresponding mathematics: finite-difference conjugacy checks,
+force/potential consistency, mass and energy diagnostics, convergence orders,
+and particle-versus-MV discrepancies.
 
 ## Coordinator-owned files
 

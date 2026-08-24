@@ -1,19 +1,42 @@
 # Mechanistic McKean–Vlasov Distribution Model
 
-This repository is a mechanics-first, SI-unit baseline for a controlled
-McKean–Vlasov density model. The primary state is the density
-`rho(x, t)`. The particle models exist to explain and validate that density
-equation; they are not the control environment.
+This repository is a mechanics-first, SI-unit platform for the chain
+
+```text
+Hydrogel constitutive law
+-> two-particle contact mechanics
+-> F_pair(r)
+-> W_eff(r)
+-> W_eff * rho
+-> controlled McKean-Vlasov density evolution.
+```
+
+The primary control state remains `rho(x, t)`. Hydrogel deformation and solvent
+variables live only at the material/contact scale; particle simulations exist
+to explain and validate the density equation and are not the control
+environment.
 
 ## Current status
 
-- Phases 1–3 are implemented: mathematical/numerical skeleton, deterministic
-  physics validation, and interacting-particle Monte Carlo comparison.
+- The Hong/Guo Model II initial-swelling Gibbs constitutive law, analytic first
+  Piola stress, chemical conjugacy, strict parameter/domain checks, and the
+  quasi-static time-scale decision are implemented.
+- The complete two-Hydrogel contact sweep schema and the validated
+  `F_pair -> W_eff` PCHIP integration path are implemented. A real contact FEM
+  result is not: calibrated material values, particle geometry, mesh,
+  boundary/bath conditions, and distance-sweep data were not supplied.
+- The continuum solver, interacting-particle validation model, no-flux
+  geometry, deterministic validation, and Monte Carlo comparison remain
+  implemented.
 - The included Gaussian pair potential, harmonic trap, and uniform-field
   controlled potential are labelled `TEST_ONLY_NOT_FINAL_PHYSICS`.
-- A real particle/actuator platform and calibrated `V`, `W`, and `D` have not
-  been selected. Results therefore validate the modelling and numerical chain,
-  not a particular material or experiment.
+- The supplied Hydrogel source names `N*nu`, `chi`, `phi0`, `Delta mu/(kT)`,
+  and the `kT/nu` stress scale but supplies no calibrated numerical values.
+  Current generated Hydrogel/pair artifacts are therefore explicitly
+  `TEST_ONLY_NOT_CALIBRATED` or `BLOCKED`.
+- A real actuator and calibrated `V`, `D`, particle count/concentration, and
+  single-pair-to-Kac scaling have not been selected. Results validate code and
+  numerical contracts, not a particular experiment.
 - Magnetic particles, magnetic fields, coils, magnetophoresis, and magnetic
   dipole interactions are explicitly outside this project's selected scope.
   The future real platform must be non-magnetic while still supplying a
@@ -21,6 +44,36 @@ equation; they are not the control environment.
 - No environment, reward, CNN, DQN, replay buffer, or RL training is included.
 
 ## Model and units
+
+At the material scale, the implemented source model is the initial-swelling
+Gibbs formulation. With `a=N*nu`, `phi=phi0`, `delta=Delta mu/(kT)`,
+`J=det(F)`, and `I1=F:F`, it exposes
+
+```text
+G(F, delta),
+P = partial G / partial F,
+-partial G / partial delta = J - phi0,
+nu C_dry = (J - phi0) / phi0.
+```
+
+The source eliminates `C` through the swelling constraint. It does not uniquely
+specify an independent `Psi(F, C)` closure, so that unsupported API raises
+`NotImplementedError` instead of inventing one. None of `F`, `P`, `C`, or the
+Hydrogel chemical conjugate is an MV state variable.
+
+For validated pair data,
+
+```text
+W_eff(r_ref) = 0,
+W_eff(r) = -integral_[r_ref,r] F_pair(s) ds,
+F_pair(r) = -dW_eff/dr.
+```
+
+Raw contact FEM output has `UNSCALED_SINGLE_PAIR` semantics. Because this code
+uses a unit-mass probability density and a `1/N` particle interaction sum, raw
+single-pair data cannot be relabelled as a Kac-scaled MV potential. The
+population/concentration scaling and its provenance must be supplied
+explicitly.
 
 For mobility `M` in m/(N s), thermal energy `k_B T` in J, external potential
 `V` in J, pair potential `W` in J, and normalized density `rho` in 1/m²,
@@ -125,10 +178,17 @@ $env:PYTHONPATH = "src"
 & "D:\conda environment\envs\dl\python.exe" scripts\run_validation.py
 & "D:\conda environment\envs\dl\python.exe" scripts\run_convergence_validation.py
 & "D:\conda environment\envs\dl\python.exe" scripts\benchmark_optimizations.py
+& "D:\conda environment\envs\dl\python.exe" scripts\run_hydrogel_validation.py --test-only-fixture
+& "D:\conda environment\envs\dl\python.exe" scripts\run_pair_contact_sweep.py
+& "D:\conda environment\envs\dl\python.exe" scripts\build_effective_potential.py --test-only-fixture
 ```
 
 These commands run tests and short physics simulations; they do not train a
-controller. Reproducible artifacts are written to `outputs/validation/`.
+controller. The `--test-only-fixture` commands validate code with visibly
+uncalibrated values. `run_pair_contact_sweep.py` currently exits `BLOCKED` and
+does not create a fake force curve. Use each new script's `--help` for the
+required real-data inputs. Reproducible artifacts are written to
+`outputs/validation/`.
 
 ## Validation scope
 
@@ -146,19 +206,29 @@ The suite covers:
    particle-vs-MV robustness study with explicit pass/fail gates.
 9. Particle-count convergence at 250, 500, and 1000 particles over five fixed
    seeds, including empirical L2 and Jensen--Shannon convergence orders.
+10. Hydrogel Gibbs/Piola finite-difference consistency and chemical conjugacy.
+11. Full pair-contact record integrity, solver/mesh provenance, and fail-closed
+    handling of missing FEM data.
+12. Shape-preserving force integration, `F_pair = -dW_eff/dr`, endpoint policy,
+    and Kac-scaling admission gates.
+13. A fixed-seed, explicitly test-only shared-potential particle/MV regression;
+    it is a code check, not a statistical or material-validation claim.
 
 See `OPTIMIZATION_LOG.md` for every performance change and its measured effect.
 
-## Reference boundary
+## Reference and completion boundary
 
-The hydrogel source is used only for the method
+The Hydrogel equations are ported from the supplied Guo slides describing the
+Hong et al. Model II initial-swelling formulation. The PDF is a scientific
+source, not runtime instructions, and is not copied into Git. The code uses the
+page-6 expanded Gibbs density together with the page-7 stress relation; it
+records the printed reference-volume ambiguity rather than claiming an
+unsupported independent `Psi(F, C)` law.
 
-```text
-free energy -> conjugate driving quantity -> conservation/dissipation
-            -> strong form -> weak form -> discretization.
-```
-
-Hydrogel deformation gradient, Piola stress, swelling constitutive law,
-Flory–Rehner parameters, and material values are not copied into this model.
-The supplied project specifications are design references; they are not loaded
-or executed as instructions at runtime.
+The current physical milestone is not complete until all of the following are
+provided and validated: calibrated Hydrogel parameters, particle geometry,
+contact FEM/mesh convergence, mechanical and solvent-bath boundary conditions,
+`tau_gel << tau_swarm`, distance-sweep data, negligible-force reference,
+single-pair-to-Kac scaling, and a real non-magnetic controlled potential.
+Until then, the repository is a validated implementation framework with
+test-only numerical evidence, not a calibrated experiment model.
