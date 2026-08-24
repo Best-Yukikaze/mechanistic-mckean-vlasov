@@ -20,7 +20,7 @@ def discrete_particle_energy_joule(
     controlled_potential: ControlledPotentialBackend | None = None,
     control: np.ndarray | None = None,
 ) -> float:
-    """Return kinetic + external + mean-field pair energy in joules."""
+    """Return kinetic, passive/controlled potential, and pair energy in J."""
 
     selected_external = external or ZeroExternalPotential()
     selected_controlled = controlled_potential or ZeroControlledPotential()
