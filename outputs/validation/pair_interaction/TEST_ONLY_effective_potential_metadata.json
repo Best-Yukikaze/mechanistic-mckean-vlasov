@@ -1,0 +1,128 @@
+{
+  "schema_name": "mechanistic_mv.effective_pair_potential",
+  "schema_version": 1,
+  "artifact_type": "EFFECTIVE_PAIR_POTENTIAL",
+  "artifact_id": "TEST_ONLY_NOT_CALIBRATED_phase6_smooth_radial_force",
+  "workflow_status": "TEST_ONLY_PASSED",
+  "physical_status": "TEST_ONLY_NOT_CALIBRATED",
+  "calibration_status": "TEST_ONLY_NOT_CALIBRATED",
+  "calibration_id": "TEST_ONLY_NOT_CALIBRATED",
+  "test_only_fixture": true,
+  "validation_scope": "PAIR_FORCE_ARTIFACT_INTEGRITY_AND_IMPLEMENTATION_CONSISTENCY_ONLY",
+  "overall_passed": true,
+  "data_file": "TEST_ONLY_effective_potential.csv",
+  "data_file_sha256": "f7d5f67937088e195a7972cafc4d124f8e87e2452b73dfa7bbd7d0798e3b8a56",
+  "source_artifacts": {
+    "force_csv": null,
+    "force_metadata": null,
+    "force_metadata_sha256": null,
+    "source_force_sha256": "4a6454efe20d37a4bfe259adb5aeeee29e85810be8af875fe3e92e1c04ab5498"
+  },
+  "density_normalization": "integral(rho dx)=1",
+  "particle_pair_prefactor": "1/N",
+  "kac_scaling_implemented_by_this_script": false,
+  "input_must_already_be_kac_scaled": true,
+  "scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+  "scaling_provenance": {
+    "source_semantics": "TEST_ONLY_DIRECT_KAC_FIXTURE",
+    "target_semantics": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+    "formula": "fixture is defined directly for unit-mass rho and the 1/N particle prefactor; no physical single-pair conversion was performed",
+    "population_or_concentration_value": 1.0,
+    "population_or_concentration_unit": "1 (test-only normalization marker)",
+    "force_multiplier": 1.0,
+    "energy_multiplier": 1.0,
+    "source": "analytic Phase 6 regression fixture",
+    "calibration_id": "TEST_ONLY_NOT_CALIBRATED"
+  },
+  "short_range_closure_provenance": {
+    "method": "TEST_ONLY_ANALYTIC_DEFINITION_COVERS_R_EQUALS_ZERO",
+    "source": "analytic Phase 6 regression fixture",
+    "calibration_id": "TEST_ONLY_NOT_CALIBRATED"
+  },
+  "physical_provenance": null,
+  "units": {
+    "center_distance_m": "m",
+    "radial_force_newton": "N",
+    "effective_potential_joule": "J"
+  },
+  "interpolation_method": "PCHIP_SHAPE_PRESERVING",
+  "integration_method": "PCHIP_EXACT_ANTIDERIVATIVE",
+  "reference_condition": {
+    "reference_distance_m": 4e-06,
+    "potential_at_reference_joule": 0.0,
+    "reference_force_tolerance_newton": 0.0
+  },
+  "pair_force_metadata": {
+    "dataset_id": "TEST_ONLY_NOT_CALIBRATED_phase6_smooth_radial_force",
+    "source": "analytic Phase 6 regression fixture; not contact or physical data",
+    "physical_status": "TEST_ONLY_NOT_CALIBRATED",
+    "solver_status": "TEST_ONLY_NOT_A_CONTACT_SOLVER",
+    "validation_status": "PASSED",
+    "time_scale_status": "UNVERIFIED",
+    "scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+    "reference_distance_m": 4e-06,
+    "reference_force_tolerance_newton": 0.0
+  },
+  "force_potential_consistency": {
+    "passed": true,
+    "evaluated_point_count": 16,
+    "maximum_absolute_error_newton": 4.961387308827579e-23,
+    "maximum_relative_error": 6.9978142358275435e-09,
+    "absolute_tolerance_newton": 1e-20,
+    "relative_tolerance": 2e-07,
+    "finite_difference_step_fraction": 0.0001,
+    "evaluated_location": "interpolation interval midpoints; endpoints excluded",
+    "tolerance_source": "existing PCHIP/float64 centered-difference regression gate; not FEM or experimental uncertainty"
+  },
+  "implementation_comparison": {
+    "pchip_vs_trapezoid": {
+      "timing_statistic": "median wall-clock seconds",
+      "pchip_repeats": 9,
+      "trapezoid_repeats": 9,
+      "pchip_exact_antiderivative_seconds": 1.569999585626647e-05,
+      "node_trapezoid_seconds": 5.699999746866524e-06,
+      "maximum_difference_joule": 2.604166666666773e-21,
+      "implementation_equivalence_verdict": "DIAGNOSTIC_ONLY_NO_INDEPENDENT_PHYSICAL_ERROR_BUDGET",
+      "physical_equivalence_verdict": "NOT_ESTABLISHED_NO_INDEPENDENT_PHYSICAL_ERROR_BUDGET",
+      "selected_method": "shape-preserving PCHIP exact antiderivative"
+    },
+    "vectorized_vs_scalar": {
+      "timing_statistic": "median wall-clock seconds after warm-up",
+      "vectorized_repeats": 9,
+      "scalar_repeats": 5,
+      "evaluated_displacements": 1024,
+      "vectorized_seconds": 8.769999840296805e-05,
+      "scalar_seconds": 0.04759650000050897,
+      "scalar_over_vectorized_speed_ratio": 542.719508178442,
+      "maximum_energy_difference_joule": 0.0,
+      "maximum_force_component_difference_newton": 0.0,
+      "relative_tolerance": 1e-14,
+      "tolerance_source": "existing vector/scalar regression gate",
+      "implementation_equivalence_verdict": "EQUIVALENT_WITHIN_EXISTING_NUMERICAL_GATE",
+      "physical_equivalence_verdict": "NOT_ESTABLISHED_IMPLEMENTATION_COMPARISON_ONLY",
+      "passed": true
+    }
+  },
+  "scientific_limitations": [
+    "F=-dW/dr checks interpolation/integration consistency, not contact physics",
+    "PCHIP-vs-trapezoid has no independent physical error budget",
+    "PHYSICAL input status means the supplied provenance passed its upstream gates; this script does not recalibrate material or contact physics"
+  ],
+  "generated_at_utc": "2026-08-24T08:43:28.627070+00:00",
+  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts/build_effective_potential.py",
+    "--test-only-fixture",
+    "--output-directory",
+    "tmp/phase6_artifacts/pair_interaction"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}

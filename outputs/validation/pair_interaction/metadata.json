@@ -1,0 +1,76 @@
+{
+  "schema_name": "mechanistic_mv.pair_contact_sweep_metadata",
+  "artifact_type": "PAIR_CONTACT_SWEEP_METADATA",
+  "schema_version": 1,
+  "workflow_status": "BLOCKED",
+  "physical_status": "PHYSICAL_CONTACT_DATA_NOT_AVAILABLE",
+  "validation_status": "UNVERIFIED",
+  "contact_solver_status": "NOT_AVAILABLE",
+  "data_semantics": "UNSCALED_PHYSICAL_SINGLE_PAIR",
+  "missing_inputs": [
+    {
+      "key": "calibrated_hydrogel_parameters",
+      "required": "Nnu, chi, phi0, delta_mu_over_kBT, kT_over_nu and source"
+    },
+    {
+      "key": "particle_geometry",
+      "required": "two undeformed radii and geometry calibration provenance"
+    },
+    {
+      "key": "contact_fem_solver",
+      "required": "implemented and versioned nonlinear FEM/contact solver"
+    },
+    {
+      "key": "mesh_and_resolution",
+      "required": "mesh method, resolution series and convergence criterion"
+    },
+    {
+      "key": "mechanical_boundary_conditions",
+      "required": "complete displacement/traction and rigid-mode constraints"
+    },
+    {
+      "key": "solvent_bath_boundary_conditions",
+      "required": "bath chemical/mass conditions from a physical source"
+    },
+    {
+      "key": "contact_law",
+      "required": "frictionless non-penetration discretization and tolerances"
+    },
+    {
+      "key": "time_scale_assessment",
+      "required": "tau_gel, tau_swarm and an explicit maximum ratio"
+    },
+    {
+      "key": "distance_sweep",
+      "required": "center distances, reference distance and force tolerance"
+    },
+    {
+      "key": "reaction_force_convention",
+      "required": "surface integration and positive-repulsion sign convention"
+    }
+  ],
+  "generated_data_files": [],
+  "preexisting_untrusted_artifacts": [],
+  "prohibited_fabricated_outputs": [
+    "pair_force.csv",
+    "force_curve.png",
+    "contact_solution_fields"
+  ],
+  "reason": "two-Hydrogel contact FEM, geometry, mesh, boundary/bath conditions and calibrated parameters are incomplete; no force samples were run",
+  "generated_at_utc": "2026-08-24T08:43:27.602688+00:00",
+  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts/run_pair_contact_sweep.py",
+    "--output-directory",
+    "tmp/phase6_artifacts/pair_interaction"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}

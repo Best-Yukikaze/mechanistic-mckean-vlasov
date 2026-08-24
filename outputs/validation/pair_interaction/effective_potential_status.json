@@ -1,0 +1,29 @@
+{
+  "schema_name": "mechanistic_mv.effective_potential_status",
+  "schema_version": 1,
+  "artifact_type": "EFFECTIVE_PAIR_POTENTIAL_STATUS",
+  "workflow_status": "TEST_ONLY_PASSED",
+  "physical_status": "TEST_ONLY_NOT_CALIBRATED",
+  "test_only_fixture": true,
+  "overall_passed": true,
+  "kac_scaling_implemented_by_this_script": false,
+  "metadata_file": "TEST_ONLY_effective_potential_metadata.json",
+  "data_file": "TEST_ONLY_effective_potential.csv",
+  "generated_at_utc": "2026-08-24T08:43:28.627070+00:00",
+  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts/build_effective_potential.py",
+    "--test-only-fixture",
+    "--output-directory",
+    "tmp/phase6_artifacts/pair_interaction"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}

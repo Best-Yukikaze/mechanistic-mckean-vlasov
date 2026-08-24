@@ -1,0 +1,152 @@
+{
+  "schema_name": "mechanistic_mv.hydrogel_constitutive_validation",
+  "schema_version": 1,
+  "artifact_type": "HYDROGEL_CONSTITUTIVE_VALIDATION",
+  "workflow_status": "TEST_ONLY_PASSED",
+  "physical_status": "TEST_ONLY_NOT_CALIBRATED",
+  "calibration_status": "TEST_ONLY_NOT_CALIBRATED",
+  "test_only_fixture": true,
+  "validation_scope": "CONSTITUTIVE_IDENTITY_ONLY_NOT_MATERIAL_CALIBRATION",
+  "model": "HongGuoModelII constrained Gibbs formulation",
+  "parameter_provenance": {
+    "source": "explicit --test-only-fixture values from unit tests",
+    "network_density_times_solvent_volume": {
+      "value": 0.025,
+      "unit": "1"
+    },
+    "flory_huggins_chi": {
+      "value": 0.31,
+      "unit": "1"
+    },
+    "initial_polymer_volume_fraction": {
+      "value": 0.18,
+      "unit": "1"
+    },
+    "delta_chemical_potential_over_kbt": {
+      "value": 0.12,
+      "unit": "1"
+    },
+    "thermal_energy_density_pa": {
+      "value": 240000.0,
+      "unit": "Pa"
+    },
+    "calibration_status": "TEST_ONLY_NOT_CALIBRATED"
+  },
+  "deformation_cases": [
+    [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        1.08,
+        0.04,
+        0.0
+      ],
+      [
+        0.01,
+        1.03,
+        0.02
+      ],
+      [
+        0.0,
+        0.01,
+        1.02
+      ]
+    ],
+    [
+      [
+        1.05,
+        0.06,
+        0.0
+      ],
+      [
+        0.0,
+        1.02,
+        0.03
+      ],
+      [
+        0.01,
+        0.0,
+        1.04
+      ]
+    ]
+  ],
+  "checks": {
+    "first_piola_is_gibbs_gradient": {
+      "passed": true,
+      "maximum_absolute_error": 9.918778232531622e-06,
+      "maximum_relative_error": 3.565632804026216e-07,
+      "absolute_tolerance": 2e-05,
+      "relative_tolerance": 2e-08,
+      "tolerance_source": "existing float64 centered-finite-difference regression budget; not material calibration uncertainty",
+      "evaluated_value_count": 27,
+      "identity": "P_pa = partial G_pa / partial F",
+      "unit": "Pa",
+      "finite_difference_scheme": "second-order centered",
+      "finite_difference_step_in_dimensionless_F": 1e-06
+    },
+    "gibbs_chemical_conjugacy": {
+      "passed": true,
+      "maximum_absolute_error": 1.4004353232621725e-12,
+      "maximum_relative_error": 1.707847955200688e-12,
+      "absolute_tolerance": 1e-11,
+      "relative_tolerance": 2e-10,
+      "tolerance_source": "existing float64 centered-finite-difference regression budget; not material calibration uncertainty",
+      "evaluated_value_count": 3,
+      "identity": "-partial DeltaG/partial(delta_mu_over_kBT) = det(F)-phi0",
+      "unit": "1",
+      "finite_difference_scheme": "second-order centered",
+      "finite_difference_step": 1e-06,
+      "reference_volume_note": "initial-swollen Gibbs conjugate; not independent dPsi/dC"
+    }
+  },
+  "implementation_comparison": {
+    "comparison": "analytic stress vs centered finite difference",
+    "timing_statistic": "median wall-clock seconds",
+    "analytic_repeats": 21,
+    "finite_difference_repeats": 7,
+    "analytic_vectorized_seconds": 2.3299995518755168e-05,
+    "finite_difference_seconds": 0.000981500001216773,
+    "finite_difference_over_analytic_speed_ratio": 42.12447167325511,
+    "maximum_absolute_difference_pa": 9.918778232531622e-06,
+    "maximum_relative_difference": 3.565632804026216e-07,
+    "implementation_equivalence_verdict": "EQUIVALENT_WITHIN_EXISTING_NUMERICAL_GATE",
+    "physical_equivalence_verdict": "NOT_ESTABLISHED_CONSTITUTIVE_IDENTITY_CHECK_ONLY"
+  },
+  "unsupported_claims": {
+    "independent_helmholtz_Psi_of_F_and_C": "NOT_IMPLEMENTED_BY_SOURCE",
+    "mu_equals_partial_Psi_partial_C": "NOT_EVALUATED"
+  },
+  "overall_passed": true,
+  "generated_at_utc": "2026-08-24T08:43:26.590891+00:00",
+  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts/run_hydrogel_validation.py",
+    "--test-only-fixture",
+    "--output",
+    "tmp/phase6_artifacts/hydrogel/TEST_ONLY_hydrogel_validation.json"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}

@@ -1,0 +1,304 @@
+{
+  "schema_name": "mechanistic_mv.particles_mv_comparison",
+  "schema_version": 1,
+  "artifact_type": "PARTICLES_MV_COMPARISON",
+  "workflow_status": "TEST_ONLY_PASSED",
+  "physical_status": "TEST_ONLY_NOT_CALIBRATED",
+  "calibration_status": "TEST_ONLY_NOT_CALIBRATED",
+  "calibration_id": "TEST_ONLY_NOT_CALIBRATED",
+  "test_only_fixture": true,
+  "validation_scope": "SHORT_NUMERICAL_REGRESSION_NOT_HYDROGEL_PHYSICAL_VALIDATION",
+  "potential": {
+    "name": "hydrogel_effective_pair:TEST_ONLY_NOT_CALIBRATED_phase6_smooth_radial_force",
+    "dataset_id": "TEST_ONLY_NOT_CALIBRATED_phase6_smooth_radial_force",
+    "source_data_sha256": "f7d5f67937088e195a7972cafc4d124f8e87e2452b73dfa7bbd7d0798e3b8a56",
+    "source_metadata_sha256": "54a897f91072eeca0fafb17cba9bf2c7045bdbf523e2b525dc71c961cfa0b5bc",
+    "input_mode": "VALIDATED_TEST_ONLY_EFFECTIVE_ARTIFACT",
+    "scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+    "same_python_object_used_by_particles_and_continuum": true,
+    "force_potential_validation_passed": true,
+    "shared_object_interpretation": "implementation reuse only; not evidence of physical calibration"
+  },
+  "configuration": {
+    "domain_size_m": 1.2e-05,
+    "initial_centre_x_m": 6e-06,
+    "initial_centre_y_m": 6e-06,
+    "initial_standard_deviation_m": 1e-06,
+    "particle_count": 400,
+    "grid_size": 14,
+    "steps": 12,
+    "dt_s": 0.001,
+    "seed": 20260824,
+    "pair_chunk_size": 128,
+    "particle_mass_kg": 1e-15,
+    "drag_coefficient_kg_per_s": 1e-08,
+    "temperature_kelvin": 298.15,
+    "parameter_source": "Phase 6 TEST_ONLY numerical-regression fixture; not calibrated"
+  },
+  "physical_parameters": {
+    "particle_mass_kg": 1e-15,
+    "drag_coefficient_kg_per_s": 1e-08,
+    "temperature_kelvin": 298.15,
+    "boltzmann_constant_joule_per_kelvin": 1.380649e-23,
+    "mobility_m_per_newton_second": 100000000.0,
+    "thermal_energy_joule": 4.1164049935e-21,
+    "diffusion_m2_per_s": 4.1164049935e-13,
+    "velocity_relaxation_time_s": 1.0000000000000001e-07
+  },
+  "gate_provenance": {
+    "mass_energy_and_single_seed_particle_MV": "existing schema-1 validation gates",
+    "covariance_relative_error": "single-seed screening against the existing schema-3 multi-seed upper limit; this run is not a schema-3 study",
+    "these_are_numerical_regression_limits": true,
+    "these_are_not_material_calibration_uncertainties": true
+  },
+  "scientific_limitations": [
+    "one fixed seed is a reproducible regression, not a multi-seed study",
+    "finite particle count and histogram discretization contribute error",
+    "particle and continuum initial states differ by finite sampling error",
+    "thresholds were inherited from earlier TEST_ONLY numerical validation and are not Hydrogel material/contact acceptance limits",
+    "the empirical-histogram energy is the continuum functional evaluated on a histogram, not discrete particle-system energy"
+  ],
+  "overall_passed": true,
+  "checks": {
+    "same_effective_pair_potential_instance": {
+      "passed": true,
+      "value": true,
+      "required": true
+    },
+    "kac_scaling_for_unit_mass_density": {
+      "passed": true,
+      "value": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+      "required": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE"
+    },
+    "continuum_mass_error": {
+      "passed": true,
+      "value": 2.220446049250313e-16,
+      "upper_limit": 1e-12
+    },
+    "no_material_negative_mass_clipping": {
+      "passed": true,
+      "value": 0.0,
+      "upper_limit": 0.0
+    },
+    "passive_free_energy_nonincrease": {
+      "passed": true,
+      "value_joule": 0.0,
+      "raw_maximum_increment_joule": -1.7741338100561794e-21,
+      "upper_limit_joule": 1e-30,
+      "sampling_scope": "requested-step endpoints only; not every adaptive substep or a continuous-time dissipation proof"
+    },
+    "particle_MV_JS_divergence": {
+      "passed": true,
+      "value_nats": 0.018869283539941696,
+      "upper_limit_nats": 0.05
+    },
+    "particle_MV_relative_L2": {
+      "passed": true,
+      "value": 0.21388505046250525,
+      "upper_limit": 0.25
+    },
+    "particle_MV_centroid_trajectory": {
+      "passed": true,
+      "value_m": 4.840884978582663e-08,
+      "upper_limit_m": 2e-07
+    },
+    "particle_MV_covariance": {
+      "passed": true,
+      "value": 0.04235414673600355,
+      "upper_limit": 0.35
+    }
+  },
+  "metrics": {
+    "relative_L2_density_error": 0.21388505046250525,
+    "JS_divergence_nats": 0.018869283539941696,
+    "centroid_trajectory_RMSE_m": 4.840884978582663e-08,
+    "mean_error_m": [
+      -8.470329472543003e-22,
+      -2.7857142857140533e-08
+    ],
+    "covariance_relative_error_diagonal": [
+      0.04235414673600355,
+      0.030309164776321618
+    ],
+    "maximum_covariance_relative_error": 0.04235414673600355,
+    "maximum_absolute_continuum_mass_error": 2.220446049250313e-16,
+    "total_clipped_negative_mass": 0.0,
+    "continuum_initial_free_energy_joule": 1.5637541420127858e-19,
+    "continuum_final_free_energy_joule": 1.3047497757836762e-19,
+    "continuum_energy_change_joule": -2.5900436622910964e-20,
+    "continuum_raw_maximum_energy_increment_joule": -1.7741338100561794e-21,
+    "continuum_maximum_positive_energy_increment_joule": 0.0,
+    "continuum_final_interaction_energy_joule": 1.2696026725438237e-19,
+    "continuum_functional_on_particle_histogram_final_free_energy_joule": 1.2783716681135783e-19,
+    "continuum_functional_on_particle_histogram_interaction_energy_joule": 1.2405184681685695e-19,
+    "particle_collision_count": 0,
+    "continuum_total_substeps": 12
+  },
+  "trajectories": {
+    "continuum_mass": [
+      1.0,
+      0.9999999999999999,
+      1.0,
+      0.9999999999999999,
+      0.9999999999999999,
+      0.9999999999999998,
+      1.0,
+      0.9999999999999999,
+      0.9999999999999999,
+      1.0,
+      0.9999999999999999,
+      1.0,
+      1.0
+    ],
+    "continuum_free_energy_joule": [
+      1.5637541420127858e-19,
+      1.5376267419213719e-19,
+      1.512472265093921e-19,
+      1.4882401496183456e-19,
+      1.4648830990303848e-19,
+      1.442356827422365e-19,
+      1.4206198293452258e-19,
+      1.399633171237616e-19,
+      1.3793603017376236e-19,
+      1.3597668786912973e-19,
+      1.34082061102051e-19,
+      1.322491113884238e-19,
+      1.3047497757836762e-19
+    ],
+    "continuum_centroid_m": [
+      [
+        6.0000000000000035e-06,
+        6.000000000000002e-06
+      ],
+      [
+        6.000000000000003e-06,
+        6.000000000000003e-06
+      ],
+      [
+        6.000000000000002e-06,
+        6e-06
+      ],
+      [
+        5.999999999999998e-06,
+        5.999999999999999e-06
+      ],
+      [
+        5.999999999999998e-06,
+        5.999999999999994e-06
+      ],
+      [
+        6.000000000000003e-06,
+        6.000000000000004e-06
+      ],
+      [
+        6e-06,
+        5.9999999999999985e-06
+      ],
+      [
+        5.999999999999998e-06,
+        6.000000000000001e-06
+      ],
+      [
+        5.999999999999995e-06,
+        5.999999999999992e-06
+      ],
+      [
+        6.000000000000001e-06,
+        6.000000000000005e-06
+      ],
+      [
+        6.0000000000000035e-06,
+        6.000000000000004e-06
+      ],
+      [
+        6e-06,
+        5.999999999999996e-06
+      ],
+      [
+        5.999999999999999e-06,
+        5.999999999999998e-06
+      ]
+    ],
+    "particle_centroid_m": [
+      [
+        5.98657529244479e-06,
+        5.95502606654234e-06
+      ],
+      [
+        5.9874603297132935e-06,
+        5.956468388602347e-06
+      ],
+      [
+        5.9869029683306825e-06,
+        5.955472028854784e-06
+      ],
+      [
+        5.986865031948447e-06,
+        5.955503288546022e-06
+      ],
+      [
+        5.986483062776236e-06,
+        5.953588653219334e-06
+      ],
+      [
+        5.98773657165478e-06,
+        5.952033370922063e-06
+      ],
+      [
+        5.986417785327712e-06,
+        5.950920320197307e-06
+      ],
+      [
+        5.985421445087136e-06,
+        5.95083122842604e-06
+      ],
+      [
+        5.984891545110743e-06,
+        5.952113648535791e-06
+      ],
+      [
+        5.985836988347812e-06,
+        5.951612326115417e-06
+      ],
+      [
+        5.985500087684489e-06,
+        5.954200584894457e-06
+      ],
+      [
+        5.986087549430727e-06,
+        5.95431722370372e-06
+      ],
+      [
+        5.9860421552091905e-06,
+        5.954780744430764e-06
+      ]
+    ]
+  },
+  "timing": {
+    "continuum_steps_seconds": 0.002358900004765019,
+    "particle_steps_seconds": 0.17207020000205375,
+    "final_metrics_seconds": 0.0003654999964055605,
+    "total_seconds": 0.1793799000006402
+  },
+  "generated_at_utc": "2026-08-24T08:43:29.919589+00:00",
+  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts/compare_particles_mv.py",
+    "--test-only-fixture",
+    "--effective-potential-csv",
+    "tmp/phase6_artifacts/pair_interaction/TEST_ONLY_effective_potential.csv",
+    "--effective-potential-metadata",
+    "tmp/phase6_artifacts/pair_interaction/TEST_ONLY_effective_potential_metadata.json",
+    "--output-directory",
+    "tmp/phase6_artifacts/pair_interaction"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}

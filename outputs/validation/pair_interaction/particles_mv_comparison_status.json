@@ -1,0 +1,34 @@
+{
+  "schema_name": "mechanistic_mv.particles_mv_comparison_status",
+  "schema_version": 1,
+  "artifact_type": "PARTICLES_MV_COMPARISON_STATUS",
+  "workflow_status": "TEST_ONLY_PASSED",
+  "physical_status": "TEST_ONLY_NOT_CALIBRATED",
+  "test_only_fixture": true,
+  "overall_passed": true,
+  "report_file": "TEST_ONLY_particles_mv_comparison.json",
+  "generated_data_files": [
+    "TEST_ONLY_particles_mv_comparison.json"
+  ],
+  "generated_at_utc": "2026-08-24T08:43:29.919589+00:00",
+  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
+  "git_dirty_at_run": false,
+  "command": [
+    "scripts/compare_particles_mv.py",
+    "--test-only-fixture",
+    "--effective-potential-csv",
+    "tmp/phase6_artifacts/pair_interaction/TEST_ONLY_effective_potential.csv",
+    "--effective-potential-metadata",
+    "tmp/phase6_artifacts/pair_interaction/TEST_ONLY_effective_potential_metadata.json",
+    "--output-directory",
+    "tmp/phase6_artifacts/pair_interaction"
+  ],
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  }
+}
