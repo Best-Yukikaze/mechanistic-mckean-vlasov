@@ -291,6 +291,26 @@ def _particle_count_summary(
     return summary
 
 
+def _metric_decreases_for_every_seed(
+    records: list[dict[str, float | int]],
+    metric: str,
+) -> bool:
+    for seed in sorted({int(record["seed"]) for record in records}):
+        values = [
+            float(record[metric])
+            for record in sorted(
+                (record for record in records if int(record["seed"]) == seed),
+                key=lambda record: int(record["particle_count"]),
+            )
+        ]
+        if not all(
+            earlier > later
+            for earlier, later in zip(values[:-1], values[1:], strict=True)
+        ):
+            return False
+    return True
+
+
 def main() -> None:
     OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
     parameters = PhysicalParameters()
@@ -343,6 +363,10 @@ def main() -> None:
             -np.polyfit(np.log(particle_counts), np.log(particle_count_js_means), 1)[0]
         ),
     }
+    particle_count_each_seed_decreases = {
+        metric: _metric_decreases_for_every_seed(particle_count_records, metric)
+        for metric in ("relative_L2_density_error", "JS_divergence_nats")
+    }
     checks = {
         "pure_diffusion_error_decreases": grid_errors[0] > grid_errors[1] > grid_errors[2],
         "pure_diffusion_finest_relative_L2_below_1e-3": grid_errors[-1] < 1.0e-3,
@@ -359,11 +383,17 @@ def main() -> None:
             "maximum_diagonal_covariance_relative_error"
         ]["maximum"]
         < 0.35,
-        "particle_count_mean_L2_improves_250_to_1000": bool(
-            particle_count_l2_means[0] > particle_count_l2_means[-1]
+        "particle_count_mean_L2_decreases_at_each_count": bool(
+            np.all(np.diff(particle_count_l2_means) < 0.0)
         ),
-        "particle_count_mean_JS_improves_250_to_1000": bool(
-            particle_count_js_means[0] > particle_count_js_means[-1]
+        "particle_count_mean_JS_decreases_at_each_count": bool(
+            np.all(np.diff(particle_count_js_means) < 0.0)
+        ),
+        "particle_count_each_seed_L2_decreases_at_each_count": (
+            particle_count_each_seed_decreases["relative_L2_density_error"]
+        ),
+        "particle_count_each_seed_JS_decreases_at_each_count": (
+            particle_count_each_seed_decreases["JS_divergence_nats"]
         ),
         "particle_count_L2_empirical_order_above_0p2": particle_count_empirical_orders[
             "relative_L2_density_error"
@@ -375,7 +405,7 @@ def main() -> None:
         > 0.4,
     }
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "git_revision_at_run": _git_revision(),
         "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
@@ -446,6 +476,7 @@ def main() -> None:
             "records": particle_count_records,
             "summary_by_particle_count": particle_count_summary,
             "empirical_order": particle_count_empirical_orders,
+            "each_seed_decreases_at_each_count": particle_count_each_seed_decreases,
         },
     }
     output_path = OUTPUT_DIRECTORY / "convergence_validation.json"
