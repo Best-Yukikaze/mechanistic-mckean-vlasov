@@ -32,7 +32,7 @@ def discrete_particle_energy_joule(
         selected_controlled.potential_joule(state.positions_m, control)
     )
     displacement = state.positions_m[:, None, :] - state.positions_m[None, :, :]
-    pair_matrix = pair_potential.potential_joule(displacement)
-    np.fill_diagonal(pair_matrix, 0.0)
-    pair_energy = 0.5 * np.sum(pair_matrix) / state.positions_m.shape[0]
+    off_diagonal = ~np.eye(state.positions_m.shape[0], dtype=bool)
+    pair_values = pair_potential.potential_joule(displacement[off_diagonal])
+    pair_energy = 0.5 * np.sum(pair_values) / state.positions_m.shape[0]
     return float(kinetic + external_energy + controlled_energy + pair_energy)
