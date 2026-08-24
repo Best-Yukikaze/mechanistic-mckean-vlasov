@@ -184,6 +184,55 @@ class MechanicalModelTests(unittest.TestCase):
         self.assertLess(constrained[0, 0], 4.0)
         self.assertFalse(obstacle.contains(constrained)[0])
 
+    def test_oblique_obstacle_reflection_preserves_tangential_motion(self) -> None:
+        domain = RectangularDomain((0.0, 10.0), (0.0, 10.0))
+        obstacle = RectangleObstacle((4.0, 6.0), (3.0, 7.0))
+        constrained, collisions = enforce_particle_no_flux(
+            np.asarray([[2.0, 4.0]]),
+            np.asarray([[7.0, 5.5]]),
+            domain,
+            (obstacle,),
+        )
+        np.testing.assert_allclose(constrained, np.asarray([[1.0, 5.5]]), atol=1e-12)
+        self.assertEqual(collisions, 1)
+
+    def test_one_step_resolves_obstacle_then_outer_wall_reflection(self) -> None:
+        domain = RectangularDomain((0.0, 10.0), (0.0, 10.0))
+        obstacle = RectangleObstacle((4.0, 6.0), (3.0, 7.0))
+        constrained, collisions = enforce_particle_no_flux(
+            np.asarray([[2.0, 5.0]]),
+            np.asarray([[11.0, 5.0]]),
+            domain,
+            (obstacle,),
+        )
+        np.testing.assert_allclose(constrained, np.asarray([[3.0, 5.0]]), atol=1e-12)
+        self.assertEqual(collisions, 2)
+
+    def test_large_random_displacements_never_penetrate_solid_or_domain(self) -> None:
+        domain = RectangularDomain((0.0, 10.0), (0.0, 10.0))
+        obstacle = RectangleObstacle((4.0, 6.0), (3.0, 7.0))
+        rng = np.random.default_rng(20260824)
+        previous = rng.uniform(0.5, 9.5, size=(200, 2))
+        previous = previous[~obstacle.contains(previous)]
+        proposed = previous + rng.normal(0.0, 14.0, size=previous.shape)
+        constrained, collisions = enforce_particle_no_flux(
+            previous, proposed, domain, (obstacle,)
+        )
+        self.assertGreater(collisions, 0)
+        self.assertTrue(np.all(constrained >= 0.0))
+        self.assertTrue(np.all(constrained <= 10.0))
+        self.assertFalse(np.any(obstacle.contains(constrained)))
+
+    def test_outer_corner_counts_both_reflected_faces(self) -> None:
+        domain = RectangularDomain((0.0, 10.0), (0.0, 10.0))
+        constrained, collisions = enforce_particle_no_flux(
+            np.asarray([[5.0, 5.0]]),
+            np.asarray([[12.0, 12.0]]),
+            domain,
+        )
+        np.testing.assert_allclose(constrained, np.asarray([[8.0, 8.0]]), atol=1e-12)
+        self.assertEqual(collisions, 2)
+
     def test_obstacle_generator_applies_to_every_particle(self) -> None:
         domain = RectangularDomain((0.0, 10.0), (0.0, 10.0))
         obstacle = RectangleObstacle((4.0, 6.0), (3.0, 7.0))
@@ -200,6 +249,12 @@ class MechanicalModelTests(unittest.TestCase):
                 np.asarray([[7.0, 5.0]]),
                 domain,
                 (obstacle,),
+            )
+        with self.assertRaisesRegex(ValueError, "outside the fluid domain"):
+            enforce_particle_no_flux(
+                np.asarray([[-1.0, 5.0]]),
+                np.asarray([[1.0, 5.0]]),
+                domain,
             )
 
     def test_outer_wall_reflection_handles_corner_overshoot(self) -> None:

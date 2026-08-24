@@ -111,6 +111,8 @@ The suite covers:
    free energy, and centroid trajectory.
 8. Pure-diffusion grid refinement, complete-MV CFL refinement, and a five-seed
    particle-vs-MV robustness study with explicit pass/fail gates.
+9. Particle-count convergence at 250, 500, and 1000 particles over five fixed
+   seeds, including empirical L2 and Jensen--Shannon convergence orders.
 
 See `OPTIMIZATION_LOG.md` for every performance change and its measured effect.
 
