@@ -82,6 +82,35 @@ The code also contains the second-order mother equation only to document the
 overdamped reduction and validate force/energy interfaces. It is not the main
 state equation.
 
+## Three independently reviewable modules
+
+The project follows the same three-module management pattern as the reference
+`mckean_vlasov_control` project, adapted to the current mechanics-first phase:
+
+```text
+MV Physics Engine
+  src/mechanistic_mv/mechanics/          (except controlled_potential.py)
+  src/mechanistic_mv/particle_sim/
+  src/mechanistic_mv/continuum/          (except diagnostics.py)
+
+MV Controller Contract
+  src/mechanistic_mv/mechanics/controlled_potential.py
+  docs/CONTROL_INTERFACE.md
+
+MV Experiment Lab
+  src/mechanistic_mv/continuum/diagnostics.py
+  scripts/
+  tests/                              (evaluation-focused tests)
+  outputs/validation/
+```
+
+Detailed ownership rules are in `AGENTS.md`. Shared project files such as
+`README.md`, `AGENTS.md`, packaging metadata, and the optimization log require
+coordinator integration. The three `mv/*` branches preserve reviewable module
+history inside this one repository; they do not create extra projects or
+folders. The Controller module remains a physical control-contract module until
+RL is explicitly approved.
+
 ## Run validation
 
 From this directory in PowerShell:
