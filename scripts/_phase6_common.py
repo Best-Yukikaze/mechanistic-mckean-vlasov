@@ -30,6 +30,7 @@ from mechanistic_mv.mechanics.pair_interaction import (
     PairForceMetadata,
     PairForceScaling,
     PairForceTable,
+    PairScalingConversionEvidence,
 )
 
 
@@ -41,6 +42,10 @@ PHASE6_SCHEMA_VERSION = 1
 FORCE_DERIVATIVE_ABSOLUTE_TOLERANCE_N = 1.0e-20
 FORCE_DERIVATIVE_RELATIVE_TOLERANCE = 2.0e-7
 FORCE_DERIVATIVE_STEP_FRACTION = 1.0e-4
+CONTINUUM_READY_CLASSIFICATION = "CONTINUUM_READY"
+PARTICLE_ONLY_SHORT_RANGE_UNRESOLVED = (
+    "PARTICLE_ONLY_SHORT_RANGE_UNRESOLVED"
+)
 _VAGUE_TEXT = {"n/a", "na", "none", "tbd", "todo", "unknown", "unspecified"}
 _NONPHYSICAL_LABEL_TOKENS = (
     "test_only",
@@ -168,6 +173,76 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def short_range_admission(minimum_supported_distance_m: float) -> dict[str, object]:
+    """Classify measured table support without filling or extrapolating samples."""
+
+    minimum = float(minimum_supported_distance_m)
+    if not np.isfinite(minimum) or minimum < 0.0:
+        raise ValueError(
+            "minimum_supported_distance_m must be finite and non-negative"
+        )
+    continuum_ready = minimum == 0.0
+    classification = (
+        CONTINUUM_READY_CLASSIFICATION
+        if continuum_ready
+        else PARTICLE_ONLY_SHORT_RANGE_UNRESOLVED
+    )
+    return {
+        "minimum_supported_distance_m": minimum,
+        "continuum_ready": continuum_ready,
+        "short_range_classification": classification,
+    }
+
+
+def _metadata_with_short_range_admission(
+    metadata: Mapping[str, Any], minimum_supported_distance_m: float
+) -> dict[str, Any]:
+    admission = short_range_admission(minimum_supported_distance_m)
+    result = dict(metadata)
+    for name, expected in admission.items():
+        if name in result:
+            supplied = result[name]
+            if name == "continuum_ready" and not isinstance(supplied, bool):
+                raise ValueError("metadata continuum_ready must be boolean")
+            if name == "minimum_supported_distance_m" and isinstance(
+                supplied, bool
+            ):
+                raise ValueError(
+                    "metadata minimum_supported_distance_m must be numeric"
+                )
+            if name == "short_range_classification" and not isinstance(
+                supplied, str
+            ):
+                raise ValueError(
+                    "metadata short_range_classification must be a string"
+                )
+            if supplied != expected:
+                raise ValueError(
+                    f"metadata field {name!r} contradicts the force-table r_min"
+                )
+        result[name] = expected
+    derived_usage = {
+        "continuum_admission_status": (
+            "PASSED" if admission["continuum_ready"] else "BLOCKED"
+        ),
+        "usage_scope": (
+            "PARTICLES_AND_CONTINUUM"
+            if admission["continuum_ready"]
+            else "PARTICLES_ONLY"
+        ),
+    }
+    for name, expected in derived_usage.items():
+        if name in result:
+            supplied = result[name]
+            if not isinstance(supplied, str):
+                raise ValueError(f"metadata field {name!r} must be a string")
+            if supplied != expected:
+                raise ValueError(
+                    f"metadata field {name!r} contradicts the force-table r_min"
+                )
+    return result
+
+
 def test_only_hydrogel_parameters() -> HydrogelParameters:
     return HydrogelParameters(
         network_density_times_solvent_volume=0.025,
@@ -179,9 +254,20 @@ def test_only_hydrogel_parameters() -> HydrogelParameters:
     )
 
 
-def test_only_pair_force_table() -> PairForceTable:
+def test_only_pair_force_table(
+    *, minimum_distance_m: float = 0.0
+) -> PairForceTable:
     reference_distance_m = 4.0e-6
-    distance = np.linspace(0.0, reference_distance_m, 17)
+    minimum = float(minimum_distance_m)
+    if (
+        not np.isfinite(minimum)
+        or minimum < 0.0
+        or minimum >= reference_distance_m
+    ):
+        raise ValueError(
+            "test-only minimum_distance_m must lie in [0, reference_distance_m)"
+        )
+    distance = np.linspace(minimum, reference_distance_m, 17)
     normalized = distance / reference_distance_m
     force = 2.0e-12 * normalized * (1.0 - normalized) ** 2
     metadata = PairForceMetadata(
@@ -215,11 +301,20 @@ def test_only_scaling_provenance() -> dict[str, object]:
     }
 
 
-def test_only_short_range_provenance() -> dict[str, str]:
+def test_only_short_range_provenance(
+    *, minimum_distance_m: float = 0.0
+) -> dict[str, object]:
+    admission = short_range_admission(minimum_distance_m)
+    method = (
+        "TEST_ONLY_ANALYTIC_DEFINITION_COVERS_R_EQUALS_ZERO"
+        if admission["continuum_ready"]
+        else "TEST_ONLY_SHORT_RANGE_UNRESOLVED_BELOW_TABLE_MINIMUM"
+    )
     return {
-        "method": "TEST_ONLY_ANALYTIC_DEFINITION_COVERS_R_EQUALS_ZERO",
+        "method": method,
         "source": "analytic Phase 6 regression fixture",
         "calibration_id": TEST_ONLY_NOT_CALIBRATED,
+        "minimum_distance_m": admission["minimum_supported_distance_m"],
     }
 
 
@@ -228,13 +323,14 @@ def pair_force_metadata_payload(
     *,
     data_file_sha256: str,
     scaling_provenance: Mapping[str, object],
-    short_range_closure_provenance: Mapping[str, object],
+    short_range_closure_provenance: Mapping[str, object] | None,
     workflow_status: str,
     calibration_status: str,
     calibration_id: str | None = None,
     physical_provenance: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     metadata = table.metadata
+    admission = short_range_admission(float(table.center_distance_m[0]))
     payload: dict[str, object] = {
         "schema_name": "mechanistic_mv.pair_force_table",
         "schema_version": PHASE6_SCHEMA_VERSION,
@@ -248,6 +344,7 @@ def pair_force_metadata_payload(
         "solver_status": metadata.solver_status,
         "source": metadata.source,
         "scaling": metadata.scaling.value,
+        "native_scaling": metadata.native_scaling.value,
         "reference_distance_m": metadata.reference_distance_m,
         "reference_force_tolerance_newton": (
             metadata.reference_force_tolerance_newton
@@ -258,10 +355,23 @@ def pair_force_metadata_payload(
             "radial_force_newton": {"unit": "N"},
         },
         "scaling_provenance": dict(scaling_provenance),
-        "short_range_closure_provenance": dict(
-            short_range_closure_provenance
-        ),
+        **admission,
     }
+    if short_range_closure_provenance is not None:
+        payload["short_range_closure_provenance"] = dict(
+            short_range_closure_provenance
+        )
+    if metadata.scaling_conversion is not None:
+        conversion = metadata.scaling_conversion
+        payload["scaling_conversion"] = {
+            "source_dataset_id": conversion.source_dataset_id,
+            "population_count": conversion.population_count,
+            "population_count_provenance": (
+                conversion.population_count_provenance
+            ),
+            "source_scaling": conversion.source_scaling.value,
+            "target_scaling": conversion.target_scaling.value,
+        }
     if physical_provenance is not None:
         payload["physical_provenance"] = dict(physical_provenance)
     if calibration_id is not None:
@@ -418,30 +528,172 @@ def _require_complete_scaling_provenance(
 
 
 def _require_short_range_provenance(
-    metadata: Mapping[str, Any], *, physical_status: str, calibration_id: str
-) -> dict[str, object]:
+    metadata: Mapping[str, Any],
+    *,
+    physical_status: str,
+    calibration_id: str,
+    minimum_supported_distance_m: float,
+) -> dict[str, object] | None:
+    admission = short_range_admission(minimum_supported_distance_m)
     value = metadata.get("short_range_closure_provenance")
+    if value is None and not admission["continuum_ready"]:
+        return None
     if not isinstance(value, dict):
         raise ValueError(
-            "short_range_closure_provenance is required because MV evaluates r=0"
+            "short_range_closure_provenance is required for a continuum-ready "
+            "table that includes r=0"
         )
+    value = _metadata_with_short_range_admission(
+        value, minimum_supported_distance_m
+    )
     for field in ("method", "source", "calibration_id"):
         _require_text(value, field)
     if physical_status != TEST_ONLY_NOT_CALIBRATED:
-        if value.get("validation_status") != PairDataValidationStatus.PASSED.value:
-            raise ValueError(
-                "physical short-range closure requires validation_status=PASSED"
-            )
-        if _require_finite_number(value, "minimum_distance_m") != 0.0:
-            raise ValueError("physical short-range closure must cover r=0")
-        _require_sha256(value, "source_artifact_sha256")
         if value["calibration_id"] != calibration_id:
             raise ValueError(
                 "short-range calibration_id must match artifact calibration_id"
             )
         _require_physical_text(value, "method")
         _require_physical_text(value, "source")
+        if admission["continuum_ready"]:
+            if (
+                value.get("validation_status")
+                != PairDataValidationStatus.PASSED.value
+            ):
+                raise ValueError(
+                    "physical short-range closure requires "
+                    "validation_status=PASSED"
+                )
+            if _require_finite_number(value, "minimum_distance_m") != 0.0:
+                raise ValueError("continuum-ready short-range support must cover r=0")
+            _require_sha256(value, "source_artifact_sha256")
+        else:
+            declared_minimum = value.get("minimum_distance_m")
+            if declared_minimum is not None:
+                declared = _require_finite_number(value, "minimum_distance_m")
+                if declared < 0.0 or declared != minimum_supported_distance_m:
+                    raise ValueError(
+                        "particle-only short-range provenance minimum_distance_m "
+                        "must match the force-table r_min"
+                    )
+            if value.get("continuum_ready") is True:
+                raise ValueError(
+                    "r_min>0 short-range provenance cannot claim continuum_ready"
+                )
+            if (
+                value.get("short_range_classification")
+                == CONTINUUM_READY_CLASSIFICATION
+            ):
+                raise ValueError(
+                    "r_min>0 short-range provenance cannot claim CONTINUUM_READY"
+                )
     return dict(value)
+
+
+def _pair_scaling_contract_from_metadata(
+    metadata: Mapping[str, Any],
+    *,
+    scaling: PairForceScaling,
+    dataset_id: str,
+    physical_status: str,
+    scaling_provenance: Mapping[str, object],
+) -> tuple[PairForceScaling, PairScalingConversionEvidence | None]:
+    raw_native = metadata.get("native_scaling")
+    raw_conversion = metadata.get("scaling_conversion")
+    if raw_native is None and raw_conversion is None:
+        if physical_status != TEST_ONLY_NOT_CALIBRATED:
+            raise ValueError(
+                "physical Kac data require native_scaling and explicit "
+                "population scaling_conversion evidence"
+            )
+        return scaling, None
+    try:
+        native = PairForceScaling(_require_text(metadata, "native_scaling"))
+    except ValueError as error:
+        raise ValueError("metadata native_scaling is unsupported") from error
+    if raw_conversion is None:
+        if physical_status != TEST_ONLY_NOT_CALIBRATED:
+            raise ValueError(
+                "physical Kac data require explicit population "
+                "scaling_conversion evidence"
+            )
+        if native is not scaling:
+            raise ValueError(
+                "native_scaling differs from scaling without conversion evidence"
+            )
+        return native, None
+    if not isinstance(raw_conversion, dict):
+        raise ValueError("scaling_conversion must be an object")
+    source_dataset_id = _require_text(raw_conversion, "source_dataset_id")
+    if source_dataset_id != dataset_id:
+        raise ValueError(
+            "scaling_conversion source_dataset_id must match artifact_id"
+        )
+    population = _require_finite_number(
+        raw_conversion, "population_count", positive=True
+    )
+    if not population.is_integer():
+        raise ValueError("scaling_conversion population_count must be an integer")
+    try:
+        source_scaling = PairForceScaling(
+            _require_text(raw_conversion, "source_scaling")
+        )
+        target_scaling = PairForceScaling(
+            _require_text(raw_conversion, "target_scaling")
+        )
+    except ValueError as error:
+        raise ValueError("scaling_conversion contains an unsupported enum") from error
+    population_provenance = _require_text(
+        raw_conversion, "population_count_provenance"
+    )
+    if physical_status != TEST_ONLY_NOT_CALIBRATED:
+        population_provenance = _require_physical_text(
+            raw_conversion, "population_count_provenance"
+        )
+    evidence = PairScalingConversionEvidence(
+        source_dataset_id=source_dataset_id,
+        population_count=int(population),
+        population_count_provenance=population_provenance,
+        source_scaling=source_scaling,
+        target_scaling=target_scaling,
+    )
+    if native is not evidence.source_scaling or scaling is not evidence.target_scaling:
+        raise ValueError(
+            "scaling_conversion enums disagree with native_scaling/scaling"
+        )
+    if scaling_provenance.get("source_semantics") != evidence.source_scaling.value:
+        raise ValueError(
+            "scaling_conversion source disagrees with scaling_provenance"
+        )
+    if scaling_provenance.get("target_semantics") != evidence.target_scaling.value:
+        raise ValueError(
+            "scaling_conversion target disagrees with scaling_provenance"
+        )
+    for field, expected in (
+        ("population_or_concentration_value", float(evidence.population_count)),
+        ("force_multiplier", float(evidence.force_multiplier)),
+        ("energy_multiplier", float(evidence.force_multiplier)),
+    ):
+        actual = _require_finite_number(
+            scaling_provenance, field, positive=True
+        )
+        if not np.isclose(
+            actual,
+            expected,
+            rtol=16.0 * np.finfo(np.float64).eps,
+            atol=0.0,
+        ):
+            raise ValueError(
+                f"scaling_conversion {field} disagrees with scaling_provenance"
+            )
+    if (
+        physical_status != TEST_ONLY_NOT_CALIBRATED
+        and native is not PairForceScaling.UNSCALED_SINGLE_PAIR
+    ):
+        raise ValueError(
+            "physical Kac conversion must originate from UNSCALED_SINGLE_PAIR"
+        )
+    return native, evidence
 
 
 def _require_physical_provenance(
@@ -654,7 +906,9 @@ def load_pair_force_table(
 ) -> tuple[PairForceTable, dict[str, Any]]:
     metadata = read_json_object(metadata_path)
     if metadata.get("schema_name") != "mechanistic_mv.pair_force_table":
-        raise ValueError("metadata schema_name must be mechanistic_mv.pair_force_table")
+        raise ValueError(
+            "metadata schema_name must be mechanistic_mv.pair_force_table"
+        )
     if metadata.get("schema_version") != PHASE6_SCHEMA_VERSION:
         raise ValueError("unsupported pair-force metadata schema_version")
     if metadata.get("artifact_type") != "PAIR_FORCE_TABLE":
@@ -714,6 +968,11 @@ def load_pair_force_table(
         )
     except (TypeError, ValueError) as error:
         raise ValueError("pair-force CSV values must be numeric") from error
+    if distance.size == 0:
+        raise ValueError("pair-force CSV must contain force samples")
+    metadata = _metadata_with_short_range_admission(
+        metadata, float(distance[0])
+    )
 
     try:
         scaling = PairForceScaling(_require_text(metadata, "scaling"))
@@ -742,7 +1001,7 @@ def load_pair_force_table(
             "UNSCALED_SINGLE_PAIR input is rejected: this script does not "
             "implement or infer Kac/population scaling"
         )
-    _require_complete_scaling_provenance(
+    scaling_provenance = _require_complete_scaling_provenance(
         metadata,
         scaling,
         physical_status=physical_status,
@@ -753,6 +1012,14 @@ def load_pair_force_table(
         metadata,
         physical_status=physical_status,
         calibration_id=artifact_calibration_id,
+        minimum_supported_distance_m=float(distance[0]),
+    )
+    native_scaling, scaling_conversion = _pair_scaling_contract_from_metadata(
+        metadata,
+        scaling=scaling,
+        dataset_id=artifact_id,
+        physical_status=physical_status,
+        scaling_provenance=scaling_provenance,
     )
     pair_metadata = PairForceMetadata(
         dataset_id=artifact_id,
@@ -768,6 +1035,8 @@ def load_pair_force_table(
         reference_force_tolerance_newton=_require_finite_number(
             metadata, "reference_force_tolerance_newton"
         ),
+        native_scaling=native_scaling,
+        scaling_conversion=scaling_conversion,
     )
     table = PairForceTable(distance, force, pair_metadata)
     if physical_status != TEST_ONLY_NOT_CALIBRATED:
@@ -869,12 +1138,21 @@ def load_effective_potential_artifact(
         )
     except (TypeError, ValueError) as error:
         raise ValueError("effective-potential CSV values must be numeric") from error
+    if distance.size == 0:
+        raise ValueError("effective-potential CSV must contain samples")
     if not np.all(np.isfinite(stored_potential)):
         raise ValueError("effective-potential energy values must be finite")
+    metadata = _metadata_with_short_range_admission(
+        metadata, float(distance[0])
+    )
 
     raw_pair_metadata = metadata.get("pair_force_metadata")
     if not isinstance(raw_pair_metadata, dict):
         raise ValueError("complete pair_force_metadata is required")
+    raw_pair_metadata = _metadata_with_short_range_admission(
+        raw_pair_metadata, float(distance[0])
+    )
+    metadata["pair_force_metadata"] = raw_pair_metadata
     try:
         scaling = PairForceScaling(_require_text(raw_pair_metadata, "scaling"))
         validation_status = PairDataValidationStatus(
@@ -911,7 +1189,7 @@ def load_effective_potential_artifact(
         _require_text(source_artifacts, "force_csv")
         _require_text(source_artifacts, "force_metadata")
         _require_sha256(source_artifacts, "force_metadata_sha256")
-    _require_complete_scaling_provenance(
+    scaling_provenance = _require_complete_scaling_provenance(
         metadata,
         scaling,
         physical_status=physical_status,
@@ -922,6 +1200,14 @@ def load_effective_potential_artifact(
         metadata,
         physical_status=physical_status,
         calibration_id=artifact_calibration_id,
+        minimum_supported_distance_m=float(distance[0]),
+    )
+    native_scaling, scaling_conversion = _pair_scaling_contract_from_metadata(
+        raw_pair_metadata,
+        scaling=scaling,
+        dataset_id=dataset_id,
+        physical_status=physical_status,
+        scaling_provenance=scaling_provenance,
     )
     pair_metadata = PairForceMetadata(
         dataset_id=dataset_id,
@@ -937,6 +1223,8 @@ def load_effective_potential_artifact(
         reference_force_tolerance_newton=_require_finite_number(
             raw_pair_metadata, "reference_force_tolerance_newton"
         ),
+        native_scaling=native_scaling,
+        scaling_conversion=scaling_conversion,
     )
     table = PairForceTable(distance, force, pair_metadata)
     if physical_status != TEST_ONLY_NOT_CALIBRATED:

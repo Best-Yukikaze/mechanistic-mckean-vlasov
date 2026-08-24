@@ -424,6 +424,22 @@ class EffectivePotentialBuilderScriptTests(unittest.TestCase):
                     "artifact_id": "CALIBRATED_PAIR_TABLE_SET_1",
                     "source": "calibrated two-gel contact study",
                     "solver_status": "ALL_SAMPLES_CONVERGED:TestFEM@1.0",
+                    "native_scaling": (
+                        PairForceScaling.UNSCALED_SINGLE_PAIR.value
+                    ),
+                    "scaling_conversion": {
+                        "source_dataset_id": "CALIBRATED_PAIR_TABLE_SET_1",
+                        "population_count": 1,
+                        "population_count_provenance": (
+                            "calibrated experiment uses one-particle reference count"
+                        ),
+                        "source_scaling": (
+                            PairForceScaling.UNSCALED_SINGLE_PAIR.value
+                        ),
+                        "target_scaling": (
+                            PairForceScaling.KAC_NORMALIZED_PROBABILITY.value
+                        ),
+                    },
                     "scaling_provenance": scaling,
                     "short_range_closure_provenance": short_range,
                 }

@@ -25,6 +25,7 @@ try:
         load_pair_force_table,
         provenance,
         sha256_file,
+        short_range_admission,
         test_only_pair_force_table,
         test_only_scaling_provenance,
         test_only_short_range_provenance,
@@ -41,6 +42,7 @@ except ImportError:  # direct ``python scripts/...`` execution
         load_pair_force_table,
         provenance,
         sha256_file,
+        short_range_admission,
         test_only_pair_force_table,
         test_only_scaling_provenance,
         test_only_short_range_provenance,
@@ -56,6 +58,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--input-force-csv", type=Path)
     parser.add_argument("--input-metadata", type=Path)
     parser.add_argument("--test-only-fixture", action="store_true")
+    parser.add_argument("--test-only-minimum-distance-m", type=float)
     parser.add_argument(
         "--output-directory",
         type=Path,
@@ -149,7 +152,12 @@ def _implementation_comparison(table, potential) -> dict[str, object]:
         np.max(np.abs(pchip_values - trapezoid_values))
     )
 
-    radius = np.linspace(0.0, table.metadata.reference_distance_m, 1024)
+    minimum_distance = float(table.center_distance_m[0])
+    radius = np.linspace(
+        minimum_distance,
+        table.metadata.reference_distance_m,
+        1024,
+    )
     angle = np.linspace(0.0, 2.0 * np.pi, radius.size, endpoint=False)
     displacement = np.column_stack((radius * np.cos(angle), radius * np.sin(angle)))
     potential.potential_joule(displacement)
@@ -230,6 +238,10 @@ def _implementation_comparison(table, potential) -> dict[str, object]:
                 "NOT_ESTABLISHED_IMPLEMENTATION_COMPARISON_ONLY"
             ),
             "passed": vector_scalar_equivalent,
+            "evaluated_radius_range_m": [
+                minimum_distance,
+                table.metadata.reference_distance_m,
+            ],
         },
     }
 
@@ -246,6 +258,21 @@ def main(argv: list[str] | None = None) -> int:
         status = _blocked(
             output_directory,
             reason="--test-only-fixture cannot be mixed with input artifacts",
+            missing_inputs=[],
+            run_provenance=run_provenance,
+        )
+        print(status)
+        return 2
+    if (
+        not args.test_only_fixture
+        and args.test_only_minimum_distance_m is not None
+    ):
+        status = _blocked(
+            output_directory,
+            reason=(
+                "--test-only-minimum-distance-m requires "
+                "--test-only-fixture"
+            ),
             missing_inputs=[],
             run_provenance=run_provenance,
         )
@@ -269,7 +296,14 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.test_only_fixture:
-            table = test_only_pair_force_table()
+            test_minimum = (
+                0.0
+                if args.test_only_minimum_distance_m is None
+                else args.test_only_minimum_distance_m
+            )
+            table = test_only_pair_force_table(
+                minimum_distance_m=test_minimum
+            )
             input_metadata = {
                 "artifact_id": table.metadata.dataset_id,
                 "workflow_status": "TEST_ONLY_PASSED",
@@ -282,7 +316,9 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 "scaling_provenance": test_only_scaling_provenance(),
                 "short_range_closure_provenance": (
-                    test_only_short_range_provenance()
+                    test_only_short_range_provenance(
+                        minimum_distance_m=float(table.center_distance_m[0])
+                    )
                 ),
             }
             prefix = "TEST_ONLY_"
@@ -305,7 +341,14 @@ def main(argv: list[str] | None = None) -> int:
             prefix = ""
             workflow_status = "PHYSICAL_INPUT_NUMERICAL_GATES_PASSED"
         potential = effective_potential_from_table(table)
-    except (OSError, TypeError, ValueError) as error:
+        comparison = _implementation_comparison(table, potential)
+    except (
+        OSError,
+        TypeError,
+        ValueError,
+        RuntimeError,
+        FloatingPointError,
+    ) as error:
         status = _blocked(
             output_directory,
             reason=str(error),
@@ -315,7 +358,9 @@ def main(argv: list[str] | None = None) -> int:
         print(status)
         return 2
 
-    comparison = _implementation_comparison(table, potential)
+    admission = short_range_admission(
+        potential.minimum_supported_distance_m
+    )
     overall_passed = bool(
         potential.validation_report.passed
         and comparison["vectorized_vs_scalar"]["passed"]
@@ -347,6 +392,15 @@ def main(argv: list[str] | None = None) -> int:
         "validation_scope": (
             "PAIR_FORCE_ARTIFACT_INTEGRITY_AND_IMPLEMENTATION_CONSISTENCY_ONLY"
         ),
+        **admission,
+        "continuum_admission_status": (
+            "PASSED" if admission["continuum_ready"] else "BLOCKED"
+        ),
+        "usage_scope": (
+            "PARTICLES_AND_CONTINUUM"
+            if admission["continuum_ready"]
+            else "PARTICLES_ONLY"
+        ),
         "overall_passed": overall_passed,
         "data_file": csv_path.name,
         "data_file_sha256": None,
@@ -368,9 +422,9 @@ def main(argv: list[str] | None = None) -> int:
         "input_must_already_be_kac_scaled": True,
         "scaling": table.metadata.scaling.value,
         "scaling_provenance": input_metadata["scaling_provenance"],
-        "short_range_closure_provenance": input_metadata[
+        "short_range_closure_provenance": input_metadata.get(
             "short_range_closure_provenance"
-        ],
+        ),
         "physical_provenance": input_metadata.get("physical_provenance"),
         "units": {
             "center_distance_m": "m",
@@ -394,10 +448,12 @@ def main(argv: list[str] | None = None) -> int:
             "validation_status": table.metadata.validation_status.value,
             "time_scale_status": table.metadata.time_scale_status.value,
             "scaling": table.metadata.scaling.value,
+            "native_scaling": table.metadata.native_scaling.value,
             "reference_distance_m": table.metadata.reference_distance_m,
             "reference_force_tolerance_newton": (
                 table.metadata.reference_force_tolerance_newton
             ),
+            **admission,
         },
         "force_potential_consistency": {
             "passed": potential.validation_report.passed,
@@ -435,9 +491,24 @@ def main(argv: list[str] | None = None) -> int:
                 "its upstream gates; this script does not recalibrate material "
                 "or contact physics"
             ),
+            (
+                "r_min>0 remains particle-only; this script does not prepend "
+                "r=0 or extrapolate a short-range closure"
+            ),
         ],
         **run_provenance,
     }
+    if table.metadata.scaling_conversion is not None:
+        conversion = table.metadata.scaling_conversion
+        report["pair_force_metadata"]["scaling_conversion"] = {
+            "source_dataset_id": conversion.source_dataset_id,
+            "population_count": conversion.population_count,
+            "population_count_provenance": (
+                conversion.population_count_provenance
+            ),
+            "source_scaling": conversion.source_scaling.value,
+            "target_scaling": conversion.target_scaling.value,
+        }
     report["data_file_sha256"] = sha256_file(csv_path)
     write_json(metadata_path, report)
     write_json(
@@ -450,6 +521,15 @@ def main(argv: list[str] | None = None) -> int:
             "physical_status": table.metadata.physical_status,
             "test_only_fixture": bool(args.test_only_fixture),
             "overall_passed": overall_passed,
+            **admission,
+            "continuum_admission_status": (
+                "PASSED" if admission["continuum_ready"] else "BLOCKED"
+            ),
+            "usage_scope": (
+                "PARTICLES_AND_CONTINUUM"
+                if admission["continuum_ready"]
+                else "PARTICLES_ONLY"
+            ),
             "kac_scaling_implemented_by_this_script": False,
             "metadata_file": metadata_path.name,
             "data_file": csv_path.name,

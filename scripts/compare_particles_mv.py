@@ -17,6 +17,11 @@ from mechanistic_mv.continuum.diagnostics import (
 )
 from mechanistic_mv.continuum.initial_conditions import gaussian_density
 from mechanistic_mv.continuum.mckean_vlasov import McKeanVlasovSolver
+from mechanistic_mv.mechanics.density_scaling import (
+    DensityConvention,
+    require_continuum_ready,
+    validate_pair_potential_scaling,
+)
 from mechanistic_mv.mechanics.geometry import (
     CartesianGrid,
     RectangularDomain,
@@ -37,6 +42,7 @@ try:
         load_effective_potential_artifact,
         provenance,
         sha256_file,
+        short_range_admission,
         test_only_pair_force_table,
         write_json,
     )
@@ -48,6 +54,7 @@ except ImportError:  # direct ``python scripts/...`` execution
         load_effective_potential_artifact,
         provenance,
         sha256_file,
+        short_range_admission,
         test_only_pair_force_table,
         write_json,
     )
@@ -128,6 +135,8 @@ def _blocked(
     reason: str,
     missing_inputs: list[str],
     run_provenance: dict[str, object],
+    physical_status: str = "NOT_EVALUATED",
+    short_range: dict[str, object] | None = None,
 ) -> Path:
     status_path = output_directory / "particles_mv_comparison_status.json"
     preexisting = [
@@ -138,22 +147,23 @@ def _blocked(
         )
         if (output_directory / name).exists()
     ]
-    write_json(
-        status_path,
-        {
+    payload = {
             "schema_name": "mechanistic_mv.particles_mv_comparison_status",
             "schema_version": PHASE6_SCHEMA_VERSION,
             "artifact_type": "PARTICLES_MV_COMPARISON_STATUS",
             "workflow_status": "BLOCKED",
-            "physical_status": "NOT_EVALUATED",
+            "physical_status": physical_status,
             "reason": reason,
             "missing_inputs": missing_inputs,
             "generated_data_files": [],
             "preexisting_untrusted_artifacts": preexisting,
             "numerical_results_generated": False,
             **run_provenance,
-        },
-    )
+        }
+    if short_range is not None:
+        payload.update(short_range)
+        payload["continuum_admission_status"] = "BLOCKED"
+    write_json(status_path, payload)
     return status_path
 
 
@@ -235,6 +245,12 @@ def _run_comparison(
     potential,
     configuration: dict[str, object],
 ) -> dict[str, object]:
+    require_continuum_ready(potential)
+    validate_pair_potential_scaling(
+        potential,
+        DensityConvention.PROBABILITY,
+        population_count=int(configuration["particle_count"]),
+    )
     total_start = perf_counter()
     domain_size = float(configuration["domain_size_m"])
     domain = RectangularDomain((0.0, domain_size), (0.0, domain_size))
@@ -554,6 +570,28 @@ def main(argv: list[str] | None = None) -> int:
             )
             prefix = ""
             potential_input_mode = "VALIDATED_PHYSICAL_EFFECTIVE_ARTIFACT"
+        admission = short_range_admission(
+            potential.minimum_supported_distance_m
+        )
+        if not admission["continuum_ready"]:
+            status = _blocked(
+                output_directory,
+                reason=(
+                    f"{admission['short_range_classification']}: "
+                    "particle/MV comparison requires force-table support at "
+                    "r=0, but r_min="
+                    f"{admission['minimum_supported_distance_m']:.16g} m; "
+                    "no extrapolation or synthetic r=0 sample is permitted"
+                ),
+                missing_inputs=[
+                    "validated short-range force data including r=0"
+                ],
+                run_provenance=run_provenance,
+                physical_status=physical_status,
+                short_range=admission,
+            )
+            print(status)
+            return 2
         results = _run_comparison(potential, configuration)
     except (
         OSError,
@@ -603,6 +641,8 @@ def main(argv: list[str] | None = None) -> int:
             "force_potential_validation_passed": (
                 potential.validation_report.passed
             ),
+            **admission,
+            "continuum_admission_status": "PASSED",
             "shared_object_interpretation": (
                 "implementation reuse only; not evidence of physical calibration"
             ),
@@ -653,6 +693,8 @@ def main(argv: list[str] | None = None) -> int:
             "physical_status": physical_status,
             "test_only_fixture": bool(args.test_only_fixture),
             "overall_passed": results["overall_passed"],
+            **admission,
+            "continuum_admission_status": "PASSED",
             "report_file": report_path.name,
             "generated_data_files": [report_path.name],
             **run_provenance,
