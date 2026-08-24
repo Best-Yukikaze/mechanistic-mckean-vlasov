@@ -28,6 +28,8 @@ def direct_pair_convolution_joule(
     for index, target in enumerate(sources):
         displacement = target - sources
         result[index] = np.sum(potential.potential_joule(displacement) * weights)
+    if not np.all(np.isfinite(result)):
+        raise FloatingPointError("direct pair convolution became non-finite")
     return result.reshape(density.shape)
 
 
