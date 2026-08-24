@@ -1,8 +1,91 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-08-24T00:29:22.580736+00:00",
-  "git_revision_at_run": "ead77d90a0e0d459345b6f1bb8a3b84c25f532b8",
+  "generated_utc": "2026-08-24T00:35:38.842511+00:00",
+  "git_revision_at_run": "752f20360d2607c7c18661056b2b9499a463a19e",
   "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS numerical convergence study",
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  },
+  "configuration": {
+    "physical_parameters": {
+      "particle_mass_kg": 1e-15,
+      "drag_coefficient_kg_per_s": 1e-08,
+      "temperature_kelvin": 298.15,
+      "boltzmann_constant_joule_per_kelvin": 1.380649e-23,
+      "mobility_m_per_newton_second": 100000000.0,
+      "thermal_energy_joule": 4.1164049935e-21,
+      "diffusion_m2_per_s": 4.1164049935e-13,
+      "velocity_relaxation_time_s": 1.0000000000000001e-07
+    },
+    "domain_x_limits_m": [
+      0.0,
+      2e-05
+    ],
+    "domain_y_limits_m": [
+      0.0,
+      2e-05
+    ],
+    "pure_diffusion": {
+      "grid_sizes": [
+        24,
+        48,
+        96
+      ],
+      "initial_centre_m": [
+        1e-05,
+        1e-05
+      ],
+      "initial_variance_m2": 1e-12,
+      "final_time_s": 0.2
+    },
+    "complete_MV_CFL": {
+      "grid_size": 32,
+      "cfl_safeties": [
+        0.9,
+        0.45,
+        0.225,
+        0.1125
+      ],
+      "final_time_s": 0.5,
+      "pair_energy_scale_joule": 6.174607490250001e-21,
+      "pair_length_scale_m": 1.1e-06,
+      "external_centre_m": [
+        1e-05,
+        1e-05
+      ],
+      "external_stiffness_newton_per_m": 8e-09
+    },
+    "particle_MV_multi_seed": {
+      "grid_size": 20,
+      "seeds": [
+        20260824,
+        20260825,
+        20260826,
+        20260827,
+        20260828
+      ],
+      "particle_count_per_seed": 500,
+      "number_of_steps": 20,
+      "step_duration_s": 0.01,
+      "initial_mean_m": [
+        8.8e-06,
+        1.04e-05
+      ],
+      "initial_standard_deviation_m": 1.4e-06,
+      "pair_energy_scale_joule": 4.1164049935e-21,
+      "pair_length_scale_m": 1.2e-06,
+      "external_centre_m": [
+        1e-05,
+        1e-05
+      ],
+      "external_stiffness_newton_per_m": 6e-09
+    }
+  },
   "overall_passed": true,
   "checks": {
     "pure_diffusion_error_decreases": true,
