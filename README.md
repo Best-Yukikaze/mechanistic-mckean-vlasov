@@ -90,6 +90,7 @@ From this directory in PowerShell:
 $env:PYTHONPATH = "src"
 & "D:\conda environment\envs\dl\python.exe" -m unittest discover -s tests -v
 & "D:\conda environment\envs\dl\python.exe" scripts\run_validation.py
+& "D:\conda environment\envs\dl\python.exe" scripts\run_convergence_validation.py
 & "D:\conda environment\envs\dl\python.exe" scripts\benchmark_optimizations.py
 ```
 
@@ -108,6 +109,8 @@ The suite covers:
 6. Positivity, mass conservation, energy decay, weak form, and no-flux obstacle.
 7. Identical-parameter particle Monte Carlo vs MV mean, covariance, L2, JS,
    free energy, and centroid trajectory.
+8. Pure-diffusion grid refinement, complete-MV CFL refinement, and a five-seed
+   particle-vs-MV robustness study with explicit pass/fail gates.
 
 See `OPTIMIZATION_LOG.md` for every performance change and its measured effect.
 

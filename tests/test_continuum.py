@@ -10,7 +10,7 @@ from mechanistic_mv.continuum.convolution import (
 )
 from mechanistic_mv.continuum.chemical_potential import chemical_potential_joule
 from mechanistic_mv.continuum.free_energy import free_energy_components
-from mechanistic_mv.continuum.diagnostics import density_moments
+from mechanistic_mv.continuum.diagnostics import density_moments, relative_l2_error
 from mechanistic_mv.continuum.initial_conditions import gaussian_density
 from mechanistic_mv.continuum.mckean_vlasov import (
     McKeanVlasovSolver,
@@ -40,6 +40,23 @@ class ConvolutionTests(unittest.TestCase):
         reference = direct_pair_convolution_joule(density, grid, potential)
         accelerated = FFTPairConvolver(grid, potential).convolve_joule(density)
         np.testing.assert_allclose(accelerated, reference, rtol=2.0e-13, atol=1.0e-34)
+
+    def test_cached_spectrum_matches_direct_for_repeated_densities(self) -> None:
+        grid = CartesianGrid(
+            RectangularDomain((0.0, 9.0e-6), (0.0, 6.0e-6)), 9, 6
+        )
+        potential = TestOnlyGaussianRepulsion(3.0e-21, 0.9e-6)
+        convolver = FFTPairConvolver(grid, potential)
+        rng = np.random.default_rng(91)
+        for _ in range(3):
+            density = rng.uniform(0.1, 1.0, size=(grid.ny, grid.nx))
+            density /= np.sum(density) * grid.cell_area_m2
+            np.testing.assert_allclose(
+                convolver.convolve_joule(density),
+                direct_pair_convolution_joule(density, grid, potential),
+                rtol=3.0e-13,
+                atol=3.0e-34,
+            )
 
     def test_chemical_potential_matches_free_energy_first_variation(self) -> None:
         grid = CartesianGrid(RectangularDomain((0.0, 6.0e-6), (0.0, 5.0e-6)), 6, 5)
@@ -112,6 +129,37 @@ class FiniteVolumeTests(unittest.TestCase):
             final_moments.covariance_m2[1, 1],
             delta=2.0e-18,
         )
+
+    def test_pure_diffusion_grid_refinement_reduces_density_error(self) -> None:
+        errors = []
+        final_time_s = 0.2
+        initial_variance_m2 = 1.0e-12
+        for size in (24, 48, 96):
+            grid = CartesianGrid(self.domain, size, size)
+            solver = McKeanVlasovSolver(
+                grid, self.parameters, ZeroPairPotential()
+            )
+            initial = gaussian_density(
+                grid, (10.0e-6, 10.0e-6), np.sqrt(initial_variance_m2)
+            )
+            advanced, _ = solver.step(initial, final_time_s)
+            x, y = grid.mesh_m()
+            analytic_variance = (
+                initial_variance_m2
+                + 2.0 * self.parameters.diffusion_m2_per_s * final_time_s
+            )
+            analytic = np.exp(
+                -(
+                    (x - 10.0e-6) ** 2 + (y - 10.0e-6) ** 2
+                )
+                / (2.0 * analytic_variance)
+            )
+            analytic /= np.sum(analytic) * grid.cell_area_m2
+            errors.append(relative_l2_error(advanced, analytic, grid))
+        self.assertGreater(errors[0], errors[1])
+        self.assertGreater(errors[1], errors[2])
+        self.assertLess(errors[2], 1.0e-3)
+        self.assertGreater(np.log2(errors[1] / errors[2]), 1.5)
 
     def test_discrete_weak_form_residual_is_roundoff(self) -> None:
         grid = CartesianGrid(self.domain, 20, 18)
@@ -187,6 +235,66 @@ class FiniteVolumeTests(unittest.TestCase):
         self.assertGreaterEqual(diagnostics.minimum_density_per_m2, 0.0)
         self.assertEqual(diagnostics.clipped_negative_mass, 0.0)
         self.assertLess(solver.free_energy(density).total_joule, initial_energy)
+
+    def test_cfl_refinement_converges_for_complete_mv(self) -> None:
+        grid = CartesianGrid(self.domain, 32, 32)
+        external = HarmonicTestPotential((10.0e-6, 10.0e-6), 8.0e-9)
+        interaction = TestOnlyGaussianRepulsion(
+            1.5 * self.parameters.thermal_energy_joule, 1.1e-6
+        )
+        initial = gaussian_density(
+            grid, (8.0e-6, 11.0e-6), (1.0e-6, 1.4e-6)
+        )
+        solutions = []
+        for safety in (0.9, 0.45, 0.225, 0.1125):
+            solver = McKeanVlasovSolver(
+                grid,
+                self.parameters,
+                interaction,
+                external=external,
+                cfl_safety=safety,
+            )
+            solution, _ = solver.step(initial, 0.5)
+            solutions.append(solution)
+        errors = [
+            relative_l2_error(solution, solutions[-1], grid)
+            for solution in solutions[:-1]
+        ]
+        self.assertGreater(errors[0], errors[1])
+        self.assertGreater(errors[1], errors[2])
+        self.assertLess(errors[2], 2.0e-3)
+
+    def test_controlled_potential_is_evaluated_once_per_requested_step(self) -> None:
+        class CountingPotential:
+            name = "counting_test_potential"
+            physical_status = "TEST_ONLY_NOT_FINAL_PHYSICS"
+
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def potential_joule(
+                self, positions_m: np.ndarray, control: np.ndarray | None
+            ) -> np.ndarray:
+                self.calls += 1
+                return np.zeros(positions_m.shape[0])
+
+            def force_newton(
+                self, positions_m: np.ndarray, control: np.ndarray | None
+            ) -> np.ndarray:
+                return np.zeros_like(positions_m)
+
+        grid = CartesianGrid(self.domain, 48, 48)
+        backend = CountingPotential()
+        solver = McKeanVlasovSolver(
+            grid,
+            self.parameters,
+            ZeroPairPotential(),
+            controlled_potential=backend,
+        )
+        density = gaussian_density(grid, (10.0e-6, 10.0e-6), 1.0e-6)
+        _, diagnostics = solver.step(density, 0.5, control=np.zeros(2))
+        self.assertGreater(diagnostics.substeps, 1)
+        self.assertEqual(backend.calls, 1)
 
     def test_test_control_moves_density_in_force_direction(self) -> None:
         grid = CartesianGrid(self.domain, 32, 32)
