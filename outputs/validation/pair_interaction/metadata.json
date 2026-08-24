@@ -3,67 +3,2118 @@
   "artifact_type": "PAIR_CONTACT_SWEEP_METADATA",
   "schema_version": 1,
   "workflow_status": "BLOCKED",
-  "physical_status": "PHYSICAL_CONTACT_DATA_NOT_AVAILABLE",
-  "validation_status": "UNVERIFIED",
-  "contact_solver_status": "NOT_AVAILABLE",
+  "contact_solver_status": "CONTACT_FEM_BACKEND_UNAVAILABLE",
+  "contact_fem_backend_status": "CONTACT_FEM_BACKEND_UNAVAILABLE",
+  "contact_results_status": "CONTACT_RESULTS_NOT_GENERATED",
+  "fem_backend_available": false,
+  "physical_results_present": false,
+  "physical_results_generated": false,
+  "pair_force_table_generated": false,
   "data_semantics": "UNSCALED_PHYSICAL_SINGLE_PAIR",
-  "missing_inputs": [
-    {
-      "key": "calibrated_hydrogel_parameters",
-      "required": "Nnu, chi, phi0, delta_mu_over_kBT, kT_over_nu and source"
-    },
-    {
-      "key": "particle_geometry",
-      "required": "two undeformed radii and geometry calibration provenance"
-    },
-    {
-      "key": "contact_fem_solver",
-      "required": "implemented and versioned nonlinear FEM/contact solver"
-    },
-    {
-      "key": "mesh_and_resolution",
-      "required": "mesh method, resolution series and convergence criterion"
-    },
-    {
-      "key": "mechanical_boundary_conditions",
-      "required": "complete displacement/traction and rigid-mode constraints"
-    },
-    {
-      "key": "solvent_bath_boundary_conditions",
-      "required": "bath chemical/mass conditions from a physical source"
-    },
-    {
-      "key": "contact_law",
-      "required": "frictionless non-penetration discretization and tolerances"
-    },
-    {
-      "key": "time_scale_assessment",
-      "required": "tau_gel, tau_swarm and an explicit maximum ratio"
-    },
-    {
-      "key": "distance_sweep",
-      "required": "center distances, reference distance and force tolerance"
-    },
-    {
-      "key": "reaction_force_convention",
-      "required": "surface integration and positive-repulsion sign convention"
-    }
-  ],
   "generated_data_files": [],
   "preexisting_untrusted_artifacts": [],
   "prohibited_fabricated_outputs": [
     "pair_force.csv",
     "force_curve.png",
-    "contact_solution_fields"
+    "potential_curve.png",
+    "force_potential_consistency.png"
   ],
-  "reason": "two-Hydrogel contact FEM, geometry, mesh, boundary/bath conditions and calibrated parameters are incomplete; no force samples were run",
-  "generated_at_utc": "2026-08-24T08:43:27.602688+00:00",
-  "git_revision_at_run": "ff79064258864b130d17191c77b2a77e26ef4029",
-  "git_dirty_at_run": false,
+  "physical_status": "INPUT_TEMPLATE_NOT_PHYSICAL",
+  "validation_status": "INPUT_TEMPLATE_ONLY",
+  "input_manifest_status": "NOT_PROVIDED",
+  "input_manifest_file": null,
+  "input_manifest_sha256": null,
+  "input_purpose": "INPUT_TEMPLATE_NOT_PHYSICAL",
+  "input_readiness": "BLOCKED",
+  "physics_readiness": {
+    "solver_input_status": "BLOCKED",
+    "short_range_status": "BLOCKED",
+    "required_inputs": [
+      {
+        "requirement_id": "material.hydrogel_parameters",
+        "input_field_paths": [
+          "hydrogel_parameters.network_density_times_solvent_volume",
+          "hydrogel_parameters.flory_huggins_chi",
+          "hydrogel_parameters.initial_polymer_volume_fraction",
+          "hydrogel_parameters.delta_chemical_potential_over_kbt",
+          "hydrogel_parameters.thermal_energy_density_pa",
+          "hydrogel_parameters.calibration_status",
+          "hydrogel_parameters_provenance.source_id",
+          "hydrogel_parameters_provenance.source_description",
+          "hydrogel_parameters_provenance.verification_status",
+          "hydrogel_parameters_provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "geometry.two_sphere",
+        "input_field_paths": [
+          "geometry.first_radius_m",
+          "geometry.second_radius_m",
+          "geometry.calibration_status",
+          "geometry_provenance.source_id",
+          "geometry_provenance.source_description",
+          "geometry_provenance.verification_status",
+          "geometry_provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "boundary.mechanical",
+        "input_field_paths": [
+          "mechanical_boundary_conditions.center_separation_control",
+          "mechanical_boundary_conditions.rigid_body_constraint",
+          "mechanical_boundary_conditions.noncontact_surface_traction",
+          "mechanical_boundary_conditions.loading_protocol",
+          "mechanical_boundary_conditions.provenance.source_id",
+          "mechanical_boundary_conditions.provenance.source_description",
+          "mechanical_boundary_conditions.provenance.verification_status",
+          "mechanical_boundary_conditions.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "boundary.solvent_bath",
+        "input_field_paths": [
+          "solvent_bath_boundary_conditions.bath_chemical_potential_over_kbt",
+          "solvent_bath_boundary_conditions.exposed_surface_exchange_condition",
+          "solvent_bath_boundary_conditions.contact_surface_transport_condition",
+          "solvent_bath_boundary_conditions.initial_solvent_state",
+          "solvent_bath_boundary_conditions.provenance.source_id",
+          "solvent_bath_boundary_conditions.provenance.source_description",
+          "solvent_bath_boundary_conditions.provenance.verification_status",
+          "solvent_bath_boundary_conditions.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "contact.law_and_tolerances",
+        "input_field_paths": [
+          "contact_law.normal_contact_model",
+          "contact_law.contact_enforcement_method",
+          "contact_law.frictionless",
+          "contact_law.adhesive",
+          "contact_law.normal_gap_tolerance_m",
+          "contact_law.force_balance_tolerance_newton",
+          "contact_law.provenance.source_id",
+          "contact_law.provenance.source_description",
+          "contact_law.provenance.verification_status",
+          "contact_law.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "solver.identity_and_configuration",
+        "input_field_paths": [
+          "solver.solver_name",
+          "solver.solver_version",
+          "solver.implementation_id",
+          "solver.configuration_id",
+          "solver.nonlinear_algorithm",
+          "solver.linear_solver",
+          "solver.provenance.source_id",
+          "solver.provenance.source_description",
+          "solver.provenance.verification_status",
+          "solver.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "mesh.convergence_plan",
+        "input_field_paths": [
+          "mesh_convergence.discretization_method",
+          "mesh_convergence.element_family",
+          "mesh_convergence.characteristic_lengths_m",
+          "mesh_convergence.nonlinear_residual_tolerance_dimensionless",
+          "mesh_convergence.relative_force_convergence_tolerance_dimensionless",
+          "mesh_convergence.relative_energy_convergence_tolerance_dimensionless",
+          "mesh_convergence.relative_stress_convergence_tolerance_dimensionless",
+          "mesh_convergence.maximum_nonlinear_iterations",
+          "mesh_convergence.provenance.source_id",
+          "mesh_convergence.provenance.source_description",
+          "mesh_convergence.provenance.verification_status",
+          "mesh_convergence.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "distance.scan_and_reference_force_tolerance",
+        "input_field_paths": [
+          "distance_scan.center_distances_m",
+          "distance_scan.reference_distance_m",
+          "distance_scan.reference_force_tolerance_newton",
+          "distance_scan.provenance.source_id",
+          "distance_scan.provenance.source_description",
+          "distance_scan.provenance.verification_status",
+          "distance_scan.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "reaction.integration_and_sign",
+        "input_field_paths": [
+          "reaction_force.integration_boundary",
+          "reaction_force.traction_quantity",
+          "reaction_force.pair_axis_definition",
+          "reaction_force.positive_sign_convention",
+          "reaction_force.total_free_energy_reference",
+          "reaction_force.integration_tolerance_newton",
+          "reaction_force.provenance.source_id",
+          "reaction_force.provenance.source_description",
+          "reaction_force.provenance.verification_status",
+          "reaction_force.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "timescale.separation_and_source",
+        "input_field_paths": [
+          "time_scale.tau_gel_s",
+          "time_scale.tau_swarm_s",
+          "time_scale.required_max_ratio",
+          "time_scale_provenance.source_id",
+          "time_scale_provenance.source_description",
+          "time_scale_provenance.verification_status",
+          "time_scale_provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "mean_field.population_or_kac_scaling_source",
+        "input_field_paths": [
+          "mean_field_scaling.density_convention",
+          "mean_field_scaling.scaling_mode",
+          "mean_field_scaling.population_count",
+          "mean_field_scaling.source_population_count",
+          "mean_field_scaling.areal_number_density_per_m2",
+          "mean_field_scaling.representative_area_m2",
+          "mean_field_scaling.scaling_definition",
+          "mean_field_scaling.provenance.source_id",
+          "mean_field_scaling.provenance.source_description",
+          "mean_field_scaling.provenance.verification_status",
+          "mean_field_scaling.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      },
+      {
+        "requirement_id": "short_range.minimum_distance_or_zero_closure",
+        "input_field_paths": [
+          "short_range.minimum_supported_distance_m",
+          "short_range.closure_kind",
+          "short_range.closure_description",
+          "short_range.validation_method",
+          "short_range.force_match_tolerance_newton",
+          "short_range.energy_match_tolerance_joule",
+          "short_range.provenance.source_id",
+          "short_range.provenance.source_description",
+          "short_range.provenance.verification_status",
+          "short_range.provenance.verification_record_id"
+        ],
+        "status": "MISSING",
+        "reason": "input or provenance is missing"
+      }
+    ],
+    "blocking_reasons": [
+      "material.hydrogel_parameters: missing",
+      "geometry.two_sphere: missing",
+      "boundary.mechanical: missing",
+      "boundary.solvent_bath: missing",
+      "contact.law_and_tolerances: missing",
+      "solver.identity_and_configuration: missing",
+      "mesh.convergence_plan: missing",
+      "distance.scan_and_reference_force_tolerance: missing",
+      "reaction.integration_and_sign: missing",
+      "timescale.separation_and_source: missing",
+      "mean_field.population_or_kac_scaling_source: missing",
+      "short_range.minimum_distance_or_zero_closure: missing"
+    ],
+    "physical_inputs_verified": false,
+    "contact_results_status": "NOT_GENERATED",
+    "effective_pair_potential_validated": false,
+    "physical_continuum_input_ready": false
+  },
+  "generated_parameter_collection_files": [
+    "outputs\\validation\\pair_interaction\\contact_problem_input_template.json"
+  ],
+  "required_input_contract": [
+    {
+      "requirement_id": "material.hydrogel_parameters",
+      "fields": [
+        {
+          "field_path": "hydrogel_parameters.network_density_times_solvent_volume",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.flory_huggins_chi",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.initial_polymer_volume_fraction",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.delta_chemical_potential_over_kbt",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.thermal_energy_density_pa",
+          "expected_json_type": "number",
+          "unit_or_dimension": "Pa"
+        },
+        {
+          "field_path": "hydrogel_parameters.calibration_status",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "geometry.two_sphere",
+      "fields": [
+        {
+          "field_path": "geometry.first_radius_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "geometry.second_radius_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "geometry.calibration_status",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "geometry_provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "geometry_provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "geometry_provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "geometry_provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "boundary.mechanical",
+      "fields": [
+        {
+          "field_path": "mechanical_boundary_conditions.center_separation_control",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.rigid_body_constraint",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.noncontact_surface_traction",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.loading_protocol",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "boundary.solvent_bath",
+      "fields": [
+        {
+          "field_path": "solvent_bath_boundary_conditions.bath_chemical_potential_over_kbt",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.exposed_surface_exchange_condition",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.contact_surface_transport_condition",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.initial_solvent_state",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "contact.law_and_tolerances",
+      "fields": [
+        {
+          "field_path": "contact_law.normal_contact_model",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "frictionless non-adhesive unilateral impenetrability"
+          ]
+        },
+        {
+          "field_path": "contact_law.contact_enforcement_method",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "contact_law.frictionless",
+          "expected_json_type": "boolean",
+          "unit_or_dimension": "not applicable (boolean)"
+        },
+        {
+          "field_path": "contact_law.adhesive",
+          "expected_json_type": "boolean",
+          "unit_or_dimension": "not applicable (boolean)"
+        },
+        {
+          "field_path": "contact_law.normal_gap_tolerance_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "contact_law.force_balance_tolerance_newton",
+          "expected_json_type": "number",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "contact_law.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "contact_law.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "contact_law.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "contact_law.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "solver.identity_and_configuration",
+      "fields": [
+        {
+          "field_path": "solver.solver_name",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.solver_version",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.implementation_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.configuration_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.nonlinear_algorithm",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.linear_solver",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "solver.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "mesh.convergence_plan",
+      "fields": [
+        {
+          "field_path": "mesh_convergence.discretization_method",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.element_family",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.characteristic_lengths_m",
+          "expected_json_type": "array[number]",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "mesh_convergence.nonlinear_residual_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.relative_force_convergence_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.relative_energy_convergence_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.relative_stress_convergence_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.maximum_nonlinear_iterations",
+          "expected_json_type": "integer",
+          "unit_or_dimension": "1 (count)"
+        },
+        {
+          "field_path": "mesh_convergence.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "mesh_convergence.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "fields": [
+        {
+          "field_path": "distance_scan.center_distances_m",
+          "expected_json_type": "array[number]",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "distance_scan.reference_distance_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "distance_scan.reference_force_tolerance_newton",
+          "expected_json_type": "number",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "distance_scan.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "distance_scan.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "distance_scan.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "distance_scan.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "reaction.integration_and_sign",
+      "fields": [
+        {
+          "field_path": "reaction_force.integration_boundary",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.traction_quantity",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.pair_axis_definition",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "unit vector from second sphere center to first sphere center"
+          ]
+        },
+        {
+          "field_path": "reaction_force.positive_sign_convention",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "positive radial force separates the two sphere centers"
+          ]
+        },
+        {
+          "field_path": "reaction_force.total_free_energy_reference",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "zero at the final separated reference distance"
+          ]
+        },
+        {
+          "field_path": "reaction_force.integration_tolerance_newton",
+          "expected_json_type": "number",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "reaction_force.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "reaction_force.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "timescale.separation_and_source",
+      "fields": [
+        {
+          "field_path": "time_scale.tau_gel_s",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "s"
+        },
+        {
+          "field_path": "time_scale.tau_swarm_s",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "s"
+        },
+        {
+          "field_path": "time_scale.required_max_ratio",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "time_scale_provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "time_scale_provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "time_scale_provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "time_scale_provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "fields": [
+        {
+          "field_path": "mean_field_scaling.density_convention",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "PROBABILITY_DENSITY_INTEGRAL_ONE",
+            "NUMBER_DENSITY_INTEGRAL_POPULATION"
+          ]
+        },
+        {
+          "field_path": "mean_field_scaling.scaling_mode",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "KAC_FROM_SINGLE_PAIR_POPULATION",
+            "RAW_SINGLE_PAIR_NUMBER_DENSITY"
+          ]
+        },
+        {
+          "field_path": "mean_field_scaling.population_count",
+          "expected_json_type": "integer",
+          "unit_or_dimension": "1 (particle count)"
+        },
+        {
+          "field_path": "mean_field_scaling.source_population_count",
+          "expected_json_type": "integer",
+          "unit_or_dimension": "1 (particle count)"
+        },
+        {
+          "field_path": "mean_field_scaling.areal_number_density_per_m2",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "1/m^2"
+        },
+        {
+          "field_path": "mean_field_scaling.representative_area_m2",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "m^2"
+        },
+        {
+          "field_path": "mean_field_scaling.scaling_definition",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "fields": [
+        {
+          "field_path": "short_range.minimum_supported_distance_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "short_range.closure_kind",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "NO_SHORT_RANGE_CLOSURE",
+            "EXTERNAL_VALIDATED_HYDROGEL_MECHANICS_SHORT_RANGE_CLOSURE"
+          ]
+        },
+        {
+          "field_path": "short_range.closure_description",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.validation_method",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.force_match_tolerance_newton",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "short_range.energy_match_tolerance_joule",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "J"
+        },
+        {
+          "field_path": "short_range.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "short_range.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    }
+  ],
+  "required_input_groups": [
+    {
+      "requirement_id": "material.hydrogel_parameters",
+      "input_field_paths": [
+        "hydrogel_parameters.network_density_times_solvent_volume",
+        "hydrogel_parameters.flory_huggins_chi",
+        "hydrogel_parameters.initial_polymer_volume_fraction",
+        "hydrogel_parameters.delta_chemical_potential_over_kbt",
+        "hydrogel_parameters.thermal_energy_density_pa",
+        "hydrogel_parameters.calibration_status",
+        "hydrogel_parameters_provenance.source_id",
+        "hydrogel_parameters_provenance.source_description",
+        "hydrogel_parameters_provenance.verification_status",
+        "hydrogel_parameters_provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "geometry.two_sphere",
+      "input_field_paths": [
+        "geometry.first_radius_m",
+        "geometry.second_radius_m",
+        "geometry.calibration_status",
+        "geometry_provenance.source_id",
+        "geometry_provenance.source_description",
+        "geometry_provenance.verification_status",
+        "geometry_provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "boundary.mechanical",
+      "input_field_paths": [
+        "mechanical_boundary_conditions.center_separation_control",
+        "mechanical_boundary_conditions.rigid_body_constraint",
+        "mechanical_boundary_conditions.noncontact_surface_traction",
+        "mechanical_boundary_conditions.loading_protocol",
+        "mechanical_boundary_conditions.provenance.source_id",
+        "mechanical_boundary_conditions.provenance.source_description",
+        "mechanical_boundary_conditions.provenance.verification_status",
+        "mechanical_boundary_conditions.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "boundary.solvent_bath",
+      "input_field_paths": [
+        "solvent_bath_boundary_conditions.bath_chemical_potential_over_kbt",
+        "solvent_bath_boundary_conditions.exposed_surface_exchange_condition",
+        "solvent_bath_boundary_conditions.contact_surface_transport_condition",
+        "solvent_bath_boundary_conditions.initial_solvent_state",
+        "solvent_bath_boundary_conditions.provenance.source_id",
+        "solvent_bath_boundary_conditions.provenance.source_description",
+        "solvent_bath_boundary_conditions.provenance.verification_status",
+        "solvent_bath_boundary_conditions.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "contact.law_and_tolerances",
+      "input_field_paths": [
+        "contact_law.normal_contact_model",
+        "contact_law.contact_enforcement_method",
+        "contact_law.frictionless",
+        "contact_law.adhesive",
+        "contact_law.normal_gap_tolerance_m",
+        "contact_law.force_balance_tolerance_newton",
+        "contact_law.provenance.source_id",
+        "contact_law.provenance.source_description",
+        "contact_law.provenance.verification_status",
+        "contact_law.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "solver.identity_and_configuration",
+      "input_field_paths": [
+        "solver.solver_name",
+        "solver.solver_version",
+        "solver.implementation_id",
+        "solver.configuration_id",
+        "solver.nonlinear_algorithm",
+        "solver.linear_solver",
+        "solver.provenance.source_id",
+        "solver.provenance.source_description",
+        "solver.provenance.verification_status",
+        "solver.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "mesh.convergence_plan",
+      "input_field_paths": [
+        "mesh_convergence.discretization_method",
+        "mesh_convergence.element_family",
+        "mesh_convergence.characteristic_lengths_m",
+        "mesh_convergence.nonlinear_residual_tolerance_dimensionless",
+        "mesh_convergence.relative_force_convergence_tolerance_dimensionless",
+        "mesh_convergence.relative_energy_convergence_tolerance_dimensionless",
+        "mesh_convergence.relative_stress_convergence_tolerance_dimensionless",
+        "mesh_convergence.maximum_nonlinear_iterations",
+        "mesh_convergence.provenance.source_id",
+        "mesh_convergence.provenance.source_description",
+        "mesh_convergence.provenance.verification_status",
+        "mesh_convergence.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "input_field_paths": [
+        "distance_scan.center_distances_m",
+        "distance_scan.reference_distance_m",
+        "distance_scan.reference_force_tolerance_newton",
+        "distance_scan.provenance.source_id",
+        "distance_scan.provenance.source_description",
+        "distance_scan.provenance.verification_status",
+        "distance_scan.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "reaction.integration_and_sign",
+      "input_field_paths": [
+        "reaction_force.integration_boundary",
+        "reaction_force.traction_quantity",
+        "reaction_force.pair_axis_definition",
+        "reaction_force.positive_sign_convention",
+        "reaction_force.total_free_energy_reference",
+        "reaction_force.integration_tolerance_newton",
+        "reaction_force.provenance.source_id",
+        "reaction_force.provenance.source_description",
+        "reaction_force.provenance.verification_status",
+        "reaction_force.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "timescale.separation_and_source",
+      "input_field_paths": [
+        "time_scale.tau_gel_s",
+        "time_scale.tau_swarm_s",
+        "time_scale.required_max_ratio",
+        "time_scale_provenance.source_id",
+        "time_scale_provenance.source_description",
+        "time_scale_provenance.verification_status",
+        "time_scale_provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "input_field_paths": [
+        "mean_field_scaling.density_convention",
+        "mean_field_scaling.scaling_mode",
+        "mean_field_scaling.population_count",
+        "mean_field_scaling.source_population_count",
+        "mean_field_scaling.areal_number_density_per_m2",
+        "mean_field_scaling.representative_area_m2",
+        "mean_field_scaling.scaling_definition",
+        "mean_field_scaling.provenance.source_id",
+        "mean_field_scaling.provenance.source_description",
+        "mean_field_scaling.provenance.verification_status",
+        "mean_field_scaling.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    },
+    {
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "input_field_paths": [
+        "short_range.minimum_supported_distance_m",
+        "short_range.closure_kind",
+        "short_range.closure_description",
+        "short_range.validation_method",
+        "short_range.force_match_tolerance_newton",
+        "short_range.energy_match_tolerance_joule",
+        "short_range.provenance.source_id",
+        "short_range.provenance.source_description",
+        "short_range.provenance.verification_status",
+        "short_range.provenance.verification_record_id"
+      ],
+      "status": "MISSING",
+      "reason": "input or provenance is missing"
+    }
+  ],
+  "required_inputs": [
+    {
+      "field_path": "hydrogel_parameters.network_density_times_solvent_volume",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters.flory_huggins_chi",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters.initial_polymer_volume_fraction",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters.delta_chemical_potential_over_kbt",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters.thermal_energy_density_pa",
+      "expected_json_type": "number",
+      "unit_or_dimension": "Pa",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters.calibration_status",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters_provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters_provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters_provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "hydrogel_parameters_provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "material.hydrogel_parameters",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry.first_radius_m",
+      "expected_json_type": "number",
+      "unit_or_dimension": "m",
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry.second_radius_m",
+      "expected_json_type": "number",
+      "unit_or_dimension": "m",
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry.calibration_status",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry_provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry_provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry_provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "geometry_provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "geometry.two_sphere",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.center_separation_control",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.rigid_body_constraint",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.noncontact_surface_traction",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.loading_protocol",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mechanical_boundary_conditions.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.mechanical",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.bath_chemical_potential_over_kbt",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.exposed_surface_exchange_condition",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.contact_surface_transport_condition",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.initial_solvent_state",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solvent_bath_boundary_conditions.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "boundary.solvent_bath",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.normal_contact_model",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "frictionless non-adhesive unilateral impenetrability"
+      ],
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.contact_enforcement_method",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.frictionless",
+      "expected_json_type": "boolean",
+      "unit_or_dimension": "not applicable (boolean)",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.adhesive",
+      "expected_json_type": "boolean",
+      "unit_or_dimension": "not applicable (boolean)",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.normal_gap_tolerance_m",
+      "expected_json_type": "number",
+      "unit_or_dimension": "m",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.force_balance_tolerance_newton",
+      "expected_json_type": "number",
+      "unit_or_dimension": "N",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "contact_law.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "contact.law_and_tolerances",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.solver_name",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.solver_version",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.implementation_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.configuration_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.nonlinear_algorithm",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.linear_solver",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "solver.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "solver.identity_and_configuration",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.discretization_method",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.element_family",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.characteristic_lengths_m",
+      "expected_json_type": "array[number]",
+      "unit_or_dimension": "m",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.nonlinear_residual_tolerance_dimensionless",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.relative_force_convergence_tolerance_dimensionless",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.relative_energy_convergence_tolerance_dimensionless",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.relative_stress_convergence_tolerance_dimensionless",
+      "expected_json_type": "number",
+      "unit_or_dimension": "1",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.maximum_nonlinear_iterations",
+      "expected_json_type": "integer",
+      "unit_or_dimension": "1 (count)",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mesh_convergence.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mesh.convergence_plan",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.center_distances_m",
+      "expected_json_type": "array[number]",
+      "unit_or_dimension": "m",
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.reference_distance_m",
+      "expected_json_type": "number",
+      "unit_or_dimension": "m",
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.reference_force_tolerance_newton",
+      "expected_json_type": "number",
+      "unit_or_dimension": "N",
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "distance_scan.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.integration_boundary",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.traction_quantity",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.pair_axis_definition",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "unit vector from second sphere center to first sphere center"
+      ],
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.positive_sign_convention",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "positive radial force separates the two sphere centers"
+      ],
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.total_free_energy_reference",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "zero at the final separated reference distance"
+      ],
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.integration_tolerance_newton",
+      "expected_json_type": "number",
+      "unit_or_dimension": "N",
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "reaction_force.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "reaction.integration_and_sign",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale.tau_gel_s",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "s",
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale.tau_swarm_s",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "s",
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale.required_max_ratio",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "1",
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale_provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale_provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale_provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "time_scale_provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "timescale.separation_and_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.density_convention",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "PROBABILITY_DENSITY_INTEGRAL_ONE",
+        "NUMBER_DENSITY_INTEGRAL_POPULATION"
+      ],
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.scaling_mode",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "KAC_FROM_SINGLE_PAIR_POPULATION",
+        "RAW_SINGLE_PAIR_NUMBER_DENSITY"
+      ],
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.population_count",
+      "expected_json_type": "integer",
+      "unit_or_dimension": "1 (particle count)",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.source_population_count",
+      "expected_json_type": "integer",
+      "unit_or_dimension": "1 (particle count)",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.areal_number_density_per_m2",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "1/m^2",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.representative_area_m2",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "m^2",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.scaling_definition",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "mean_field_scaling.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.minimum_supported_distance_m",
+      "expected_json_type": "number",
+      "unit_or_dimension": "m",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.closure_kind",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "NO_SHORT_RANGE_CLOSURE",
+        "EXTERNAL_VALIDATED_HYDROGEL_MECHANICS_SHORT_RANGE_CLOSURE"
+      ],
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.closure_description",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.validation_method",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.force_match_tolerance_newton",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "N",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.energy_match_tolerance_joule",
+      "expected_json_type": "number|null",
+      "unit_or_dimension": "J",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.provenance.source_id",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.provenance.source_description",
+      "expected_json_type": "string",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.provenance.verification_status",
+      "expected_json_type": "string (enum)",
+      "unit_or_dimension": "not applicable (enum)",
+      "allowed_values": [
+        "VERIFIED_SOURCE_RECORD",
+        "UNVERIFIED",
+        "TEST_ONLY_NOT_CALIBRATED"
+      ],
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    },
+    {
+      "field_path": "short_range.provenance.verification_record_id",
+      "expected_json_type": "string|null",
+      "unit_or_dimension": "not applicable (text/provenance)",
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "presence_status": "MISSING_KEY",
+      "contract_group_status": "MISSING"
+    }
+  ],
+  "reason": "an all-null parameter collection template was written; it is not physical input and no contact result was generated",
+  "generated_at_utc": "2026-08-24T14:41:13.748932+00:00",
+  "git_revision_at_run": "d321625de388506b05fe1e460a8f382911332ef7",
+  "git_dirty_at_run": true,
   "command": [
     "scripts/run_pair_contact_sweep.py",
+    "--write-input-template",
+    "outputs/validation/pair_interaction/contact_problem_input_template.json",
     "--output-directory",
-    "tmp/phase6_artifacts/pair_interaction"
+    "outputs/validation/pair_interaction"
   ],
   "runtime": {
     "platform": "Windows-10-10.0.26200-SP0",
@@ -72,5 +2123,7 @@
     "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
     "numpy": "2.2.6",
     "scipy": "1.15.3"
-  }
+  },
+  "input_template_file": "outputs\\validation\\pair_interaction\\contact_problem_input_template.json",
+  "input_template_sha256": "8d76041f34a33f76d637c9372396f23f6f37d5f241582efa24e95db10625abf3"
 }

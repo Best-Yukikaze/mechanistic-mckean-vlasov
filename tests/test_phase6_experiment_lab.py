@@ -181,17 +181,37 @@ class PairContactSweepScriptTests(unittest.TestCase):
             for report in (status, metadata):
                 self.assertEqual(report["workflow_status"], "BLOCKED")
                 self.assertEqual(report["validation_status"], "UNVERIFIED")
-                self.assertEqual(report["contact_solver_status"], "NOT_AVAILABLE")
+                self.assertEqual(
+                    report["contact_solver_status"],
+                    "CONTACT_FEM_BACKEND_UNAVAILABLE",
+                )
+                self.assertEqual(
+                    report["contact_results_status"],
+                    "CONTACT_RESULTS_NOT_GENERATED",
+                )
                 self.assertEqual(
                     report["data_semantics"],
                     PairForceScaling.UNSCALED_SINGLE_PAIR.value,
                 )
                 self.assertEqual(report["generated_data_files"], [])
-                missing_keys = {item["key"] for item in report["missing_inputs"]}
-                self.assertIn("contact_fem_solver", missing_keys)
-                self.assertIn("particle_geometry", missing_keys)
-                self.assertIn("solvent_bath_boundary_conditions", missing_keys)
-                self.assertIn("time_scale_assessment", missing_keys)
+                required_groups = {
+                    item["requirement_id"]: item["status"]
+                    for item in report["required_input_groups"]
+                }
+                self.assertEqual(
+                    required_groups["solver.identity_and_configuration"],
+                    "MISSING",
+                )
+                self.assertEqual(
+                    required_groups["geometry.two_sphere"], "MISSING"
+                )
+                self.assertEqual(
+                    required_groups["boundary.solvent_bath"], "MISSING"
+                )
+                self.assertEqual(
+                    required_groups["timescale.separation_and_source"],
+                    "MISSING",
+                )
             self.assertEqual(list(output_directory.rglob("*.csv")), [])
             self.assertEqual(list(output_directory.rglob("*.png")), [])
 

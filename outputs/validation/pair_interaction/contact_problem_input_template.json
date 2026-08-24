@@ -1,0 +1,869 @@
+{
+  "schema_name": "mechanistic_mv.contact_problem_input_manifest",
+  "schema_version": 1,
+  "artifact_type": "CONTACT_PROBLEM_INPUT_TEMPLATE",
+  "template_status": "INPUT_TEMPLATE_NOT_PHYSICAL",
+  "input_purpose": "INPUT_TEMPLATE_NOT_PHYSICAL",
+  "physical_values_supplied": false,
+  "contact_problem": {
+    "hydrogel_parameters": {
+      "network_density_times_solvent_volume": null,
+      "flory_huggins_chi": null,
+      "initial_polymer_volume_fraction": null,
+      "delta_chemical_potential_over_kbt": null,
+      "thermal_energy_density_pa": null,
+      "calibration_status": null
+    },
+    "hydrogel_parameters_provenance": {
+      "source_id": null,
+      "source_description": null,
+      "verification_status": null,
+      "verification_record_id": null
+    },
+    "geometry": {
+      "first_radius_m": null,
+      "second_radius_m": null,
+      "calibration_status": null
+    },
+    "geometry_provenance": {
+      "source_id": null,
+      "source_description": null,
+      "verification_status": null,
+      "verification_record_id": null
+    },
+    "mechanical_boundary_conditions": {
+      "center_separation_control": null,
+      "rigid_body_constraint": null,
+      "noncontact_surface_traction": null,
+      "loading_protocol": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "solvent_bath_boundary_conditions": {
+      "bath_chemical_potential_over_kbt": null,
+      "exposed_surface_exchange_condition": null,
+      "contact_surface_transport_condition": null,
+      "initial_solvent_state": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "contact_law": {
+      "normal_contact_model": null,
+      "contact_enforcement_method": null,
+      "frictionless": null,
+      "adhesive": null,
+      "normal_gap_tolerance_m": null,
+      "force_balance_tolerance_newton": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "solver": {
+      "solver_name": null,
+      "solver_version": null,
+      "implementation_id": null,
+      "configuration_id": null,
+      "nonlinear_algorithm": null,
+      "linear_solver": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "mesh_convergence": {
+      "discretization_method": null,
+      "element_family": null,
+      "characteristic_lengths_m": null,
+      "nonlinear_residual_tolerance_dimensionless": null,
+      "relative_force_convergence_tolerance_dimensionless": null,
+      "relative_energy_convergence_tolerance_dimensionless": null,
+      "relative_stress_convergence_tolerance_dimensionless": null,
+      "maximum_nonlinear_iterations": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "distance_scan": {
+      "center_distances_m": null,
+      "reference_distance_m": null,
+      "reference_force_tolerance_newton": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "reaction_force": {
+      "integration_boundary": null,
+      "traction_quantity": null,
+      "pair_axis_definition": null,
+      "positive_sign_convention": null,
+      "total_free_energy_reference": null,
+      "integration_tolerance_newton": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "time_scale": {
+      "tau_gel_s": null,
+      "tau_swarm_s": null,
+      "required_max_ratio": null
+    },
+    "time_scale_provenance": {
+      "source_id": null,
+      "source_description": null,
+      "verification_status": null,
+      "verification_record_id": null
+    },
+    "mean_field_scaling": {
+      "density_convention": null,
+      "scaling_mode": null,
+      "population_count": null,
+      "source_population_count": null,
+      "areal_number_density_per_m2": null,
+      "representative_area_m2": null,
+      "scaling_definition": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    },
+    "short_range": {
+      "minimum_supported_distance_m": null,
+      "closure_kind": null,
+      "closure_description": null,
+      "validation_method": null,
+      "force_match_tolerance_newton": null,
+      "energy_match_tolerance_joule": null,
+      "provenance": {
+        "source_id": null,
+        "source_description": null,
+        "verification_status": null,
+        "verification_record_id": null
+      }
+    }
+  },
+  "required_input_contract": [
+    {
+      "requirement_id": "material.hydrogel_parameters",
+      "fields": [
+        {
+          "field_path": "hydrogel_parameters.network_density_times_solvent_volume",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.flory_huggins_chi",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.initial_polymer_volume_fraction",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.delta_chemical_potential_over_kbt",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "hydrogel_parameters.thermal_energy_density_pa",
+          "expected_json_type": "number",
+          "unit_or_dimension": "Pa"
+        },
+        {
+          "field_path": "hydrogel_parameters.calibration_status",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "hydrogel_parameters_provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "geometry.two_sphere",
+      "fields": [
+        {
+          "field_path": "geometry.first_radius_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "geometry.second_radius_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "geometry.calibration_status",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "geometry_provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "geometry_provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "geometry_provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "geometry_provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "boundary.mechanical",
+      "fields": [
+        {
+          "field_path": "mechanical_boundary_conditions.center_separation_control",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.rigid_body_constraint",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.noncontact_surface_traction",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.loading_protocol",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "mechanical_boundary_conditions.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "boundary.solvent_bath",
+      "fields": [
+        {
+          "field_path": "solvent_bath_boundary_conditions.bath_chemical_potential_over_kbt",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.exposed_surface_exchange_condition",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.contact_surface_transport_condition",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.initial_solvent_state",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "solvent_bath_boundary_conditions.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "contact.law_and_tolerances",
+      "fields": [
+        {
+          "field_path": "contact_law.normal_contact_model",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "frictionless non-adhesive unilateral impenetrability"
+          ]
+        },
+        {
+          "field_path": "contact_law.contact_enforcement_method",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "contact_law.frictionless",
+          "expected_json_type": "boolean",
+          "unit_or_dimension": "not applicable (boolean)"
+        },
+        {
+          "field_path": "contact_law.adhesive",
+          "expected_json_type": "boolean",
+          "unit_or_dimension": "not applicable (boolean)"
+        },
+        {
+          "field_path": "contact_law.normal_gap_tolerance_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "contact_law.force_balance_tolerance_newton",
+          "expected_json_type": "number",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "contact_law.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "contact_law.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "contact_law.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "contact_law.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "solver.identity_and_configuration",
+      "fields": [
+        {
+          "field_path": "solver.solver_name",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.solver_version",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.implementation_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.configuration_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.nonlinear_algorithm",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.linear_solver",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "solver.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "solver.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "mesh.convergence_plan",
+      "fields": [
+        {
+          "field_path": "mesh_convergence.discretization_method",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.element_family",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.characteristic_lengths_m",
+          "expected_json_type": "array[number]",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "mesh_convergence.nonlinear_residual_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.relative_force_convergence_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.relative_energy_convergence_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.relative_stress_convergence_tolerance_dimensionless",
+          "expected_json_type": "number",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "mesh_convergence.maximum_nonlinear_iterations",
+          "expected_json_type": "integer",
+          "unit_or_dimension": "1 (count)"
+        },
+        {
+          "field_path": "mesh_convergence.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mesh_convergence.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "mesh_convergence.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "distance.scan_and_reference_force_tolerance",
+      "fields": [
+        {
+          "field_path": "distance_scan.center_distances_m",
+          "expected_json_type": "array[number]",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "distance_scan.reference_distance_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "distance_scan.reference_force_tolerance_newton",
+          "expected_json_type": "number",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "distance_scan.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "distance_scan.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "distance_scan.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "distance_scan.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "reaction.integration_and_sign",
+      "fields": [
+        {
+          "field_path": "reaction_force.integration_boundary",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.traction_quantity",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.pair_axis_definition",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "unit vector from second sphere center to first sphere center"
+          ]
+        },
+        {
+          "field_path": "reaction_force.positive_sign_convention",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "positive radial force separates the two sphere centers"
+          ]
+        },
+        {
+          "field_path": "reaction_force.total_free_energy_reference",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "zero at the final separated reference distance"
+          ]
+        },
+        {
+          "field_path": "reaction_force.integration_tolerance_newton",
+          "expected_json_type": "number",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "reaction_force.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "reaction_force.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "reaction_force.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "timescale.separation_and_source",
+      "fields": [
+        {
+          "field_path": "time_scale.tau_gel_s",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "s"
+        },
+        {
+          "field_path": "time_scale.tau_swarm_s",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "s"
+        },
+        {
+          "field_path": "time_scale.required_max_ratio",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "1"
+        },
+        {
+          "field_path": "time_scale_provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "time_scale_provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "time_scale_provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "time_scale_provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "mean_field.population_or_kac_scaling_source",
+      "fields": [
+        {
+          "field_path": "mean_field_scaling.density_convention",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "PROBABILITY_DENSITY_INTEGRAL_ONE",
+            "NUMBER_DENSITY_INTEGRAL_POPULATION"
+          ]
+        },
+        {
+          "field_path": "mean_field_scaling.scaling_mode",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "KAC_FROM_SINGLE_PAIR_POPULATION",
+            "RAW_SINGLE_PAIR_NUMBER_DENSITY"
+          ]
+        },
+        {
+          "field_path": "mean_field_scaling.population_count",
+          "expected_json_type": "integer",
+          "unit_or_dimension": "1 (particle count)"
+        },
+        {
+          "field_path": "mean_field_scaling.source_population_count",
+          "expected_json_type": "integer",
+          "unit_or_dimension": "1 (particle count)"
+        },
+        {
+          "field_path": "mean_field_scaling.areal_number_density_per_m2",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "1/m^2"
+        },
+        {
+          "field_path": "mean_field_scaling.representative_area_m2",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "m^2"
+        },
+        {
+          "field_path": "mean_field_scaling.scaling_definition",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "mean_field_scaling.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    },
+    {
+      "requirement_id": "short_range.minimum_distance_or_zero_closure",
+      "fields": [
+        {
+          "field_path": "short_range.minimum_supported_distance_m",
+          "expected_json_type": "number",
+          "unit_or_dimension": "m"
+        },
+        {
+          "field_path": "short_range.closure_kind",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "NO_SHORT_RANGE_CLOSURE",
+            "EXTERNAL_VALIDATED_HYDROGEL_MECHANICS_SHORT_RANGE_CLOSURE"
+          ]
+        },
+        {
+          "field_path": "short_range.closure_description",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.validation_method",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.force_match_tolerance_newton",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "N"
+        },
+        {
+          "field_path": "short_range.energy_match_tolerance_joule",
+          "expected_json_type": "number|null",
+          "unit_or_dimension": "J"
+        },
+        {
+          "field_path": "short_range.provenance.source_id",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.provenance.source_description",
+          "expected_json_type": "string",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        },
+        {
+          "field_path": "short_range.provenance.verification_status",
+          "expected_json_type": "string (enum)",
+          "unit_or_dimension": "not applicable (enum)",
+          "allowed_values": [
+            "VERIFIED_SOURCE_RECORD",
+            "UNVERIFIED",
+            "TEST_ONLY_NOT_CALIBRATED"
+          ]
+        },
+        {
+          "field_path": "short_range.provenance.verification_record_id",
+          "expected_json_type": "string|null",
+          "unit_or_dimension": "not applicable (text/provenance)"
+        }
+      ]
+    }
+  ],
+  "instructions": [
+    "replace nulls only with user-supplied, source-traceable values",
+    "set input_purpose to PHYSICAL_CONTACT_PROBLEM only for physical data",
+    "the template is not contact data and cannot authorize a FEM solve"
+  ]
+}
