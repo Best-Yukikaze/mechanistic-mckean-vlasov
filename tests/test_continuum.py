@@ -58,6 +58,27 @@ class ConvolutionTests(unittest.TestCase):
                 atol=3.0e-34,
             )
 
+    def test_nonfinite_pair_backend_is_rejected_by_both_convolutions(self) -> None:
+        class NonfinitePairPotential:
+            name = "invalid_nonfinite_pair"
+            physical_status = "INVALID_TEST_BACKEND"
+
+            def potential_joule(self, displacement_m: np.ndarray) -> np.ndarray:
+                return np.full(displacement_m.shape[:-1], np.nan)
+
+            def force_newton(self, displacement_m: np.ndarray) -> np.ndarray:
+                return np.zeros_like(displacement_m)
+
+        grid = CartesianGrid(
+            RectangularDomain((0.0, 4.0e-6), (0.0, 4.0e-6)), 4, 4
+        )
+        density = np.ones((4, 4)) / (16 * grid.cell_area_m2)
+        backend = NonfinitePairPotential()
+        with self.assertRaisesRegex(FloatingPointError, "became non-finite"):
+            direct_pair_convolution_joule(density, grid, backend)
+        with self.assertRaisesRegex(ValueError, "invalid convolution kernel"):
+            FFTPairConvolver(grid, backend)
+
     def test_chemical_potential_matches_free_energy_first_variation(self) -> None:
         grid = CartesianGrid(RectangularDomain((0.0, 6.0e-6), (0.0, 5.0e-6)), 6, 5)
         parameters = PhysicalParameters()
@@ -295,6 +316,51 @@ class FiniteVolumeTests(unittest.TestCase):
         _, diagnostics = solver.step(density, 0.5, control=np.zeros(2))
         self.assertGreater(diagnostics.substeps, 1)
         self.assertEqual(backend.calls, 1)
+
+    def test_invalid_external_potential_is_rejected_at_construction(self) -> None:
+        class NonfiniteExternalPotential:
+            name = "invalid_nonfinite_external"
+
+            def potential_joule(self, positions_m: np.ndarray) -> np.ndarray:
+                return np.full(positions_m.shape[:-1], np.nan)
+
+            def force_newton(self, positions_m: np.ndarray) -> np.ndarray:
+                return np.zeros_like(positions_m)
+
+        grid = CartesianGrid(self.domain, 8, 8)
+        with self.assertRaisesRegex(ValueError, "one finite value"):
+            McKeanVlasovSolver(
+                grid,
+                self.parameters,
+                ZeroPairPotential(),
+                external=NonfiniteExternalPotential(),
+            )
+
+    def test_invalid_controlled_potential_output_is_rejected(self) -> None:
+        class InvalidControlledPotential:
+            name = "invalid_controlled_shape"
+            physical_status = "INVALID_TEST_BACKEND"
+
+            def potential_joule(
+                self, positions_m: np.ndarray, control: np.ndarray | None
+            ) -> np.ndarray:
+                return np.zeros((positions_m.shape[0], 1))
+
+            def force_newton(
+                self, positions_m: np.ndarray, control: np.ndarray | None
+            ) -> np.ndarray:
+                return np.zeros_like(positions_m)
+
+        grid = CartesianGrid(self.domain, 8, 8)
+        solver = McKeanVlasovSolver(
+            grid,
+            self.parameters,
+            ZeroPairPotential(),
+            controlled_potential=InvalidControlledPotential(),
+        )
+        density = gaussian_density(grid, (10.0e-6, 10.0e-6), 1.0e-6)
+        with self.assertRaisesRegex(ValueError, "one finite value"):
+            solver.step(density, 0.01, control=np.zeros(2))
 
     def test_test_control_moves_density_in_force_direction(self) -> None:
         grid = CartesianGrid(self.domain, 32, 32)
