@@ -1,0 +1,185 @@
+{
+  "schema_name": "mechanistic_mv.mg10f_transport_derivation",
+  "schema_version": 2,
+  "artifact_type": "MG10F_CONDITIONAL_TRANSPORT_DERIVATION",
+  "model_status": "TEST_ONLY_NOT_CALIBRATED",
+  "workflow_status": "CONDITIONAL_TRANSPORT_DERIVATION_COMPLETED",
+  "physical_status": "NOMINAL_MG10F_SOURCE_LOCATIONS_UNVERIFIED",
+  "calibration_status": "BLOCKED_NETWORK_DENSITY_UNCALIBRATED",
+  "transport_status": "DERIVED_FROM_NOMINAL_INPUTS_CONDITIONAL",
+  "workflow_completed": true,
+  "physical_model_ready": false,
+  "registry": {
+    "registry_id": "MG10F_PNIPAM_BIS10_WATER_293K_NOMINAL",
+    "registry_status": "TEST_ONLY_NOT_CALIBRATED",
+    "reference_document": "MG10F_REAL_PARAMETER_SPEC.md (user-supplied nominal reference; its primary bibliography and locations were not supplied)",
+    "file_identity": {
+      "path": "D:\\projects\\gym_distribution\\mechanistic_mckean_vlasov\\configs\\physics_mg10f.json",
+      "sha256": "f63d84a13af57aba694ccd53732c65d4d93e0eafcd64b8c790570537890b2a3e",
+      "canonical_repository_config_path": "D:\\projects\\gym_distribution\\mechanistic_mckean_vlasov\\configs\\physics_mg10f.json",
+      "uses_canonical_repository_config": true
+    }
+  },
+  "inputs": {
+    "temperature_20c": {
+      "value": 293.15,
+      "unit": "K",
+      "uncertainty": null,
+      "verification_status": "SOURCE_LOCATION_NEEDS_VERIFICATION",
+      "source": "MG10F_REAL_PARAMETER_SPEC.md, section 3.1 (reported as experimental condition)",
+      "source_location": null
+    },
+    "hydrodynamic_radius_20c": {
+      "value": 4.63e-07,
+      "unit": "m",
+      "uncertainty": 7e-09,
+      "verification_status": "SOURCE_LOCATION_NEEDS_VERIFICATION",
+      "source": "MG10F_REAL_PARAMETER_SPEC.md, section 3.2 (reported measured value)",
+      "source_location": null
+    },
+    "water_viscosity_20c": {
+      "value": 0.001002,
+      "unit": "Pa s",
+      "uncertainty": null,
+      "verification_status": "SOURCE_LOCATION_NEEDS_VERIFICATION",
+      "source": "MG10F_REAL_PARAMETER_SPEC.md, section 6 (standard-fluid-property nominal value)",
+      "source_location": null
+    }
+  },
+  "derived_transport": [
+    {
+      "name": "stokes_drag_coefficient",
+      "symbol": "gamma",
+      "value": 8.74479908045579e-09,
+      "unit": "kg/s",
+      "formula": "gamma = 6*pi*eta*R_h",
+      "uncertainty": 1.3221078523367284e-10,
+      "uncertainty_unit": "kg/s",
+      "uncertainty_status": "PARTIAL_PROPAGATED_FROM_R_H_ONLY",
+      "verification_status": "CONDITIONAL_NOMINAL_DERIVED_FROM_UNVERIFIED_INPUTS",
+      "provenance_type": "DERIVED",
+      "input_status": "NOMINAL_MG10F_SOURCE_LOCATIONS_UNVERIFIED",
+      "calibration_status": "BLOCKED_NETWORK_DENSITY_UNCALIBRATED"
+    },
+    {
+      "name": "mobility",
+      "symbol": "M",
+      "value": 114353685.06464058,
+      "unit": "m/(N s)",
+      "formula": "M = 1/gamma",
+      "uncertainty": 1728889.4070248036,
+      "uncertainty_unit": "m/(N s)",
+      "uncertainty_status": "PARTIAL_PROPAGATED_FROM_R_H_ONLY",
+      "verification_status": "CONDITIONAL_NOMINAL_DERIVED_FROM_UNVERIFIED_INPUTS",
+      "provenance_type": "DERIVED",
+      "input_status": "NOMINAL_MG10F_SOURCE_LOCATIONS_UNVERIFIED",
+      "calibration_status": "BLOCKED_NETWORK_DENSITY_UNCALIBRATED"
+    },
+    {
+      "name": "thermal_energy",
+      "symbol": "k_B*T",
+      "value": 4.0473725435e-21,
+      "unit": "J",
+      "formula": "k_B*T, with exact SI k_B",
+      "uncertainty": null,
+      "uncertainty_status": "NOT_REPORTED_BY_PARTIAL_RH_ONLY_SCOPE",
+      "verification_status": "CONDITIONAL_NOMINAL_DERIVED_FROM_UNVERIFIED_INPUTS",
+      "provenance_type": "DERIVED",
+      "input_status": "NOMINAL_MG10F_SOURCE_LOCATIONS_UNVERIFIED",
+      "calibration_status": "BLOCKED_NETWORK_DENSITY_UNCALIBRATED"
+    },
+    {
+      "name": "diffusion",
+      "symbol": "D",
+      "value": 4.628319651786723e-13,
+      "unit": "m^2/s",
+      "formula": "D = M*k_B*T",
+      "uncertainty": 6.997459516740186e-15,
+      "uncertainty_unit": "m^2/s",
+      "uncertainty_status": "PARTIAL_PROPAGATED_FROM_R_H_ONLY",
+      "verification_status": "CONDITIONAL_NOMINAL_DERIVED_FROM_UNVERIFIED_INPUTS",
+      "provenance_type": "DERIVED",
+      "input_status": "NOMINAL_MG10F_SOURCE_LOCATIONS_UNVERIFIED",
+      "calibration_status": "BLOCKED_NETWORK_DENSITY_UNCALIBRATED"
+    }
+  ],
+  "uncertainty_assessment": {
+    "status": "PARTIAL_R_H_ONLY",
+    "propagated_input": "hydrodynamic_radius_20c",
+    "included_uncertainties": [
+      "hydrodynamic_radius_20c"
+    ],
+    "excluded_uncertainties": [
+      "temperature_20c",
+      "water_viscosity_20c",
+      "Stokes_model_form_and_soft_particle_effects"
+    ],
+    "drag_formula": "sigma_gamma = |gamma| * sigma_R_h / R_h",
+    "mobility_formula": "sigma_M = |M| * sigma_R_h / R_h",
+    "diffusion_formula": "sigma_D = |D| * sigma_R_h / R_h",
+    "interpretation": "Only the reported R_h uncertainty is propagated. This is not a complete uncertainty budget and must not be treated as calibration."
+  },
+  "source_verification": {
+    "status": "ALL_USABLE_REGISTRY_INPUT_SOURCES_UNVERIFIED",
+    "verified_usable_parameters": [],
+    "unverified_usable_parameters": [
+      "material",
+      "microgel_id",
+      "crosslinker",
+      "crosslinker_mol_percent",
+      "solvent",
+      "temperature_20c",
+      "temperature_50c",
+      "hydrodynamic_radius_20c",
+      "hydrodynamic_radius_50c",
+      "young_modulus_20c",
+      "young_modulus_50c",
+      "water_viscosity_20c",
+      "water_molecular_volume",
+      "chi_A0",
+      "chi_B0_per_kelvin",
+      "chi_A1",
+      "chi_B1_per_kelvin"
+    ],
+    "interpretation": "Every non-null registry record lacks a verified primary source location. Conditional transport arithmetic does not verify it."
+  },
+  "blocked_calibration_parameters": [
+    "network_density_times_solvent_volume",
+    "initial_polymer_volume_fraction",
+    "delta_chemical_potential_over_kbt"
+  ],
+  "downstream_status": {
+    "hydrogel": "BLOCKED",
+    "contact_fem": "BLOCKED",
+    "F_pair": "BLOCKED",
+    "W_eff": "BLOCKED",
+    "mckean_vlasov": "BLOCKED",
+    "controller": "NOT_IN_SCOPE"
+  },
+  "outputs_written": [
+    "derived_transport.json"
+  ],
+  "non_claims": [
+    "No Hydrogel constitutive parameter set was constructed.",
+    "No contact or FEM calculation was called.",
+    "No F_pair or W_eff was constructed.",
+    "No McKean--Vlasov solve, controller invocation, or training was run.",
+    "The hydrodynamic radius is not a reference contact radius."
+  ],
+  "provenance": {
+    "generated_at_utc": "2026-08-25T16:15:59.374581+00:00",
+    "git_revision_at_run": "3cc2036fbe1b068918762ad2b65a2edf3e8da4e1",
+    "git_dirty_at_run": false,
+    "command": [
+      "scripts\\run_mg10f_transport_derivation.py"
+    ],
+    "runtime": {
+      "platform": "Windows-10-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+      "machine": "AMD64",
+      "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+      "numpy": "2.2.6",
+      "scipy": "1.15.3"
+    }
+  }
+}
