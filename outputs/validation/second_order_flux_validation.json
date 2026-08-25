@@ -3,9 +3,9 @@
   "schema_version": 3,
   "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
   "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
-  "generated_utc": "2026-08-25T15:47:47.809054+00:00",
-  "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3",
-  "git_dirty_at_run": true,
+  "generated_utc": "2026-08-25T15:49:16.631352+00:00",
+  "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a",
+  "git_dirty_at_run": false,
   "command": [
     "scripts\\run_second_order_flux_validation.py"
   ],
@@ -27,7 +27,7 @@
         "flux_assembly_symbol": "mechanistic_mv.continuum.flux.compute_face_fluxes",
         "solver_integration_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
         "source_file": "src/mechanistic_mv/continuum/flux.py",
-        "source_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        "source_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
       },
       "time_step_contract_source": {
         "solver_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
@@ -2479,8 +2479,8 @@
         }
       },
       "provenance": {
-        "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3",
-        "git_dirty_at_run": true,
+        "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a",
+        "git_dirty_at_run": false,
         "selected_flux_scheme": {
           "identifier": "SECOND_ORDER_SCHARFETTER_GUMMEL",
           "constructor_keyword": "drift_flux_scheme",
@@ -2494,25 +2494,25 @@
           "api_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
           "module": "mechanistic_mv.continuum.mckean_vlasov",
           "source_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         },
         "pair_fixture": {
           "api_symbol": "mechanistic_mv.mechanics.pair_potential.TestOnlyGaussianRepulsion",
           "module": "mechanistic_mv.mechanics.pair_potential",
           "source_file": "src/mechanistic_mv/mechanics/pair_potential.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         },
         "direct_convolution": {
           "api_symbol": "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
           "module": "mechanistic_mv.continuum.convolution",
           "source_file": "src/mechanistic_mv/continuum/convolution.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         },
         "fft_convolution": {
           "api_symbol": "mechanistic_mv.continuum.convolution.FFTPairConvolver.convolve_joule",
           "module": "mechanistic_mv.continuum.convolution",
           "source_file": "src/mechanistic_mv/continuum/convolution.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         }
       },
       "initial_mass": 0.9999999999999999,
@@ -2612,8 +2612,8 @@
         }
       },
       "provenance": {
-        "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3",
-        "git_dirty_at_run": true,
+        "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a",
+        "git_dirty_at_run": false,
         "selected_flux_scheme": {
           "identifier": "SECOND_ORDER_SCHARFETTER_GUMMEL",
           "constructor_keyword": "drift_flux_scheme",
@@ -2627,25 +2627,25 @@
           "api_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
           "module": "mechanistic_mv.continuum.mckean_vlasov",
           "source_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         },
         "pair_fixture": {
           "api_symbol": "mechanistic_mv.mechanics.pair_potential.TestOnlyGaussianRepulsion",
           "module": "mechanistic_mv.mechanics.pair_potential",
           "source_file": "src/mechanistic_mv/mechanics/pair_potential.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         },
         "direct_convolution": {
           "api_symbol": "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
           "module": "mechanistic_mv.continuum.convolution",
           "source_file": "src/mechanistic_mv/continuum/convolution.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         },
         "fft_convolution": {
           "api_symbol": "mechanistic_mv.continuum.convolution.FFTPairConvolver.convolve_joule",
           "module": "mechanistic_mv.continuum.convolution",
           "source_file": "src/mechanistic_mv/continuum/convolution.py",
-          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+          "git_revision_at_run": "a6822cdddfe52a6ad42385e36e84ffb7f9bd0c0a"
         }
       },
       "initial_mass": 0.9999999999999996,
