@@ -3,9 +3,9 @@
   "schema_version": 2,
   "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
   "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
-  "generated_utc": "2026-08-25T15:16:19.722882+00:00",
-  "git_revision_at_run": "59a3e35034522b3e50aa7cbf6f888c2e2e92fd48",
-  "git_dirty_at_run": true,
+  "generated_utc": "2026-08-25T15:16:52.591648+00:00",
+  "git_revision_at_run": "4f5c8f9f34cff73553bcf9351c9ecc0c275b0bff",
+  "git_dirty_at_run": false,
   "command": [
     "scripts\\run_second_order_flux_validation.py"
   ],
@@ -27,7 +27,7 @@
         "flux_assembly_symbol": "mechanistic_mv.continuum.flux.compute_face_fluxes",
         "solver_integration_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
         "source_file": "src/mechanistic_mv/continuum/flux.py",
-        "source_revision_at_run": "59a3e35034522b3e50aa7cbf6f888c2e2e92fd48"
+        "source_revision_at_run": "4f5c8f9f34cff73553bcf9351c9ecc0c275b0bff"
       },
       "time_step_contract_source": {
         "solver_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
