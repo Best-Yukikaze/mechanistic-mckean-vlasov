@@ -61,6 +61,26 @@ For every requirement or code update:
 4. The coordinator reports integrated status, Git provenance, whether any
    simulation/training ran, and the next action.
 
+## Default complete-delivery rule
+
+Unless the user explicitly asks for a short answer, every delivery for this
+repository must be complete rather than summary-only:
+
+- Lead with the conclusion, then state the exact affected files and the code
+  or requirement changes.
+- Explain the mathematical or physical reason for each substantive change.
+- State the verification command or method, the result, and any numerical
+  evidence that supports the claim.
+- Explicitly report assumptions, failures, blockers, unverified items, and
+  `TEST_ONLY_*` limitations; never omit them to make a result appear complete.
+- Keep the per-module Chinese report format
+  `file path -> changed code -> reason -> verification -> result`, including
+  an explicit "no change needed" report for unaffected modules.
+
+The coordinator must additionally record Git provenance, the simulation or
+training status, and the next physically meaningful action. This rule applies
+to new requirements and to every subsequent code update in the project.
+
 ## Shared objective
 
 Following the management model in the read-only reference project
