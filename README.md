@@ -48,6 +48,14 @@ environment.
   and the `kT/nu` stress scale but supplies no calibrated numerical values.
   Current generated Hydrogel/pair artifacts are therefore explicitly
   `TEST_ONLY_NOT_CALIBRATED` or `BLOCKED`.
+- The user-supplied MG10F PNIPAM/water values are stored separately as a
+  provenance-aware nominal registry. At 293.15 K it can conditionally derive
+  the dilute Stokes--Einstein quantities `gamma=6*pi*eta*R_h`, `M=1/gamma`,
+  `k_B*T`, and `D=M*k_B*T`; it does not change any solver default. Every
+  non-null MG10F input still lacks a verified primary-source location, while
+  `N*nu`, `phi0`, and `Delta mu/(k_B*T)` remain `null/BLOCKED`. The resulting
+  report is therefore not a Hydrogel calibration, contact radius, FEM result,
+  `F_pair`, `W_eff`, MV simulation, or actuator calibration.
 - A real actuator and calibrated `V`, `D`, particle count/concentration, and
   single-pair-to-Kac scaling have not been selected. Results validate code and
   numerical contracts, not a particular experiment.
@@ -239,6 +247,7 @@ $env:PYTHONPATH = "src"
 & "D:\conda environment\envs\dl\python.exe" scripts\run_pair_contact_sweep.py
 & "D:\conda environment\envs\dl\python.exe" scripts\build_effective_potential.py --test-only-fixture
 & "D:\conda environment\envs\dl\python.exe" scripts\validate_density_scaling.py --test-only-fixture
+& "D:\conda environment\envs\dl\python.exe" scripts\run_mg10f_transport_derivation.py
 ```
 
 These commands run tests and short physics simulations; they do not train a
@@ -247,6 +256,12 @@ uncalibrated values. `run_pair_contact_sweep.py` currently exits `BLOCKED` and
 does not create a fake force curve. Use each new script's `--help` for the
 required real-data inputs. Reproducible artifacts are written to
 `outputs/validation/`.
+
+`run_mg10f_transport_derivation.py` writes only
+`outputs/validation/parameters/derived_transport.json`. A completed run means
+the conditional arithmetic and provenance export succeeded; it keeps
+Hydrogel/contact/FEM/`F_pair`/`W_eff`/MV downstream states `BLOCKED` and marks
+the Controller `NOT_IN_SCOPE`.
 
 ## Collecting real contact inputs later
 

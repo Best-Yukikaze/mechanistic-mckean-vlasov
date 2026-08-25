@@ -61,6 +61,38 @@ For every requirement or code update:
 4. The coordinator reports integrated status, Git provenance, whether any
    simulation/training ran, and the next action.
 
+## Visible-window continuity and task inheritance
+
+The three existing visible Codex task windows are the canonical module owners:
+
+- `McKean–Vlasov Physics Engine`;
+- `McKean–Vlasov Controller Contract`;
+- `McKean–Vlasov Experiment Lab`.
+
+Their **function, mathematical scope, edit ownership, and Chinese reporting
+format are inherited by every subsequent requirement in this repository**.  A
+new requirement can change the concrete files or the current physical phase,
+but it does not replace these three responsibilities or create a fourth hidden
+implementation owner.
+
+For each new requirement, the coordinator must:
+
+1. state the current repository path and the affected scope in the existing
+   visible module windows;
+2. dispatch the implementation/review task to those windows before claiming a
+   module result;
+3. keep each window's report visible and attributable to its module;
+4. use internal/background subagents only for bounded supporting work (for
+   example, a read-only audit or a narrowly scoped draft), never as a silent
+   replacement for a visible module owner;
+5. integrate only after the affected visible windows have reported their own
+   paths, changes, reasons, verification, results, and blockers.
+
+If an older visible task still contains an obsolete project path, the
+coordinator must send it the new path and inherited scope explicitly; it must
+not create a duplicate project, silently redirect implementation to a hidden
+agent, or treat the old task text as the current assignment.
+
 ## Default complete-delivery rule
 
 Unless the user explicitly asks for a short answer, every delivery for this

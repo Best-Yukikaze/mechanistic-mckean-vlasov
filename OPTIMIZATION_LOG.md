@@ -249,6 +249,29 @@ real constitutive laws.
   closed-face flux.  These are numerical fixture results, not calibrated
   Hydrogel/contact evidence.
 
+## O15 — Fail-closed MG10F nominal transport registry
+
+- **Changed:** added a strict, immutable MG10F parameter registry and a
+  separate Experiment Lab report for the conditional 293.15 K
+  Stokes--Einstein chain `gamma=6*pi*eta*R_h`, `M=1/gamma`, `D=M*k_B*T`. The
+  loader rejects duplicate keys, `NaN`/`Infinity`, unknown fields, incorrect
+  SI units, non-positive transport inputs, and attempts to promote the nominal
+  JSON snapshot by editing its status. `gamma`, `M`, and `D` carry only the
+  reported `R_h` uncertainty, explicitly labelled as partial rather than total.
+- **Reason:** a user-supplied reference value is useful for transparent
+  arithmetic but must not silently turn into a calibrated Hydrogel/contact/MV
+  model. `N*nu`, `phi0`, and `Delta mu/(k_B*T)` are missing, and primary source
+  locations are still unverified.
+- **Verification:** 12 Physics registry tests and 5 Experiment Lab report
+  tests check strict parsing, fixed calibration fields, unit/positivity gates,
+  source-status gates, radius-only uncertainty propagation, and a structured
+  `BLOCKED` report for malformed inputs. The final report records the exact
+  registry SHA-256 and leaves Hydrogel, contact FEM, `F_pair`, `W_eff`, and MV
+  `BLOCKED`; Controller is `NOT_IN_SCOPE`.
+- **Measured result:** no performance or physical-calibration claim is made.
+  This is an integrity optimization: invalid or overclaimed material input is
+  rejected before any expensive contact, continuum, or training workflow.
+
 ## Reproduce measurements
 
 Run `scripts/benchmark_optimizations.py`. Exact wall-clock values vary by
