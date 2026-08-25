@@ -11,9 +11,16 @@ from mechanistic_mv.continuum.convolution import (
 from mechanistic_mv.continuum.chemical_potential import chemical_potential_joule
 from mechanistic_mv.continuum.free_energy import free_energy_components
 from mechanistic_mv.continuum.diagnostics import density_moments, relative_l2_error
+from mechanistic_mv.continuum.flux import (
+    DriftFluxScheme,
+    FaceFluxes,
+    build_face_masks,
+    compute_face_fluxes,
+)
 from mechanistic_mv.continuum.initial_conditions import gaussian_density
 from mechanistic_mv.continuum.mckean_vlasov import (
     McKeanVlasovSolver,
+    StepDiagnostics,
     conservative_update,
 )
 from mechanistic_mv.continuum.weak_form import weak_form_residual
@@ -131,6 +138,67 @@ class FiniteVolumeTests(unittest.TestCase):
         self.parameters = PhysicalParameters()
         self.domain = RectangularDomain((0.0, 20.0e-6), (0.0, 20.0e-6))
 
+    def test_legacy_face_flux_and_step_diagnostics_constructors_remain_valid(self) -> None:
+        grid = CartesianGrid(self.domain, 8, 8)
+        legacy_fluxes = FaceFluxes(
+            np.zeros((grid.ny, grid.nx + 1)),
+            np.zeros((grid.ny + 1, grid.nx)),
+            2.0e-6,
+            3.0e-6,
+        )
+        self.assertIsNone(legacy_fluxes.outgoing_rate_per_s)
+        self.assertEqual(
+            legacy_fluxes.drift_flux_scheme, DriftFluxScheme.FIRST_ORDER_UPWIND
+        )
+        solver = McKeanVlasovSolver(
+            grid, self.parameters, ZeroPairPotential(), cfl_safety=0.8
+        )
+        expected_rate = (
+            2.0 * self.parameters.diffusion_m2_per_s
+            * (1.0 / grid.dx_m**2 + 1.0 / grid.dy_m**2)
+            + 2.0 * 2.0e-6 / grid.dx_m
+            + 2.0 * 3.0e-6 / grid.dy_m
+        )
+        self.assertAlmostEqual(solver.stable_dt_s(legacy_fluxes), 0.8 / expected_rate)
+        obsolete_one_sided_rate = (
+            2.0 * self.parameters.diffusion_m2_per_s
+            * (1.0 / grid.dx_m**2 + 1.0 / grid.dy_m**2)
+            + 2.0e-6 / grid.dx_m
+            + 3.0e-6 / grid.dy_m
+        )
+        self.assertLess(
+            solver.stable_dt_s(legacy_fluxes), 0.8 / obsolete_one_sided_rate
+        )
+        for invalid_rate in (
+            np.ones((grid.ny - 1, grid.nx)),
+            np.full((grid.ny, grid.nx), np.nan),
+            -np.ones((grid.ny, grid.nx)),
+        ):
+            malformed_fluxes = FaceFluxes(
+                legacy_fluxes.x_per_m_s,
+                legacy_fluxes.y_per_m_s,
+                legacy_fluxes.max_abs_velocity_x_m_per_s,
+                legacy_fluxes.max_abs_velocity_y_m_per_s,
+                invalid_rate,
+            )
+            with self.assertRaisesRegex(ValueError, "outgoing_rate_per_s"):
+                solver.stable_dt_s(malformed_fluxes)
+
+        legacy_diagnostics = StepDiagnostics(
+            substeps=1,
+            initial_mass=1.0,
+            final_mass=1.0,
+            minimum_stable_dt_s=0.1,
+            minimum_density_per_m2=0.0,
+            clipped_negative_mass=0.0,
+            maximum_abs_flux_per_m_s=0.0,
+        )
+        self.assertEqual(
+            legacy_diagnostics.drift_flux_scheme,
+            DriftFluxScheme.FIRST_ORDER_UPWIND,
+        )
+        self.assertIsNone(legacy_diagnostics.fixed_control_free_energy_change_joule)
+
     def test_pure_diffusion_preserves_mass_positivity_and_symmetry(self) -> None:
         grid = CartesianGrid(self.domain, 40, 40)
         solver = McKeanVlasovSolver(grid, self.parameters, ZeroPairPotential())
@@ -140,6 +208,10 @@ class FiniteVolumeTests(unittest.TestCase):
         final_moments = density_moments(advanced, grid)
         self.assertLess(diagnostics.absolute_mass_error, 2.0e-14)
         self.assertGreaterEqual(float(np.min(advanced)), 0.0)
+        self.assertEqual(
+            diagnostics.drift_flux_scheme, DriftFluxScheme.FIRST_ORDER_UPWIND
+        )
+        self.assertIsNone(diagnostics.fixed_control_free_energy_change_joule)
         np.testing.assert_allclose(
             final_moments.mean_m, initial_moments.mean_m, atol=2.0e-12
         )
@@ -154,6 +226,141 @@ class FiniteVolumeTests(unittest.TestCase):
             final_moments.covariance_m2[0, 0],
             final_moments.covariance_m2[1, 1],
             delta=2.0e-18,
+        )
+
+    def test_scharfetter_gummel_preserves_discrete_gibbs_equilibrium(self) -> None:
+        domain = RectangularDomain((0.0, 8.0e-6), (0.0, 4.0e-6))
+        grid = CartesianGrid(domain, 8, 4)
+        diffusion = 2.0e-12
+        mobility = 1.0e8
+        q_per_x_face = 0.2
+        x_index = np.arange(grid.nx, dtype=np.float64)
+        potential_row = q_per_x_face * diffusion / mobility * x_index
+        potential = np.broadcast_to(potential_row, (grid.ny, grid.nx)).copy()
+        density_row = 1.0e12 * np.exp(-q_per_x_face * x_index)
+        density = np.broadcast_to(density_row, (grid.ny, grid.nx)).copy()
+        masks = build_face_masks(np.ones((grid.ny, grid.nx), dtype=bool))
+        fluxes = compute_face_fluxes(
+            density,
+            potential,
+            grid,
+            diffusion_m2_per_s=diffusion,
+            mobility_m_per_newton_second=mobility,
+            face_masks=masks,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        np.testing.assert_allclose(fluxes.x_per_m_s[:, 1:-1], 0.0, atol=1.0e-8)
+        np.testing.assert_allclose(fluxes.y_per_m_s[1:-1, :], 0.0, atol=0.0)
+
+    def test_scharfetter_gummel_is_finite_at_small_and_large_potential_jumps(self) -> None:
+        grid = CartesianGrid(self.domain, 4, 4)
+        diffusion = 1.0e-12
+        mobility = 1.0e8
+        potential_row = np.array((0.0, 1.0e-32, 1.0e-17, 0.0))
+        potential = np.broadcast_to(potential_row, (grid.ny, grid.nx)).copy()
+        masks = build_face_masks(np.ones((grid.ny, grid.nx), dtype=bool))
+        fluxes = compute_face_fluxes(
+            np.ones((grid.ny, grid.nx), dtype=np.float64),
+            potential,
+            grid,
+            diffusion_m2_per_s=diffusion,
+            mobility_m_per_newton_second=mobility,
+            face_masks=masks,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        self.assertTrue(np.all(np.isfinite(fluxes.x_per_m_s)))
+        self.assertTrue(np.all(np.isfinite(fluxes.y_per_m_s)))
+        self.assertTrue(np.all(np.isfinite(fluxes.outgoing_rate_per_s)))
+        with self.assertRaisesRegex(ValueError, "requires diffusion"):
+            compute_face_fluxes(
+                np.ones((grid.ny, grid.nx), dtype=np.float64),
+                potential,
+                grid,
+                diffusion_m2_per_s=0.0,
+                mobility_m_per_newton_second=mobility,
+                face_masks=masks,
+                drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+            )
+
+    def test_outgoing_rate_counts_barrier_outflow_on_every_open_face(self) -> None:
+        domain = RectangularDomain((0.0, 4.0), (0.0, 4.0))
+        grid = CartesianGrid(domain, 4, 4)
+        density = np.ones((4, 4), dtype=np.float64)
+        potential = np.zeros((4, 4), dtype=np.float64)
+        potential[1, 1] = 1.0
+        masks = build_face_masks(np.ones((4, 4), dtype=bool))
+        fluxes = compute_face_fluxes(
+            density,
+            potential,
+            grid,
+            diffusion_m2_per_s=0.0,
+            mobility_m_per_newton_second=1.0,
+            face_masks=masks,
+        )
+        self.assertEqual(float(fluxes.outgoing_rate_per_s[1, 1]), 4.0)
+        self.assertGreater(
+            fluxes.maximum_outgoing_rate_per_s,
+            fluxes.max_abs_velocity_x_m_per_s / grid.dx_m
+            + fluxes.max_abs_velocity_y_m_per_s / grid.dy_m,
+        )
+        solver = McKeanVlasovSolver(
+            grid, self.parameters, ZeroPairPotential(), cfl_safety=0.9
+        )
+        self.assertAlmostEqual(solver.stable_dt_s(fluxes), 0.9 / 4.0)
+
+    def test_second_order_scharfetter_gummel_step_is_nonnegative_conservative_and_no_flux(self) -> None:
+        grid = CartesianGrid(self.domain, 32, 32)
+        obstacle = RectangleObstacle((8.0e-6, 12.0e-6), (7.5e-6, 12.5e-6))
+        external = HarmonicTestPotential((11.0e-6, 10.0e-6), 1.0e-8)
+        solver = McKeanVlasovSolver(
+            grid,
+            self.parameters,
+            ZeroPairPotential(),
+            obstacles=(obstacle,),
+            external=external,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+            record_fixed_control_free_energy=True,
+        )
+        initial = gaussian_density(
+            grid, (5.0e-6, 10.0e-6), 1.2e-6, fluid_mask=solver.fluid_mask
+        )
+        initial_energy = solver.free_energy(initial).total_joule
+        with self.assertRaisesRegex(ValueError, "requires dt_s"):
+            solver.face_fluxes(initial)
+        explicit_dt_s = 1.0e-2
+        with self.assertRaisesRegex(ValueError, "exceeds the explicit"):
+            solver.face_fluxes(initial, dt_s=1.0)
+        raw_fluxes, _ = solver.face_fluxes(initial, dt_s=explicit_dt_s)
+        self.assertEqual(
+            raw_fluxes.drift_flux_scheme,
+            DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        self.assertTrue(np.all(raw_fluxes.x_per_m_s[~solver.face_masks.open_x] == 0.0))
+        self.assertTrue(np.all(raw_fluxes.y_per_m_s[~solver.face_masks.open_y] == 0.0))
+        self.assertTrue(
+            np.all(raw_fluxes.outgoing_rate_per_s[~solver.fluid_mask] == 0.0)
+        )
+        one_update = conservative_update(initial, raw_fluxes, grid, explicit_dt_s)
+        self.assertGreaterEqual(float(np.min(one_update)), 0.0)
+        self.assertAlmostEqual(
+            float(np.sum(one_update) * grid.cell_area_m2),
+            float(np.sum(initial) * grid.cell_area_m2),
+            places=14,
+        )
+
+        advanced, diagnostics = solver.step(initial, 0.5)
+        self.assertLess(diagnostics.absolute_mass_error, 2.0e-14)
+        self.assertGreaterEqual(float(np.min(advanced)), 0.0)
+        self.assertEqual(diagnostics.clipped_negative_mass, 0.0)
+        self.assertEqual(
+            diagnostics.drift_flux_scheme,
+            DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        self.assertIsNotNone(diagnostics.fixed_control_free_energy_change_joule)
+        self.assertAlmostEqual(
+            diagnostics.fixed_control_free_energy_change_joule,
+            solver.free_energy(advanced).total_joule - initial_energy,
+            places=30,
         )
 
     def test_pure_diffusion_grid_refinement_reduces_density_error(self) -> None:

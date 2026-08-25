@@ -10,6 +10,7 @@ from mechanistic_mv.continuum.convolution import (
     direct_pair_convolution_joule,
 )
 from mechanistic_mv.continuum.initial_conditions import gaussian_density
+from mechanistic_mv.continuum.flux import DriftFluxScheme
 from mechanistic_mv.continuum.mckean_vlasov import McKeanVlasovSolver
 from mechanistic_mv.mechanics.density_scaling import (
     DensityConvention,
@@ -436,6 +437,66 @@ class ContinuumScalingEquivalenceTests(unittest.TestCase):
             number_energy.total_joule,
             population * probability_energy.total_joule,
             places=31,
+        )
+
+    def test_second_order_sg_flux_and_step_preserve_density_scaling(self) -> None:
+        population = 5
+        parameters = PhysicalParameters()
+        grid = CartesianGrid(
+            RectangularDomain((0.0, 6.0e-6), (0.0, 5.0e-6)),
+            6,
+            5,
+        )
+        pair = TestOnlyGaussianRepulsion(
+            0.3 * parameters.thermal_energy_joule,
+            1.0e-6,
+            density_convention=DensityConvention.NUMBER,
+        )
+        kac = TestOnlyGaussianRepulsion(
+            population * pair.energy_scale_joule,
+            pair.length_scale_m,
+        )
+        probability = gaussian_density(grid, (2.6e-6, 2.8e-6), 0.8e-6)
+        number = population * probability
+        probability_solver = McKeanVlasovSolver(
+            grid,
+            parameters,
+            kac,
+            population_count=population,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        number_solver = McKeanVlasovSolver(
+            grid,
+            parameters,
+            pair,
+            density_convention=DensityConvention.NUMBER,
+            population_count=population,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        dt_s = 1.0e-3
+        probability_flux, _ = probability_solver.face_fluxes(
+            probability, dt_s=dt_s
+        )
+        number_flux, _ = number_solver.face_fluxes(number, dt_s=dt_s)
+        np.testing.assert_allclose(
+            number_flux.x_per_m_s,
+            population * probability_flux.x_per_m_s,
+            rtol=3.0e-15,
+            atol=1.0e-22,
+        )
+        np.testing.assert_allclose(
+            number_flux.y_per_m_s,
+            population * probability_flux.y_per_m_s,
+            rtol=3.0e-15,
+            atol=1.0e-22,
+        )
+        probability_next, _ = probability_solver.step(probability, dt_s)
+        number_next, _ = number_solver.step(number, dt_s)
+        np.testing.assert_allclose(
+            number_next,
+            population * probability_next,
+            rtol=3.0e-15,
+            atol=1.0e-7,
         )
 
     def test_solver_rejects_scaling_population_and_total_mass_mismatch(self) -> None:

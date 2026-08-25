@@ -144,20 +144,31 @@ No control backend may move particles or edit `rho` directly.
 ## Numerical method
 
 - Cell-centred two-dimensional finite volumes.
-- Centred diffusive face flux and first-order upwind drift flux.
+- Two selectable conservative face-flux paths:
+  `FIRST_ORDER_UPWIND` is the retained centred-diffusion/donor-cell-drift
+  reference; `SECOND_ORDER_SCHARFETTER_GUMMEL` is the exponentially fitted
+  Scharfetter--Gummel (Chang--Cooper) discretisation of the complete
+  drift--diffusion flux.  The latter uses SSP-RK2 time stepping.
+- The Scharfetter--Gummel path uses the Einstein relation already enforced by
+  `PhysicalParameters`, preserves the discrete Gibbs equilibrium on each open
+  face, and selects explicit substeps from the maximum per-cell outgoing-rate
+  row sum rather than from a global maximum-speed estimate.
 - Exact zero face flux on outer boundaries and fluid–solid interfaces.
 - Direct convolution as the reference definition, including `dx*dy`.
 - Cached FFT linear convolution for routine evolution.
-- Adaptive CFL substeps for diffusion and drift.
-- No routine clipping or mass renormalization. Roundoff-level clipping, clipped
-  negative mass, minimum density, mass error, maximum flux, and energy are
-  recorded. A material positivity failure raises an exception.
+- Adaptive positivity-CFL substeps for diffusion and drift.
+- No density clipping or mass renormalization.  Negative, non-finite, or
+  non-conservative states raise an exception; minimum density, mass error,
+  maximum flux, and the fixed-control free-energy diagnostic are recorded.
 - The weak form is checked by discrete summation by parts.
 
 The solver assumes a translation-invariant pair potential on a rectangular
 Cartesian embedding. Obstacles remove fluid cells and close faces. More
-accurate curved boundaries and higher-order positivity-preserving fluxes remain
-future work.
+accurate curved boundaries remain future work.  For smooth, adequately resolved
+test problems, the SG path is second order in space and SSP-RK2 is second order
+in time.  Sharp real contact forces, obstacles, and any future calibrated
+potential require their own convergence evidence; the included result is not a
+claim of universal second-order accuracy.
 
 ## Microscopic validation
 
@@ -215,6 +226,7 @@ $env:PYTHONPATH = "src"
 & "D:\conda environment\envs\dl\python.exe" -m unittest discover -s tests -v
 & "D:\conda environment\envs\dl\python.exe" scripts\run_validation.py
 & "D:\conda environment\envs\dl\python.exe" scripts\run_convergence_validation.py
+& "D:\conda environment\envs\dl\python.exe" scripts\run_second_order_flux_validation.py
 & "D:\conda environment\envs\dl\python.exe" scripts\benchmark_optimizations.py
 & "D:\conda environment\envs\dl\python.exe" scripts\run_hydrogel_validation.py --test-only-fixture
 & "D:\conda environment\envs\dl\python.exe" scripts\run_pair_contact_sweep.py

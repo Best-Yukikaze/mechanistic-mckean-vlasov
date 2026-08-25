@@ -188,6 +188,36 @@ real constitutive laws.
   mismatches now fail before expensive numerical evolution. The report remains
   `TEST_ONLY_NOT_FINAL_PHYSICS` and does not validate Hydrogel contact data.
 
+## O13 — Positivity-safe Scharfetter--Gummel continuum flux
+
+- **Changed:** retained `FIRST_ORDER_UPWIND` as the reference path and added
+  `SECOND_ORDER_SCHARFETTER_GUMMEL`, the Scharfetter--Gummel/Chang--Cooper
+  face flux for the complete drift--diffusion equation.  Its explicit CFL now
+  uses the actual per-cell sum of outgoing coefficients.  The new path advances
+  with SSP-RK2, recomputing the nonlinear mean-field potential at each stage.
+- **Reason:** the prior global maximum-speed CFL did not bound a cell that can
+  flow outward through more than one face, and donor-cell drift is only first
+  order.  The SG form has non-negative face coefficients, respects the
+  Einstein relation, and has exactly zero face flux at the discrete Gibbs
+  equilibrium without clipping or renormalisation.
+- **Verification:** 121 integrated tests cover discrete Gibbs equilibrium,
+  stable small/large potential jumps, four-face outgoing-rate accounting,
+  no-flux obstacles, positivity, conservation, probability/number-density
+  equivalence, and the public time-step guard.  The reproducible
+  `second_order_flux_validation.json` report is explicitly
+  `TEST_ONLY_NOT_FINAL_PHYSICS` and records its discovered Physics API.
+- **Measured result:** on the fixed constant-force Gaussian test fixture, the
+  candidate's 128-by-128 relative L2 error was `9.5413e-4`, versus
+  `7.0216e-3` for the first-order reference.  The `32`/`64`/`128` grids used
+  `32`/`128`/`512` requested steps, explicitly scaling the time step as
+  `h^2`, so SSP-RK2 temporal error is separated from the spatial study.  The
+  fine-grid observed spatial
+  order was `1.9490` (pre-set acceptance threshold `1.8`); the largest mass
+  error was `4.44e-16`, the minimum density was `6.60e-21 m^-2`, and no negative
+  mass was clipped.  The free-space Gaussian comparator's conservative
+  closed-boundary tail upper bound was `2.13e-15`.  No real Hydrogel parameters,
+  contact force, or training run is implied by this numerical evidence.
+
 ## Reproduce measurements
 
 Run `scripts/benchmark_optimizations.py`. Exact wall-clock values vary by
