@@ -55,6 +55,68 @@ class SecondOrderFluxValidationTests(unittest.TestCase):
             "FIRST_ORDER_UPWIND_LEGACY_DEFAULT",
         )
 
+    def test_nonfinite_payload_writes_a_minimal_readable_failed_report(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "second_order_flux_validation.json"
+            detailed_report_written = run_second_order_flux_validation._write_json(
+                output,
+                {
+                    "overall_passed": True,
+                    "nonfinite_values": [
+                        float("nan"),
+                        float("inf"),
+                        float("-inf"),
+                    ],
+                },
+            )
+
+            serialized = output.read_text(encoding="utf-8")
+            report = _read_json(output)
+            self.assertFalse(detailed_report_written)
+            self.assertNotIn("NaN", serialized)
+            self.assertNotIn("Infinity", serialized)
+            self.assertEqual(report["workflow_status"], "FAILED")
+            self.assertEqual(
+                report["comparison_status"], "FAILED_REPORT_SERIALIZATION"
+            )
+            self.assertFalse(report["overall_passed"])
+            self.assertFalse(report["all_json_values_finite"])
+            self.assertIn("omitted", report["reason"])
+            self.assertNotIn("nonfinite_values", report)
+            # Rejecting the detailed payload must still leave strict JSON that
+            # a consumer can parse with NaN/Infinity disabled.
+            json.dumps(report, allow_nan=False)
+
+    def test_nonanalytic_sg_gate_failure_is_serialized_and_returns_two(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "second_order_flux_validation.json"
+            with (
+                patch.object(
+                    run_second_order_flux_validation,
+                    "_nonanalytic_sg_checks",
+                    return_value={"forced_nonanalytic_sg_gate": False},
+                ),
+                patch("builtins.print"),
+            ):
+                return_code = run_second_order_flux_validation.main(
+                    ["--output", str(output)]
+                )
+
+            report = _read_json(output)
+            self.assertEqual(return_code, 2)
+            self.assertFalse(report["overall_passed"])
+            self.assertEqual(report["workflow_status"], "FAILED_TEST_ONLY_GATES")
+            self.assertEqual(
+                report["comparison_status"], "FAILED_TEST_ONLY_GATES"
+            )
+            self.assertEqual(
+                report["nonanalytic_sg_scenario_checks"],
+                {"forced_nonanalytic_sg_gate": False},
+            )
+            self.assertTrue(report["all_json_values_finite"])
+            self.assertIn("acceptance gates failed", report["reason"])
+            json.dumps(report, allow_nan=False)
+
     def test_test_only_report_applies_fixed_second_order_gate(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             output = Path(temporary_directory) / "second_order_flux_validation.json"
@@ -64,6 +126,7 @@ class SecondOrderFluxValidationTests(unittest.TestCase):
                 )
 
             report = _read_json(output)
+            self.assertEqual(report["schema_version"], 3)
             self.assertEqual(
                 report["model_status"], "TEST_ONLY_NOT_FINAL_PHYSICS"
             )
@@ -162,6 +225,111 @@ class SecondOrderFluxValidationTests(unittest.TestCase):
                 report["comparison_checks"][
                     "candidate_finest_grid_error_not_larger_than_reference"
                 ]
+            )
+
+            # These cases deliberately do not reuse the free-space Gaussian
+            # reference: nonzero pair interactions and solid geometry have no
+            # such analytic truth in this TEST_ONLY numerical fixture.
+            nonanalytic_scenarios = report["nonanalytic_sg_scenarios"]
+            nonanalytic_checks = report["nonanalytic_sg_scenario_checks"]
+            self.assertEqual(
+                set(nonanalytic_scenarios),
+                {
+                    "smooth_nonzero_pair",
+                    "smooth_nonzero_pair_with_no_flux_obstacle",
+                },
+            )
+            self.assertTrue(all(nonanalytic_checks.values()))
+            for scenario_record in nonanalytic_scenarios.values():
+                self.assertEqual(
+                    scenario_record["scenario_status"],
+                    "TEST_ONLY_NOT_FINAL_PHYSICS",
+                )
+                self.assertFalse(scenario_record["analytic_reference"]["used"])
+                self.assertIn(
+                    "property gates",
+                    scenario_record["acceptance_method"],
+                )
+                self.assertTrue(
+                    scenario_record["scenario_checks"]
+                    ["no_free_space_gaussian_reference_used"]
+                )
+                self.assertTrue(
+                    scenario_record["scenario_checks"]
+                    ["selected_scheme_is_scharfetter_gummel"]
+                )
+                self.assertTrue(
+                    scenario_record["scenario_checks"]
+                    ["fixture_is_explicitly_test_only"]
+                )
+                self.assertTrue(
+                    scenario_record["all_numerical_property_gates_pass"]
+                )
+                self.assertGreater(
+                    scenario_record["maximum_absolute_pair_interaction_joule"], 0.0
+                )
+                self.assertLessEqual(
+                    scenario_record["maximum_absolute_mass_error"], 2.0e-12
+                )
+                self.assertGreaterEqual(
+                    scenario_record["minimum_density_per_m2"], 0.0
+                )
+                self.assertEqual(scenario_record["clipped_negative_mass"], 0.0)
+                labels = scenario_record["labels"]
+                self.assertEqual(
+                    labels["fixture_status"], "TEST_ONLY_NOT_FINAL_PHYSICS"
+                )
+                self.assertEqual(
+                    labels["control"]["physical_status"],
+                    "TEST_ONLY_NOT_FINAL_PHYSICS",
+                )
+                self.assertEqual(
+                    labels["interaction"]["physical_status"],
+                    "TEST_ONLY_NOT_FINAL_PHYSICS",
+                )
+                self.assertEqual(
+                    labels["scheme"]["identifier"],
+                    report["scheme_api"]["candidate"]["identifier"],
+                )
+                convolution = scenario_record["direct_fft_convolution"]
+                self.assertTrue(convolution["applicable"])
+                self.assertTrue(convolution["solver_uses_fft_pair_convolver"])
+                self.assertTrue(convolution["passed"])
+                self.assertLessEqual(
+                    convolution["maximum_relative_difference"],
+                    convolution["relative_tolerance"],
+                )
+                provenance = scenario_record["provenance"]
+                self.assertIn("git_revision_at_run", provenance)
+                self.assertEqual(
+                    provenance["selected_flux_scheme"]["identifier"],
+                    report["scheme_api"]["candidate"]["identifier"],
+                )
+                self.assertIn(
+                    "direct_pair_convolution_joule",
+                    provenance["direct_convolution"]["api_symbol"],
+                )
+                self.assertIn(
+                    "FFTPairConvolver",
+                    provenance["fft_convolution"]["api_symbol"],
+                )
+
+            obstacle_scenario = nonanalytic_scenarios[
+                "smooth_nonzero_pair_with_no_flux_obstacle"
+            ]
+            self.assertEqual(
+                obstacle_scenario["obstacle_geometry"]["physical_status"],
+                "TEST_ONLY_NOT_FINAL_PHYSICS",
+            )
+            no_flux_gate = obstacle_scenario["no_flux_obstacle_gate"]
+            self.assertTrue(no_flux_gate["passed"])
+            self.assertGreater(no_flux_gate["obstacle_cell_count"], 0)
+            self.assertEqual(no_flux_gate["maximum_density_in_solid_per_m2"], 0.0)
+            self.assertEqual(
+                no_flux_gate["maximum_absolute_closed_face_flux_per_m_s"], 0.0
+            )
+            self.assertTrue(
+                no_flux_gate["physics_engine_reported_selected_scheme"]
             )
 
             for study_name in ("first_order_reference", "candidate_scheme"):

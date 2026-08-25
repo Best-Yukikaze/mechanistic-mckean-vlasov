@@ -363,6 +363,185 @@ class FiniteVolumeTests(unittest.TestCase):
             places=30,
         )
 
+    def test_sg_reused_initial_stage_matches_legacy_step_with_pair_and_control(self) -> None:
+        class CountingFluxSolver(McKeanVlasovSolver):
+            def __init__(self, *args: object, **kwargs: object) -> None:
+                super().__init__(*args, **kwargs)
+                self.flux_stage_calls = 0
+                self.stage_densities: list[np.ndarray] = []
+
+            def _flux_stage(
+                self,
+                density_per_m2: np.ndarray,
+                controlled_potential_joule: np.ndarray,
+            ) -> tuple[FaceFluxes, float, np.ndarray]:
+                self.flux_stage_calls += 1
+                self.stage_densities.append(np.array(density_per_m2, copy=True))
+                return super()._flux_stage(
+                    density_per_m2, controlled_potential_joule
+                )
+
+        class RecomputingInitialStageSolver(CountingFluxSolver):
+            """Reference the pre-reuse accepted-step assembly for this test."""
+
+            def _second_order_ssp_rk2_update(
+                self,
+                density_per_m2: np.ndarray,
+                controlled_potential_joule: np.ndarray,
+                proposed_dt_s: float,
+                *,
+                initial_fluxes: FaceFluxes | None = None,
+                initial_stable_dt_s: float | None = None,
+            ) -> tuple[np.ndarray, float, float, tuple[FaceFluxes, FaceFluxes]]:
+                return super()._second_order_ssp_rk2_update(
+                    density_per_m2,
+                    controlled_potential_joule,
+                    proposed_dt_s,
+                )
+
+        grid = CartesianGrid(self.domain, 24, 24)
+        interaction = TestOnlyGaussianRepulsion(
+            0.5 * self.parameters.thermal_energy_joule, 1.1e-6
+        )
+        reused_solver = CountingFluxSolver(
+            grid,
+            self.parameters,
+            interaction,
+            controlled_potential=TestOnlyUniformFieldPotential(2.0e-14),
+            cfl_safety=0.8,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        reference_solver = RecomputingInitialStageSolver(
+            grid,
+            self.parameters,
+            interaction,
+            controlled_potential=TestOnlyUniformFieldPotential(2.0e-14),
+            cfl_safety=0.8,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        initial = gaussian_density(
+            grid, (8.0e-6, 11.0e-6), (1.0e-6, 1.4e-6)
+        )
+        control = np.asarray((0.6, -0.2))
+        controlled_potential = reused_solver._controlled_potential_grid(control)
+        _, initial_stable_dt, _ = reused_solver._flux_stage(
+            initial, controlled_potential
+        )
+        requested_dt = 0.05 * initial_stable_dt
+
+        reused_solver.flux_stage_calls = 0
+        reused_solver.stage_densities.clear()
+        reused, reused_diagnostics = reused_solver.step(
+            initial, requested_dt, control=control
+        )
+        reference, reference_diagnostics = reference_solver.step(
+            initial, requested_dt, control=control
+        )
+
+        self.assertEqual(reused_diagnostics.substeps, 1)
+        self.assertEqual(reference_diagnostics.substeps, 1)
+        np.testing.assert_array_equal(reused, reference)
+        self.assertEqual(reused_diagnostics, reference_diagnostics)
+        self.assertEqual(reused_solver.flux_stage_calls, 2)
+        self.assertEqual(reference_solver.flux_stage_calls, 3)
+        self.assertEqual(len(reused_solver.stage_densities), 2)
+        self.assertFalse(
+            np.array_equal(reused_solver.stage_densities[1], initial)
+        )
+        self.assertAlmostEqual(
+            reused_solver.mass(reused), reused_solver.mass(initial), places=14
+        )
+        self.assertGreaterEqual(float(np.min(reused)), 0.0)
+
+    def test_sg_step_reuses_first_stage_and_evaluates_control_once(self) -> None:
+        class CountingUniformPotential:
+            name = "counting_test_only_uniform_control"
+            physical_status = "TEST_ONLY_NOT_FINAL_PHYSICS"
+
+            def __init__(self) -> None:
+                self.calls = 0
+                self._delegate = TestOnlyUniformFieldPotential(2.0e-14)
+
+            def potential_joule(
+                self, positions_m: np.ndarray, control: np.ndarray | None
+            ) -> np.ndarray:
+                self.calls += 1
+                return self._delegate.potential_joule(positions_m, control)
+
+            def force_newton(
+                self, positions_m: np.ndarray, control: np.ndarray | None
+            ) -> np.ndarray:
+                return self._delegate.force_newton(positions_m, control)
+
+        class CountingFluxSolver(McKeanVlasovSolver):
+            def __init__(self, *args: object, **kwargs: object) -> None:
+                super().__init__(*args, **kwargs)
+                self.flux_stage_calls = 0
+
+            def _flux_stage(
+                self,
+                density_per_m2: np.ndarray,
+                controlled_potential_joule: np.ndarray,
+            ) -> tuple[FaceFluxes, float, np.ndarray]:
+                self.flux_stage_calls += 1
+                return super()._flux_stage(
+                    density_per_m2, controlled_potential_joule
+                )
+
+        grid = CartesianGrid(self.domain, 24, 24)
+        backend = CountingUniformPotential()
+        solver = CountingFluxSolver(
+            grid,
+            self.parameters,
+            ZeroPairPotential(),
+            controlled_potential=backend,
+            cfl_safety=0.8,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        initial = gaussian_density(
+            grid, (8.0e-6, 11.0e-6), (1.0e-6, 1.4e-6)
+        )
+        control = np.asarray((0.6, -0.2))
+        controlled_potential = solver._controlled_potential_grid(control)
+        _, stable_dt, _ = solver._flux_stage(initial, controlled_potential)
+        backend.calls = 0
+        solver.flux_stage_calls = 0
+
+        advanced, diagnostics = solver.step(
+            initial, 3.25 * stable_dt, control=control
+        )
+
+        self.assertGreater(diagnostics.substeps, 1)
+        self.assertEqual(backend.calls, 1)
+        self.assertEqual(solver.flux_stage_calls, 2 * diagnostics.substeps)
+        self.assertLess(diagnostics.absolute_mass_error, 2.0e-14)
+        self.assertGreaterEqual(float(np.min(advanced)), 0.0)
+
+    def test_sg_nonzero_pair_and_control_preserve_mass_and_positivity_after_reuse(self) -> None:
+        grid = CartesianGrid(self.domain, 24, 24)
+        interaction = TestOnlyGaussianRepulsion(
+            0.5 * self.parameters.thermal_energy_joule, 1.1e-6
+        )
+        solver = McKeanVlasovSolver(
+            grid,
+            self.parameters,
+            interaction,
+            controlled_potential=TestOnlyUniformFieldPotential(2.0e-14),
+            cfl_safety=0.8,
+            drift_flux_scheme=DriftFluxScheme.SECOND_ORDER_SCHARFETTER_GUMMEL,
+        )
+        initial = gaussian_density(
+            grid, (8.0e-6, 11.0e-6), (1.0e-6, 1.4e-6)
+        )
+        advanced, diagnostics = solver.step(
+            initial, 0.05, control=np.asarray((0.6, -0.2))
+        )
+
+        self.assertLess(diagnostics.absolute_mass_error, 2.0e-14)
+        self.assertEqual(diagnostics.clipped_negative_mass, 0.0)
+        self.assertTrue(np.all(np.isfinite(advanced)))
+        self.assertGreaterEqual(float(np.min(advanced)), 0.0)
+
     def test_pure_diffusion_grid_refinement_reduces_density_error(self) -> None:
         errors = []
         final_time_s = 0.2

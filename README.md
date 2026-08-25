@@ -170,6 +170,13 @@ in time.  Sharp real contact forces, obstacles, and any future calibrated
 potential require their own convergence evidence; the included result is not a
 claim of universal second-order accuracy.
 
+The second-order validation report also runs two property-only cases with a
+smooth nonzero `TEST_ONLY_NOT_FINAL_PHYSICS` pair fixture, including one
+no-flux obstacle case.  Those cases check conservation, positivity, no
+clipping, direct-versus-FFT convolution agreement, and closed-face zero flux;
+they deliberately do not claim an analytic convergence order or a real
+Hydrogel/wall interaction law.
+
 ## Microscopic validation
 
 The overdamped particle model is

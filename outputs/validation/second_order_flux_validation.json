@@ -1,11 +1,11 @@
 {
   "schema_name": "mechanistic_mv.second_order_flux_validation",
-  "schema_version": 2,
+  "schema_version": 3,
   "model_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
   "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
-  "generated_utc": "2026-08-25T15:16:52.591648+00:00",
-  "git_revision_at_run": "4f5c8f9f34cff73553bcf9351c9ecc0c275b0bff",
-  "git_dirty_at_run": false,
+  "generated_utc": "2026-08-25T15:47:47.809054+00:00",
+  "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3",
+  "git_dirty_at_run": true,
   "command": [
     "scripts\\run_second_order_flux_validation.py"
   ],
@@ -27,7 +27,7 @@
         "flux_assembly_symbol": "mechanistic_mv.continuum.flux.compute_face_fluxes",
         "solver_integration_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
         "source_file": "src/mechanistic_mv/continuum/flux.py",
-        "source_revision_at_run": "4f5c8f9f34cff73553bcf9351c9ecc0c275b0bff"
+        "source_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
       },
       "time_step_contract_source": {
         "solver_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
@@ -42,7 +42,8 @@
     },
     "uses_real_physical_parameters": false,
     "uses_real_pair_potential": false,
-    "uses_test_only_uniform_control": true
+    "uses_test_only_uniform_control": true,
+    "planned_nonanalytic_sg_scope": "when the named Scharfetter--Gummel candidate is available, run a smooth nonzero TEST_ONLY pair fixture and a TEST_ONLY no-flux obstacle fixture using property gates only"
   },
   "scheme_api": {
     "status": "READY_FOR_TEST_ONLY_COMPARISON",
@@ -2436,10 +2437,313 @@
     "spatial_time_schedule_is_h_squared_and_single_substep": true,
     "fine_grid_observed_order_at_least_1p8": true
   },
+  "nonanalytic_sg_scenarios": {
+    "smooth_nonzero_pair": {
+      "scenario_name": "smooth_nonzero_pair_SG_property_gate",
+      "scenario_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+      "acceptance_method": "property gates and direct/FFT agreement only",
+      "analytic_reference": {
+        "used": false,
+        "limitation": "nonzero W makes free-space drift-diffusion Gaussian formulas inapplicable, so no analytic error or convergence order is reported"
+      },
+      "labels": {
+        "fixture_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+        "scheme": {
+          "identifier": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+          "constructor_keyword": "drift_flux_scheme",
+          "value": {
+            "name": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+            "value": "SECOND_ORDER_SCHARFETTER_GUMMEL"
+          },
+          "source": "Physics Engine selectable Enum"
+        },
+        "control": {
+          "name": "test_only_not_final_physics_uniform_field_potential",
+          "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+          "command": [
+            1.0,
+            0.0
+          ],
+          "maximum_force_newton": 2e-14,
+          "contract": "u -> V_control -> -grad(V_control)",
+          "interpretation": "uniform-field control is TEST_ONLY_NOT_FINAL_PHYSICS; it is not a calibrated actuator model"
+        },
+        "interaction": {
+          "name": "test_only_gaussian_repulsion",
+          "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+          "energy_scale_joule": 1.6465619974e-20,
+          "length_scale_m": 1.4e-06,
+          "density_convention": "PROBABILITY_DENSITY_INTEGRAL_ONE",
+          "pair_force_scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+          "interpretation": "smooth Gaussian repulsion is a hand-selected numerical fixture, not a Hydrogel-derived W_eff, contact law, or material calibration"
+        }
+      },
+      "provenance": {
+        "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3",
+        "git_dirty_at_run": true,
+        "selected_flux_scheme": {
+          "identifier": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+          "constructor_keyword": "drift_flux_scheme",
+          "value": {
+            "name": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+            "value": "SECOND_ORDER_SCHARFETTER_GUMMEL"
+          },
+          "source": "Physics Engine selectable Enum"
+        },
+        "solver": {
+          "api_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
+          "module": "mechanistic_mv.continuum.mckean_vlasov",
+          "source_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        },
+        "pair_fixture": {
+          "api_symbol": "mechanistic_mv.mechanics.pair_potential.TestOnlyGaussianRepulsion",
+          "module": "mechanistic_mv.mechanics.pair_potential",
+          "source_file": "src/mechanistic_mv/mechanics/pair_potential.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        },
+        "direct_convolution": {
+          "api_symbol": "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
+          "module": "mechanistic_mv.continuum.convolution",
+          "source_file": "src/mechanistic_mv/continuum/convolution.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        },
+        "fft_convolution": {
+          "api_symbol": "mechanistic_mv.continuum.convolution.FFTPairConvolver.convolve_joule",
+          "module": "mechanistic_mv.continuum.convolution",
+          "source_file": "src/mechanistic_mv/continuum/convolution.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        }
+      },
+      "initial_mass": 0.9999999999999999,
+      "final_mass": 0.9999999999999999,
+      "maximum_absolute_mass_error": 1.1102230246251565e-16,
+      "minimum_density_per_m2": 4.105987347682133e-20,
+      "clipped_negative_mass": 0.0,
+      "initial_free_energy_joule": -1.7930203262815652e-19,
+      "final_free_energy_joule": -1.8297633775553328e-19,
+      "maximum_energy_increment_joule": 0.0,
+      "raw_maximum_energy_increment_joule": -4.57089628259687e-22,
+      "fixed_control_free_energy_changes_joule": [
+        -4.615711069978732e-22,
+        -4.608938799091582e-22,
+        -4.602295511708889e-22,
+        -4.595777726471779e-22,
+        -4.589382088567252e-22,
+        -4.583105363586634e-22,
+        -4.576944431765841e-22,
+        -4.57089628259687e-22
+      ],
+      "adaptive_substeps": 8,
+      "minimum_stable_dt_s": 0.06912012170712298,
+      "outer_steps": 8,
+      "requested_outer_dt_s": 0.01,
+      "exactly_one_internal_substep_per_requested_step": true,
+      "requested_step_within_observed_CFL_bound": true,
+      "maximum_absolute_pair_interaction_joule": 9.095873075132366e-21,
+      "direct_fft_convolution": {
+        "applicable": true,
+        "density_state": "final evolved TEST_ONLY density",
+        "direct_api": "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
+        "fft_api": "McKeanVlasovSolver.pair_convolution_joule -> FFTPairConvolver.convolve_joule",
+        "solver_uses_fft_pair_convolver": true,
+        "maximum_absolute_difference_joule": 6.770847460736376e-36,
+        "maximum_relative_difference": 7.443867570280318e-16,
+        "relative_tolerance": 2e-12,
+        "passed": true,
+        "interpretation": "agreement validates two numerical implementations of the same TEST_ONLY translation-invariant fixture; it does not validate W_eff"
+      },
+      "integrity_checks": {
+        "mass_conservation": true,
+        "non_negative_density": true,
+        "no_negative_mass_clipping": true
+      },
+      "scenario_checks": {
+        "mass_conservation": true,
+        "non_negative_density": true,
+        "no_negative_mass_clipping": true,
+        "nonzero_smooth_test_pair_interaction": true,
+        "direct_fft_convolution_agreement": true,
+        "selected_scheme_is_scharfetter_gummel": true,
+        "no_free_space_gaussian_reference_used": true,
+        "fixture_is_explicitly_test_only": true
+      },
+      "all_numerical_property_gates_pass": true,
+      "interpretation": "passing means only that this TEST_ONLY numerical scenario met its discrete gates; it is not a real physical-model validation"
+    },
+    "smooth_nonzero_pair_with_no_flux_obstacle": {
+      "scenario_name": "smooth_nonzero_pair_with_no_flux_obstacle_SG_property_gate",
+      "scenario_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+      "acceptance_method": "property gates and direct/FFT agreement only",
+      "analytic_reference": {
+        "used": false,
+        "limitation": "both the no-flux obstacle and nonzero W invalidate a free-space Gaussian comparator; this scenario uses geometry and convolution property gates only"
+      },
+      "labels": {
+        "fixture_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+        "scheme": {
+          "identifier": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+          "constructor_keyword": "drift_flux_scheme",
+          "value": {
+            "name": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+            "value": "SECOND_ORDER_SCHARFETTER_GUMMEL"
+          },
+          "source": "Physics Engine selectable Enum"
+        },
+        "control": {
+          "name": "test_only_not_final_physics_uniform_field_potential",
+          "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+          "command": [
+            1.0,
+            0.0
+          ],
+          "maximum_force_newton": 8e-14,
+          "contract": "u -> V_control -> -grad(V_control)",
+          "interpretation": "uniform-field control is TEST_ONLY_NOT_FINAL_PHYSICS; it is not a calibrated actuator model"
+        },
+        "interaction": {
+          "name": "test_only_gaussian_repulsion",
+          "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+          "energy_scale_joule": 1.6465619974e-20,
+          "length_scale_m": 1.4e-06,
+          "density_convention": "PROBABILITY_DENSITY_INTEGRAL_ONE",
+          "pair_force_scaling": "KAC_EFFECTIVE_FOR_UNIT_MASS_RHO_AND_ONE_OVER_N_PARTICLE_FORCE",
+          "interpretation": "smooth Gaussian repulsion is a hand-selected numerical fixture, not a Hydrogel-derived W_eff, contact law, or material calibration"
+        }
+      },
+      "provenance": {
+        "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3",
+        "git_dirty_at_run": true,
+        "selected_flux_scheme": {
+          "identifier": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+          "constructor_keyword": "drift_flux_scheme",
+          "value": {
+            "name": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+            "value": "SECOND_ORDER_SCHARFETTER_GUMMEL"
+          },
+          "source": "Physics Engine selectable Enum"
+        },
+        "solver": {
+          "api_symbol": "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
+          "module": "mechanistic_mv.continuum.mckean_vlasov",
+          "source_file": "src/mechanistic_mv/continuum/mckean_vlasov.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        },
+        "pair_fixture": {
+          "api_symbol": "mechanistic_mv.mechanics.pair_potential.TestOnlyGaussianRepulsion",
+          "module": "mechanistic_mv.mechanics.pair_potential",
+          "source_file": "src/mechanistic_mv/mechanics/pair_potential.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        },
+        "direct_convolution": {
+          "api_symbol": "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
+          "module": "mechanistic_mv.continuum.convolution",
+          "source_file": "src/mechanistic_mv/continuum/convolution.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        },
+        "fft_convolution": {
+          "api_symbol": "mechanistic_mv.continuum.convolution.FFTPairConvolver.convolve_joule",
+          "module": "mechanistic_mv.continuum.convolution",
+          "source_file": "src/mechanistic_mv/continuum/convolution.py",
+          "git_revision_at_run": "a499ac8643b2dbb0dc93ea8accec898b0a48eef3"
+        }
+      },
+      "initial_mass": 0.9999999999999996,
+      "final_mass": 0.9999999999999996,
+      "maximum_absolute_mass_error": 3.3306690738754696e-16,
+      "minimum_density_per_m2": 3.82446166836062e-43,
+      "clipped_negative_mass": 0.0,
+      "initial_free_energy_joule": -5.83227615756876e-19,
+      "final_free_energy_joule": -6.300016971141024e-19,
+      "maximum_energy_increment_joule": 0.0,
+      "raw_maximum_energy_increment_joule": -5.3304862237374234e-21,
+      "fixed_control_free_energy_changes_joule": [
+        -6.305337316370025e-21,
+        -6.19257954290776e-21,
+        -6.069983307543508e-21,
+        -5.937934671198499e-21,
+        -5.797088860947318e-21,
+        -5.648268453247815e-21,
+        -5.492402981274036e-21,
+        -5.3304862237374234e-21
+      ],
+      "adaptive_substeps": 8,
+      "minimum_stable_dt_s": 0.03197257100473384,
+      "outer_steps": 8,
+      "requested_outer_dt_s": 0.01,
+      "exactly_one_internal_substep_per_requested_step": true,
+      "requested_step_within_observed_CFL_bound": true,
+      "maximum_absolute_pair_interaction_joule": 1.0571640602283551e-20,
+      "direct_fft_convolution": {
+        "applicable": true,
+        "density_state": "final evolved TEST_ONLY density",
+        "direct_api": "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
+        "fft_api": "McKeanVlasovSolver.pair_convolution_joule -> FFTPairConvolver.convolve_joule",
+        "solver_uses_fft_pair_convolver": true,
+        "maximum_absolute_difference_joule": 9.027796614315168e-36,
+        "maximum_relative_difference": 8.539636328882666e-16,
+        "relative_tolerance": 2e-12,
+        "passed": true,
+        "interpretation": "agreement validates two numerical implementations of the same TEST_ONLY translation-invariant fixture; it does not validate W_eff"
+      },
+      "integrity_checks": {
+        "mass_conservation": true,
+        "non_negative_density": true,
+        "no_negative_mass_clipping": true
+      },
+      "scenario_checks": {
+        "mass_conservation": true,
+        "non_negative_density": true,
+        "no_negative_mass_clipping": true,
+        "nonzero_smooth_test_pair_interaction": true,
+        "direct_fft_convolution_agreement": true,
+        "selected_scheme_is_scharfetter_gummel": true,
+        "no_free_space_gaussian_reference_used": true,
+        "fixture_is_explicitly_test_only": true,
+        "obstacle_contains_solid_cells": true,
+        "solid_cells_remain_exactly_zero": true,
+        "closed_outer_and_obstacle_faces_are_exactly_zero": true,
+        "physics_engine_reported_selected_sg_scheme": true
+      },
+      "all_numerical_property_gates_pass": true,
+      "interpretation": "passing means only that this TEST_ONLY numerical scenario met its discrete gates; it is not a real physical-model validation",
+      "obstacle_geometry": {
+        "kind": "RectangleObstacle",
+        "x_limits_m": [
+          9.5e-06,
+          1.15e-05
+        ],
+        "y_limits_m": [
+          7e-06,
+          1.3e-05
+        ],
+        "physical_status": "TEST_ONLY_NOT_FINAL_PHYSICS",
+        "interpretation": "test-only no-flux geometry for numerical verification; it is not a measured Hydrogel or wall geometry"
+      },
+      "no_flux_obstacle_gate": {
+        "obstacle_cell_count": 70,
+        "maximum_density_in_solid_per_m2": 0.0,
+        "maximum_absolute_closed_face_flux_per_m_s": 0.0,
+        "probe_dt_s": 0.01598628550236692,
+        "flux_scheme_reported_by_physics_engine": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+        "selected_scharfetter_gummel_scheme": "SECOND_ORDER_SCHARFETTER_GUMMEL",
+        "maximum_absolute_pair_interaction_joule": 1.0571640602283551e-20,
+        "solid_cells_remain_exactly_zero": true,
+        "closed_outer_and_obstacle_faces_are_exactly_zero": true,
+        "physics_engine_reported_selected_scheme": true,
+        "passed": true,
+        "interpretation": "this is a finite-volume no-flux geometry gate. The obstacle and Gaussian pair fixture do not establish a real wall-mediated interaction law."
+      }
+    }
+  },
+  "nonanalytic_sg_scenario_checks": {
+    "smooth_nonzero_pair": true,
+    "smooth_nonzero_pair_with_no_flux_obstacle": true
+  },
   "comparison_checks": {
     "candidate_finest_grid_error_not_larger_than_reference": true
   },
   "overall_passed": true,
-  "reason": "comparison completed with Physics Engine selectable flux schemes; TEST_ONLY result is not a physical validation",
+  "reason": "comparison completed with Physics Engine selectable flux schemes plus nonzero-pair and no-flux-obstacle numerical property gates; TEST_ONLY result is not a physical validation",
   "all_json_values_finite": true
 }

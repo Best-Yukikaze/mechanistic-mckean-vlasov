@@ -218,6 +218,37 @@ real constitutive laws.
   closed-boundary tail upper bound was `2.13e-15`.  No real Hydrogel parameters,
   contact force, or training run is implied by this numerical evidence.
 
+## O14 — SG stage reuse and fail-closed nonlinear numerical evidence
+
+- **Changed:** an accepted SG--SSP-RK2 substep now reuses the already assembled
+  initial face flux and outgoing-rate CFL from `step()` for its first stage;
+  it still recomputes the nonlinear mean-field potential and face flux for the
+  updated second-stage density.  The Experiment Lab now rejects non-finite,
+  negative, zero-mass, shape-mismatched, or population-mismatched density
+  comparisons.  The second-order report adds smooth nonzero-pair and no-flux
+  obstacle property gates, and writes a minimal strict JSON failure artifact if
+  a detailed report cannot be serialized.
+- **Reason:** the previous SG path assembled the same initial mean-field
+  convolution and flux twice per accepted substep.  The old smooth
+  zero-interaction convergence case also could not test a nonlinear pair term
+  or obstacle geometry, while invalid diagnostics or non-finite reports should
+  fail visibly rather than silently produce undefined metrics.
+- **Verification:** 129 integrated tests pass, including end-to-end equality
+  with the pre-reuse first-stage recomputation, nonzero TEST_ONLY pair/control
+  positivity and conservation, invalid-density rejection, non-analytic scenario
+  gate failure, and non-finite report serialization failure.  The v3 validation
+  report records all fixture/API/Git provenance and remains
+  `TEST_ONLY_NOT_FINAL_PHYSICS`.
+- **Measured result:** for an accepted SG substep without a second-stage CFL
+  retry, face-flux assembly falls from three calls to two (one third fewer
+  assemblies; this is not yet a whole-program wall-clock claim).  The nonzero
+  pair case had mass error `1.11e-16`, minimum density `4.11e-20 m^-2`, no
+  clipping, and direct/FFT relative difference `7.44e-16`.  The obstacle case
+  had mass error `3.33e-16`, minimum density `3.82e-43 m^-2`, no clipping,
+  direct/FFT relative difference `8.54e-16`, zero solid density, and zero
+  closed-face flux.  These are numerical fixture results, not calibrated
+  Hydrogel/contact evidence.
+
 ## Reproduce measurements
 
 Run `scripts/benchmark_optimizations.py`. Exact wall-clock values vary by

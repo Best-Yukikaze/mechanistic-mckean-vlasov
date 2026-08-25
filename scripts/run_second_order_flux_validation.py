@@ -26,12 +26,24 @@ from typing import Any
 
 import numpy as np
 
+from mechanistic_mv.continuum.convolution import (
+    FFTPairConvolver,
+    direct_pair_convolution_joule,
+)
 from mechanistic_mv.continuum.diagnostics import relative_l2_error
 from mechanistic_mv.continuum.initial_conditions import gaussian_density
 from mechanistic_mv.continuum.mckean_vlasov import McKeanVlasovSolver
 from mechanistic_mv.mechanics.controlled_potential import TestOnlyUniformFieldPotential
-from mechanistic_mv.mechanics.geometry import CartesianGrid, RectangularDomain
-from mechanistic_mv.mechanics.pair_potential import ZeroPairPotential
+from mechanistic_mv.mechanics.geometry import (
+    CartesianGrid,
+    RectangleObstacle,
+    RectangularDomain,
+)
+from mechanistic_mv.mechanics.pair_potential import (
+    PairPotential,
+    TestOnlyGaussianRepulsion,
+    ZeroPairPotential,
+)
 from mechanistic_mv.mechanics.parameters import PhysicalParameters
 
 
@@ -42,7 +54,7 @@ DEFAULT_OUTPUT = (
     / "validation"
     / "second_order_flux_validation.json"
 )
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 MODEL_STATUS = "TEST_ONLY_NOT_FINAL_PHYSICS"
 BLOCKED_NEW_FLUX_API_UNAVAILABLE = "BLOCKED_NEW_FLUX_API_UNAVAILABLE"
 SPATIAL_GRID_SIZES = (32, 64, 128)
@@ -57,6 +69,15 @@ SPATIAL_REFINEMENT_BASE_STEPS = 32
 # scenario, so this is a genuine CFL-refinement sequence rather than repeated
 # measurements of an identical local time grid.
 ADAPTIVE_CFL_SAFETIES = (0.8, 0.15, 0.075, 0.0375)
+# These deliberately smooth, non-calibrated values exercise the nonzero
+# convolution path without being presented as a Hydrogel contact model.  They
+# are property-gate fixtures only; no analytic Gaussian reference is used for
+# either of the scenarios below.
+NONANALYTIC_GRID_SIZE = 48
+NONANALYTIC_OUTER_STEPS = 8
+SMOOTH_TEST_PAIR_ENERGY_IN_THERMAL_UNITS = 4.0
+SMOOTH_TEST_PAIR_LENGTH_SCALE_M = 1.4e-6
+DIRECT_FFT_RELATIVE_TOLERANCE = 2.0e-12
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,13 +220,64 @@ def _git_dirty() -> bool | None:
         return None
 
 
-def _write_json(path: Path, payload: dict[str, object]) -> None:
+def _minimal_failed_report(reason: str) -> dict[str, object]:
+    """Return a safe artifact when the detailed report cannot be serialized.
+
+    The original payload is intentionally not embedded: it may contain NaN or
+    infinity, and preserving it would turn a failed numerical validation into
+    a second report-writing failure.
+    """
+
+    return {
+        "schema_name": "mechanistic_mv.second_order_flux_validation",
+        "schema_version": SCHEMA_VERSION,
+        "model_status": MODEL_STATUS,
+        "physical_status": MODEL_STATUS,
+        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "git_revision_at_run": _git_revision(),
+        "git_dirty_at_run": _git_dirty(),
+        "workflow_status": "FAILED",
+        "comparison_status": "FAILED_REPORT_SERIALIZATION",
+        "overall_passed": False,
+        "all_json_values_finite": False,
+        "reason": reason,
+        "interpretation": (
+            "the detailed TEST_ONLY numerical report was rejected; no physical "
+            "validation claim can be made"
+        ),
+    }
+
+
+def _write_json(path: Path, payload: dict[str, object]) -> bool:
+    """Write a report, falling back to a finite failed artifact when required.
+
+    ``True`` means the supplied detailed report was written.  ``False`` means
+    the artifact is an intentionally minimal failure report, which callers
+    must propagate as a nonzero validation result.
+    """
+
     path.parent.mkdir(parents=True, exist_ok=True)
+    report_to_write = payload
+    detailed_report_written = True
+    if not _finite_json_values(payload):
+        report_to_write = _minimal_failed_report(
+            "detailed report contained a non-finite numeric value; raw values "
+            "were omitted and validation is FAILED"
+        )
+        detailed_report_written = False
+    try:
+        serialized = json.dumps(report_to_write, indent=2, allow_nan=False)
+    except (TypeError, ValueError, OverflowError):
+        report_to_write = _minimal_failed_report(
+            "detailed report was not safely serializable; raw values were "
+            "omitted and validation is FAILED"
+        )
+        serialized = json.dumps(report_to_write, indent=2, allow_nan=False)
+        detailed_report_written = False
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(payload, indent=2, allow_nan=False), encoding="utf-8"
-    )
+    temporary.write_text(serialized, encoding="utf-8")
     temporary.replace(path)
+    return detailed_report_written
 
 
 def _enum_members(parameter: inspect.Parameter) -> tuple[type[Enum], ...]:
@@ -475,6 +547,8 @@ def _scheme_solver(
     binding: _SchemeBinding,
     *,
     cfl_safety: float,
+    pair_potential: PairPotential | None = None,
+    obstacles: tuple[RectangleObstacle, ...] = (),
 ) -> McKeanVlasovSolver:
     kwargs: dict[str, object] = {
         "controlled_potential": controlled_potential,
@@ -486,7 +560,8 @@ def _scheme_solver(
     return McKeanVlasovSolver(
         grid,
         parameters,
-        ZeroPairPotential(),
+        ZeroPairPotential() if pair_potential is None else pair_potential,
+        obstacles=obstacles,
         **kwargs,
     )
 
@@ -498,17 +573,21 @@ def _evolve_test_only(
     scenario: _TestOnlyScenario,
     *,
     outer_steps: int | None = None,
+    initial_density_per_m2: np.ndarray | None = None,
 ) -> tuple[np.ndarray, dict[str, object]]:
-    initial = gaussian_density(
-        grid,
-        scenario.initial_mean_m,
-        scenario.initial_standard_deviation_m,
-    )
+    if initial_density_per_m2 is None:
+        initial = gaussian_density(
+            grid,
+            scenario.initial_mean_m,
+            scenario.initial_standard_deviation_m,
+        )
+    else:
+        initial = np.asarray(initial_density_per_m2, dtype=np.float64).copy()
     density = initial
     initial_mass = solver.mass(density)
     energies = [solver.free_energy(density, np.asarray(scenario.control)).total_joule]
     masses = [initial_mass]
-    minimum_density = float(np.min(density))
+    minimum_density = float(np.min(density[solver.fluid_mask]))
     clipped_negative_mass = 0.0
     fixed_control_energy_changes: list[float] = []
     adaptive_substeps = 0
@@ -592,6 +671,414 @@ def _free_energy_behavior(record: dict[str, object], parameters: PhysicalParamet
             "fixed-control state-functional diagnostic only; not a discrete "
             "free-energy certificate for the selected higher-order candidate"
         ),
+    }
+
+
+def _source_file(symbol: object) -> str:
+    """Render a source location for report provenance without assuming a path."""
+
+    source = inspect.getsourcefile(symbol)
+    if source is None:
+        return "unavailable"
+    source_path = Path(source)
+    try:
+        return source_path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return str(source_path)
+
+
+def _api_provenance(symbol: object, api_symbol: str) -> dict[str, object]:
+    return {
+        "api_symbol": api_symbol,
+        "module": getattr(symbol, "__module__", type(symbol).__module__),
+        "source_file": _source_file(symbol),
+        "git_revision_at_run": _git_revision(),
+    }
+
+
+def _is_scharfetter_gummel_binding(binding: _SchemeBinding) -> bool:
+    identifier = binding.identifier.casefold()
+    return "scharfetter" in identifier and "gummel" in identifier
+
+
+def _test_only_smooth_pair(
+    parameters: PhysicalParameters,
+) -> TestOnlyGaussianRepulsion:
+    """Build the explicit non-calibrated pair fixture used only below."""
+
+    return TestOnlyGaussianRepulsion(
+        SMOOTH_TEST_PAIR_ENERGY_IN_THERMAL_UNITS
+        * parameters.thermal_energy_joule,
+        SMOOTH_TEST_PAIR_LENGTH_SCALE_M,
+    )
+
+
+def _fixture_labels(
+    binding: _SchemeBinding,
+    pair_potential: TestOnlyGaussianRepulsion,
+    controlled_potential: TestOnlyUniformFieldPotential,
+    scenario: _TestOnlyScenario,
+) -> dict[str, object]:
+    """State explicitly why these numerical fixtures are not material inputs."""
+
+    return {
+        "fixture_status": MODEL_STATUS,
+        "scheme": binding.to_dict(),
+        "control": {
+            "name": controlled_potential.name,
+            "physical_status": controlled_potential.physical_status,
+            "command": list(scenario.control),
+            "maximum_force_newton": controlled_potential.maximum_force_newton,
+            "contract": "u -> V_control -> -grad(V_control)",
+            "interpretation": (
+                "uniform-field control is TEST_ONLY_NOT_FINAL_PHYSICS; it is not "
+                "a calibrated actuator model"
+            ),
+        },
+        "interaction": {
+            "name": pair_potential.name,
+            "physical_status": pair_potential.physical_status,
+            "energy_scale_joule": pair_potential.energy_scale_joule,
+            "length_scale_m": pair_potential.length_scale_m,
+            "density_convention": pair_potential.density_convention.value,
+            "pair_force_scaling": pair_potential.pair_force_scaling.value,
+            "interpretation": (
+                "smooth Gaussian repulsion is a hand-selected numerical fixture, "
+                "not a Hydrogel-derived W_eff, contact law, or material calibration"
+            ),
+        },
+    }
+
+
+def _nonanalytic_provenance(
+    binding: _SchemeBinding,
+) -> dict[str, object]:
+    """Provide local API and Git evidence for the non-analytic scenarios."""
+
+    return {
+        "git_revision_at_run": _git_revision(),
+        "git_dirty_at_run": _git_dirty(),
+        "selected_flux_scheme": binding.to_dict(),
+        "solver": _api_provenance(
+            McKeanVlasovSolver,
+            "mechanistic_mv.continuum.mckean_vlasov.McKeanVlasovSolver",
+        ),
+        "pair_fixture": _api_provenance(
+            TestOnlyGaussianRepulsion,
+            "mechanistic_mv.mechanics.pair_potential.TestOnlyGaussianRepulsion",
+        ),
+        "direct_convolution": _api_provenance(
+            direct_pair_convolution_joule,
+            "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule",
+        ),
+        "fft_convolution": _api_provenance(
+            FFTPairConvolver,
+            "mechanistic_mv.continuum.convolution.FFTPairConvolver.convolve_joule",
+        ),
+    }
+
+
+def _direct_fft_convolution_agreement(
+    solver: McKeanVlasovSolver,
+    density_per_m2: np.ndarray,
+) -> dict[str, object]:
+    """Check the current translation-invariant test fixture by two quadratures."""
+
+    direct = direct_pair_convolution_joule(
+        density_per_m2,
+        solver.grid,
+        solver.pair_potential,
+        density_convention=solver.density_convention,
+        population_count=solver.population_count,
+    )
+    accelerated = solver.pair_convolution_joule(density_per_m2)
+    absolute_difference = float(np.max(np.abs(direct - accelerated)))
+    scale = max(
+        float(np.max(np.abs(direct))),
+        float(np.max(np.abs(accelerated))),
+        np.finfo(np.float64).tiny,
+    )
+    relative_difference = absolute_difference / scale
+    uses_fft_pair_convolver = isinstance(solver.convolver, FFTPairConvolver)
+    return {
+        "applicable": True,
+        "density_state": "final evolved TEST_ONLY density",
+        "direct_api": (
+            "mechanistic_mv.continuum.convolution.direct_pair_convolution_joule"
+        ),
+        "fft_api": (
+            "McKeanVlasovSolver.pair_convolution_joule -> "
+            "FFTPairConvolver.convolve_joule"
+        ),
+        "solver_uses_fft_pair_convolver": uses_fft_pair_convolver,
+        "maximum_absolute_difference_joule": absolute_difference,
+        "maximum_relative_difference": relative_difference,
+        "relative_tolerance": DIRECT_FFT_RELATIVE_TOLERANCE,
+        "passed": bool(
+            uses_fft_pair_convolver
+            and relative_difference <= DIRECT_FFT_RELATIVE_TOLERANCE
+        ),
+        "interpretation": (
+            "agreement validates two numerical implementations of the same "
+            "TEST_ONLY translation-invariant fixture; it does not validate W_eff"
+        ),
+    }
+
+
+def _obstacle_no_flux_gate(
+    solver: McKeanVlasovSolver,
+    density_per_m2: np.ndarray,
+    scenario: _TestOnlyScenario,
+    binding: _SchemeBinding,
+    metrics: dict[str, object],
+) -> dict[str, object]:
+    """Measure solid-cell and closed-face invariants without an analytic model."""
+
+    observed_stable_dt_s = float(metrics["minimum_stable_dt_s"])
+    if not np.isfinite(observed_stable_dt_s) or observed_stable_dt_s <= 0.0:
+        raise ValueError("obstacle flux probe requires a positive finite CFL bound")
+    probe_dt_s = 0.5 * observed_stable_dt_s
+    fluxes, interaction = solver.face_fluxes(
+        density_per_m2,
+        control=np.asarray(scenario.control),
+        dt_s=probe_dt_s,
+    )
+    closed_x = np.abs(fluxes.x_per_m_s[~solver.face_masks.open_x])
+    closed_y = np.abs(fluxes.y_per_m_s[~solver.face_masks.open_y])
+    maximum_closed_flux = max(
+        float(np.max(closed_x)),
+        float(np.max(closed_y)),
+    )
+    solid_density = np.asarray(density_per_m2)[~solver.fluid_mask]
+    maximum_solid_density = float(np.max(solid_density))
+    flux_scheme = fluxes.drift_flux_scheme.value
+    return {
+        "obstacle_cell_count": int(np.count_nonzero(~solver.fluid_mask)),
+        "maximum_density_in_solid_per_m2": maximum_solid_density,
+        "maximum_absolute_closed_face_flux_per_m_s": maximum_closed_flux,
+        "probe_dt_s": probe_dt_s,
+        "flux_scheme_reported_by_physics_engine": flux_scheme,
+        "selected_scharfetter_gummel_scheme": binding.identifier,
+        "maximum_absolute_pair_interaction_joule": float(
+            np.max(np.abs(interaction))
+        ),
+        "solid_cells_remain_exactly_zero": maximum_solid_density == 0.0,
+        "closed_outer_and_obstacle_faces_are_exactly_zero": (
+            maximum_closed_flux == 0.0
+        ),
+        "physics_engine_reported_selected_scheme": flux_scheme == binding.identifier,
+        "passed": bool(
+            maximum_solid_density == 0.0
+            and maximum_closed_flux == 0.0
+            and flux_scheme == binding.identifier
+        ),
+        "interpretation": (
+            "this is a finite-volume no-flux geometry gate. The obstacle and "
+            "Gaussian pair fixture do not establish a real wall-mediated "
+            "interaction law."
+        ),
+    }
+
+
+def _nonanalytic_scenario_record(
+    *,
+    name: str,
+    solver: McKeanVlasovSolver,
+    density_per_m2: np.ndarray,
+    metrics: dict[str, object],
+    binding: _SchemeBinding,
+    pair_potential: TestOnlyGaussianRepulsion,
+    controlled_potential: TestOnlyUniformFieldPotential,
+    scenario: _TestOnlyScenario,
+    analytic_reference_limitation: str,
+) -> dict[str, object]:
+    """Record a property-only scenario that deliberately has no Gaussian truth."""
+
+    convolution = _direct_fft_convolution_agreement(solver, density_per_m2)
+    # The accelerated field itself, rather than the implementation difference,
+    # establishes that this is truly a nonzero interaction scenario.
+    accelerated_interaction = solver.pair_convolution_joule(density_per_m2)
+    maximum_pair_interaction = float(np.max(np.abs(accelerated_interaction)))
+    checks = {
+        **_integrity_checks(metrics),
+        "nonzero_smooth_test_pair_interaction": maximum_pair_interaction > 0.0,
+        "direct_fft_convolution_agreement": bool(convolution["passed"]),
+        "selected_scheme_is_scharfetter_gummel": _is_scharfetter_gummel_binding(
+            binding
+        ),
+        "no_free_space_gaussian_reference_used": True,
+        "fixture_is_explicitly_test_only": (
+            pair_potential.physical_status == MODEL_STATUS
+            and controlled_potential.physical_status == MODEL_STATUS
+        ),
+    }
+    return {
+        "scenario_name": name,
+        "scenario_status": MODEL_STATUS,
+        "acceptance_method": "property gates and direct/FFT agreement only",
+        "analytic_reference": {
+            "used": False,
+            "limitation": analytic_reference_limitation,
+        },
+        "labels": _fixture_labels(
+            binding, pair_potential, controlled_potential, scenario
+        ),
+        "provenance": _nonanalytic_provenance(binding),
+        **metrics,
+        "maximum_absolute_pair_interaction_joule": maximum_pair_interaction,
+        "direct_fft_convolution": convolution,
+        "integrity_checks": _integrity_checks(metrics),
+        "scenario_checks": checks,
+        "all_numerical_property_gates_pass": all(checks.values()),
+        "interpretation": (
+            "passing means only that this TEST_ONLY numerical scenario met its "
+            "discrete gates; it is not a real physical-model validation"
+        ),
+    }
+
+
+def _run_nonanalytic_sg_scenarios(
+    binding: _SchemeBinding,
+    parameters: PhysicalParameters,
+    scenario: _TestOnlyScenario,
+) -> dict[str, dict[str, object]]:
+    """Run nonzero-pair and obstacle SG property gates without analytic misuse."""
+
+    if not _is_scharfetter_gummel_binding(binding):
+        raise ValueError(
+            "non-analytic scenarios require an explicitly named "
+            "SECOND_ORDER_SCHARFETTER_GUMMEL Physics Engine candidate"
+        )
+    grid = CartesianGrid(
+        scenario.domain,
+        NONANALYTIC_GRID_SIZE,
+        NONANALYTIC_GRID_SIZE,
+    )
+    pair_potential = _test_only_smooth_pair(parameters)
+    uniform_control = TestOnlyUniformFieldPotential(scenario.maximum_force_newton)
+
+    pair_solver = _scheme_solver(
+        grid,
+        parameters,
+        uniform_control,
+        binding,
+        cfl_safety=0.8,
+        pair_potential=pair_potential,
+    )
+    pair_density, pair_metrics = _evolve_test_only(
+        pair_solver,
+        grid,
+        parameters,
+        scenario,
+        outer_steps=NONANALYTIC_OUTER_STEPS,
+    )
+    pair_record = _nonanalytic_scenario_record(
+        name="smooth_nonzero_pair_SG_property_gate",
+        solver=pair_solver,
+        density_per_m2=pair_density,
+        metrics=pair_metrics,
+        binding=binding,
+        pair_potential=pair_potential,
+        controlled_potential=uniform_control,
+        scenario=scenario,
+        analytic_reference_limitation=(
+            "nonzero W makes free-space drift-diffusion Gaussian formulas "
+            "inapplicable, so no analytic error or convergence order is reported"
+        ),
+    )
+
+    obstacle = RectangleObstacle((9.5e-6, 11.5e-6), (7.0e-6, 13.0e-6))
+    obstacle_control = TestOnlyUniformFieldPotential(8.0e-14)
+    obstacle_solver = _scheme_solver(
+        grid,
+        parameters,
+        obstacle_control,
+        binding,
+        cfl_safety=0.8,
+        pair_potential=pair_potential,
+        obstacles=(obstacle,),
+    )
+    obstacle_initial = gaussian_density(
+        grid,
+        (7.5e-6, 10.0e-6),
+        1.0e-6,
+        fluid_mask=obstacle_solver.fluid_mask,
+    )
+    obstacle_density, obstacle_metrics = _evolve_test_only(
+        obstacle_solver,
+        grid,
+        parameters,
+        scenario,
+        outer_steps=NONANALYTIC_OUTER_STEPS,
+        initial_density_per_m2=obstacle_initial,
+    )
+    obstacle_record = _nonanalytic_scenario_record(
+        name="smooth_nonzero_pair_with_no_flux_obstacle_SG_property_gate",
+        solver=obstacle_solver,
+        density_per_m2=obstacle_density,
+        metrics=obstacle_metrics,
+        binding=binding,
+        pair_potential=pair_potential,
+        controlled_potential=obstacle_control,
+        scenario=scenario,
+        analytic_reference_limitation=(
+            "both the no-flux obstacle and nonzero W invalidate a free-space "
+            "Gaussian comparator; this scenario uses geometry and convolution "
+            "property gates only"
+        ),
+    )
+    no_flux_gate = _obstacle_no_flux_gate(
+        obstacle_solver,
+        obstacle_density,
+        scenario,
+        binding,
+        obstacle_metrics,
+    )
+    obstacle_record["obstacle_geometry"] = {
+        "kind": "RectangleObstacle",
+        "x_limits_m": list(obstacle.x_limits_m),
+        "y_limits_m": list(obstacle.y_limits_m),
+        "physical_status": MODEL_STATUS,
+        "interpretation": (
+            "test-only no-flux geometry for numerical verification; it is not "
+            "a measured Hydrogel or wall geometry"
+        ),
+    }
+    obstacle_record["no_flux_obstacle_gate"] = no_flux_gate
+    obstacle_checks = obstacle_record["scenario_checks"]
+    if not isinstance(obstacle_checks, dict):
+        raise TypeError("internal obstacle scenario checks must be a dictionary")
+    obstacle_checks.update(
+        {
+            "obstacle_contains_solid_cells": (
+                no_flux_gate["obstacle_cell_count"] > 0
+            ),
+            "solid_cells_remain_exactly_zero": bool(
+                no_flux_gate["solid_cells_remain_exactly_zero"]
+            ),
+            "closed_outer_and_obstacle_faces_are_exactly_zero": bool(
+                no_flux_gate["closed_outer_and_obstacle_faces_are_exactly_zero"]
+            ),
+            "physics_engine_reported_selected_sg_scheme": bool(
+                no_flux_gate["physics_engine_reported_selected_scheme"]
+            ),
+        }
+    )
+    obstacle_record["all_numerical_property_gates_pass"] = all(
+        obstacle_checks.values()
+    )
+    return {
+        "smooth_nonzero_pair": pair_record,
+        "smooth_nonzero_pair_with_no_flux_obstacle": obstacle_record,
+    }
+
+
+def _nonanalytic_sg_checks(
+    scenarios: dict[str, dict[str, object]],
+) -> dict[str, bool]:
+    return {
+        name: bool(record["all_numerical_property_gates_pass"])
+        for name, record in scenarios.items()
     }
 
 
@@ -843,6 +1330,11 @@ def _base_report(
             "uses_real_physical_parameters": False,
             "uses_real_pair_potential": False,
             "uses_test_only_uniform_control": True,
+            "planned_nonanalytic_sg_scope": (
+                "when the named Scharfetter--Gummel candidate is available, run "
+                "a smooth nonzero TEST_ONLY pair fixture and a TEST_ONLY no-flux "
+                "obstacle fixture using property gates only"
+            ),
         },
         "scheme_api": discovery.to_dict(),
         "test_only_configuration": {
@@ -934,6 +1426,12 @@ def main(argv: list[str] | None = None) -> int:
 
         candidate_study = _run_scheme(discovery.candidate, parameters, scenario)
         candidate_checks = _scheme_checks(candidate_study, require_second_order=True)
+        nonanalytic_scenarios = _run_nonanalytic_sg_scenarios(
+            discovery.candidate,
+            parameters,
+            scenario,
+        )
+        nonanalytic_checks = _nonanalytic_sg_checks(nonanalytic_scenarios)
         reference_grid = reference_study["grid_refinement"]
         candidate_grid = candidate_study["grid_refinement"]
         if not isinstance(reference_grid, list) or not isinstance(candidate_grid, list):
@@ -944,30 +1442,46 @@ def main(argv: list[str] | None = None) -> int:
             )
             <= float(reference_grid[-1]["relative_L2_to_analytic_test_only_solution"])
         }
+        overall_passed = all(
+            [
+                *report["first_order_reference_checks"].values(),
+                *candidate_checks.values(),
+                *nonanalytic_checks.values(),
+                *comparison_checks.values(),
+            ]
+        )
         report.update(
             {
-                "workflow_status": "COMPLETED_TEST_ONLY",
-                "comparison_status": "COMPLETED_TEST_ONLY",
+                "workflow_status": (
+                    "COMPLETED_TEST_ONLY"
+                    if overall_passed
+                    else "FAILED_TEST_ONLY_GATES"
+                ),
+                "comparison_status": (
+                    "COMPLETED_TEST_ONLY"
+                    if overall_passed
+                    else "FAILED_TEST_ONLY_GATES"
+                ),
                 "candidate_scheme": candidate_study,
                 "candidate_scheme_checks": candidate_checks,
+                "nonanalytic_sg_scenarios": nonanalytic_scenarios,
+                "nonanalytic_sg_scenario_checks": nonanalytic_checks,
                 "comparison_checks": comparison_checks,
-                "overall_passed": all(
-                    [
-                        *report["first_order_reference_checks"].values(),
-                        *candidate_checks.values(),
-                        *comparison_checks.values(),
-                    ]
-                ),
+                "overall_passed": overall_passed,
                 "reason": (
                     "comparison completed with Physics Engine selectable flux "
-                    "schemes; TEST_ONLY result is not a physical validation"
+                    "schemes plus nonzero-pair and no-flux-obstacle numerical "
+                    "property gates; TEST_ONLY result is not a physical validation"
+                    if overall_passed
+                    else "one or more TEST_ONLY numerical acceptance gates failed; "
+                    "this is not a physical-model validation"
                 ),
             }
         )
         report["all_json_values_finite"] = _finite_json_values(report)
-        _write_json(args.output, report)
+        detailed_report_written = _write_json(args.output, report)
         print(args.output)
-        return 0 if report["overall_passed"] else 2
+        return 0 if report["overall_passed"] and detailed_report_written else 2
     except (FloatingPointError, TypeError, ValueError) as error:
         report.update(
             {

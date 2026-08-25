@@ -9,6 +9,9 @@ import numpy as np
 from ..mechanics.geometry import CartesianGrid
 
 
+_MASS_COMPARISON_RELATIVE_TOLERANCE = 1.0e-10
+
+
 @dataclass(frozen=True, slots=True)
 class DensityMoments:
     mass: float
@@ -43,12 +46,20 @@ def relative_l2_error(
     reference_per_m2: np.ndarray,
     grid: CartesianGrid,
 ) -> float:
-    candidate = np.asarray(candidate_per_m2, dtype=np.float64)
-    reference = np.asarray(reference_per_m2, dtype=np.float64)
-    if candidate.shape != reference.shape or candidate.shape != (grid.ny, grid.nx):
-        raise ValueError("densities must share the grid shape")
-    numerator = np.sum((candidate - reference) ** 2) * grid.cell_area_m2
-    denominator = np.sum(reference**2) * grid.cell_area_m2
+    """Return the cell-area-weighted relative L2 error of equal-mass densities."""
+
+    candidate, reference = _validated_comparable_density_pair(
+        candidate_per_m2,
+        reference_per_m2,
+        grid,
+        first_name="candidate",
+        second_name="reference",
+    )
+    with np.errstate(over="ignore", invalid="ignore"):
+        numerator = np.sum((candidate - reference) ** 2) * grid.cell_area_m2
+        denominator = np.sum(reference**2) * grid.cell_area_m2
+    if not np.isfinite(numerator) or not np.isfinite(denominator):
+        raise ValueError("relative L2 calculation overflowed for finite densities")
     if denominator <= 0.0:
         raise ValueError("reference density must have positive L2 norm")
     return float(np.sqrt(numerator / denominator))
@@ -61,12 +72,15 @@ def jensen_shannon_divergence(
 ) -> float:
     """Return the natural-log Jensen--Shannon divergence of cell masses."""
 
-    first = np.asarray(first_per_m2, dtype=np.float64).ravel()
-    second = np.asarray(second_per_m2, dtype=np.float64).ravel()
-    if first.shape != second.shape or first.size != grid.nx * grid.ny:
-        raise ValueError("densities must share the grid shape")
-    if np.any(first < 0.0) or np.any(second < 0.0):
-        raise ValueError("densities must be non-negative")
+    first, second = _validated_comparable_density_pair(
+        first_per_m2,
+        second_per_m2,
+        grid,
+        first_name="first",
+        second_name="second",
+    )
+    first = first.ravel()
+    second = second.ravel()
     p = first * grid.cell_area_m2
     q = second * grid.cell_area_m2
     p /= np.sum(p)
@@ -77,3 +91,69 @@ def jensen_shannon_divergence(
     first_kl = np.sum(p[p_positive] * np.log(p[p_positive] / midpoint[p_positive]))
     second_kl = np.sum(q[q_positive] * np.log(q[q_positive] / midpoint[q_positive]))
     return float(0.5 * (first_kl + second_kl))
+
+
+def _validated_comparable_density_pair(
+    first_per_m2: np.ndarray,
+    second_per_m2: np.ndarray,
+    grid: CartesianGrid,
+    *,
+    first_name: str,
+    second_name: str,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Validate two physical densities before comparing their shapes.
+
+    These diagnostics compare densities representing the same population.  They
+    accept either unit-mass probability densities or equal-mass number
+    densities, but never silently rescale one density to hide a mass mismatch.
+    The relative tolerance is explicit and scale-relative, so it permits
+    floating-point summation roundoff without silently accepting a material
+    population mismatch.
+    """
+
+    first = _validated_density(first_per_m2, grid, first_name)
+    second = _validated_density(second_per_m2, grid, second_name)
+    first_mass = _discrete_mass(first, grid, first_name)
+    second_mass = _discrete_mass(second, grid, second_name)
+    allowed_difference = _MASS_COMPARISON_RELATIVE_TOLERANCE * max(
+        first_mass, second_mass
+    )
+    if abs(first_mass - second_mass) > allowed_difference:
+        raise ValueError(
+            "density discrete masses must agree within relative tolerance "
+            f"{_MASS_COMPARISON_RELATIVE_TOLERANCE:.1e}; "
+            f"got {first_name}={first_mass:.16e}, "
+            f"{second_name}={second_mass:.16e}"
+        )
+    return first, second
+
+
+def _validated_density(
+    density_per_m2: np.ndarray,
+    grid: CartesianGrid,
+    name: str,
+) -> np.ndarray:
+    density = np.asarray(density_per_m2, dtype=np.float64)
+    expected_shape = (grid.ny, grid.nx)
+    if density.shape != expected_shape:
+        raise ValueError(
+            f"{name} density must have grid shape {expected_shape}; "
+            f"got {density.shape}"
+        )
+    if not np.all(np.isfinite(density)):
+        raise ValueError(f"{name} density must contain only finite values")
+    if np.any(density < 0.0):
+        raise ValueError(f"{name} density must be non-negative")
+    return density
+
+
+def _discrete_mass(
+    density_per_m2: np.ndarray,
+    grid: CartesianGrid,
+    name: str,
+) -> float:
+    with np.errstate(over="ignore", invalid="ignore"):
+        mass = float(np.sum(density_per_m2) * grid.cell_area_m2)
+    if not np.isfinite(mass) or mass <= 0.0:
+        raise ValueError(f"{name} density must have positive finite discrete mass")
+    return mass

@@ -332,6 +332,8 @@ class McKeanVlasovSolver:
                         density,
                         controlled_potential,
                         local_dt,
+                        initial_fluxes=fluxes,
+                        initial_stable_dt_s=stable,
                     )
                 )
                 maximum_abs_flux = max(
@@ -377,6 +379,9 @@ class McKeanVlasovSolver:
         density_per_m2: np.ndarray,
         controlled_potential_joule: np.ndarray,
         proposed_dt_s: float,
+        *,
+        initial_fluxes: FaceFluxes | None = None,
+        initial_stable_dt_s: float | None = None,
     ) -> tuple[np.ndarray, float, float, tuple[FaceFluxes, FaceFluxes]]:
         """Apply two positivity-safe Scharfetter--Gummel stages and average.
 
@@ -385,14 +390,30 @@ class McKeanVlasovSolver:
         conservation follow from the two CFL-bounded forward-Euler stages. If
         the second stage discovers a tighter row-sum CFL bound, the first
         stage is recomputed with that smaller common step before accepting
-        either stage.
+        either stage.  ``step`` supplies its already assembled initial flux
+        and CFL bound so that this first SSP stage does not repeat the
+        identical mean-field convolution and face-flux assembly.  The second
+        stage is deliberately never reused: its density changes with the
+        common substep and therefore requires a fresh mean-field potential.
+
+        Omitting the optional pair preserves the previous private-call
+        behavior.  Supplying exactly one member is rejected so the positivity
+        contract cannot silently reuse a flux without its CFL bound.
         """
 
         local_dt = float(proposed_dt_s)
-        for _ in range(32):
+        if (initial_fluxes is None) != (initial_stable_dt_s is None):
+            raise ValueError(
+                "initial_fluxes and initial_stable_dt_s must be supplied together"
+            )
+        if initial_fluxes is None:
             flux_one, stable_one, _ = self._flux_stage(
                 density_per_m2, controlled_potential_joule
             )
+        else:
+            flux_one = initial_fluxes
+            stable_one = float(initial_stable_dt_s)
+        for _ in range(32):
             local_dt = min(local_dt, stable_one)
             if not np.isfinite(local_dt) or local_dt <= 0.0:
                 raise FloatingPointError("non-positive SSP-RK2 substep")
