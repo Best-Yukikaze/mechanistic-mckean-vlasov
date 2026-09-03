@@ -1,0 +1,80 @@
+{
+  "ablations": {
+    "D_only": "NOT_RUN",
+    "D_plus_V_mag": "NOT_RUN",
+    "D_plus_V_mag_plus_W_dd": "NOT_RUN",
+    "D_plus_W_dd": "NOT_RUN"
+  },
+  "blockers": [
+    "No independently locked D/M, V_mag and W_dd parameter set exists.",
+    "S4 magnetic moment/susceptibility and exact cluster number density are unresolved.",
+    "Normalized optical intensity is not calibrated to particle-number density and lacks pointwise uncertainty."
+  ],
+  "conditions": {
+    "agarose_fraction": 0.006,
+    "field_gradients_T_per_m": [
+      0.0,
+      0.55,
+      8.0
+    ],
+    "particle_sizes_m": [
+      1.3e-07,
+      2.5e-07
+    ],
+    "times_h": [
+      0.0,
+      3.0,
+      6.0,
+      16.0,
+      32.0,
+      48.0
+    ]
+  },
+  "field_ordering_gate": "NOT_EVALUABLE",
+  "joint_predictions": [],
+  "locked_parameter_transfer": {
+    "D_M": "BLOCKED_SAME_BATCH_MAGNETIC_FORCE_UNAVAILABLE",
+    "V_mag": "BLOCKED_PHASE_A_TRANSPORT_NOT_LOCKED",
+    "W_dd": "BLOCKED_SOURCE_BACKED_MOMENT_CONTACT_AND_2D_CLOSURE_UNAVAILABLE",
+    "all_locked": false
+  },
+  "observation": {
+    "digitization_audit": {
+      "admissible_as_particle_number_density": false,
+      "blockers": [
+        "No calibrated observation model maps normalized mean pixel value to particle-number density rho.",
+        "No plotted uncertainty bars or pointwise uncertainty table are supplied.",
+        "Image acquisition changes gel orientation temporarily and averages a finite optical field of view.",
+        "Upstream D/M, magnetic force and W parameters are not independently locked, so digitizing the curve cannot enable a parameter-free joint validation."
+      ],
+      "curve_axes": "time [h] versus average normalized pixel value",
+      "digitization_status": "NOT_DIGITIZED_QUANTITATIVE_RHO_GATE_BLOCKED",
+      "fabricated_numeric_records": 0,
+      "manual_digitization_legally_and_technically_possible": true,
+      "published_curve_is_accessible": true,
+      "raw_images_found": false,
+      "raw_numeric_table_found": false,
+      "reported_times_h": [
+        0.0,
+        3.0,
+        6.0,
+        16.0,
+        32.0,
+        48.0
+      ],
+      "source_curve": "S4 Figure 7"
+    },
+    "digitized_records": [],
+    "fabricated_records": 0,
+    "particle_number_density_mapping": null,
+    "published_quantity": "average normalized microscope pixel value"
+  },
+  "parameter_refit_performed": false,
+  "phase": "D",
+  "quantitative_curve_gate": "NOT_EVALUABLE",
+  "schema": "mechanistic_mv.mv_physical_validation.phase_d_joint_mv",
+  "schema_version": 1,
+  "simulation_run": false,
+  "source": "S4_BASAK_2009",
+  "status": "BLOCKED_NO_LOCKED_UPSTREAM_PARAMETERS_AND_NO_CALIBRATED_S4_OBSERVATION_MODEL"
+}

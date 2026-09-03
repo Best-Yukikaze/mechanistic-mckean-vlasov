@@ -1,0 +1,20 @@
+{
+  "actual_pde_run": false,
+  "anchor_mobility": null,
+  "blockers": [
+    "Phase A did not produce an admissible locked D/M pair.",
+    "Condition-specific S1 magnetic field/force data are unavailable."
+  ],
+  "calibration_anchor": "8 nm PEG2000 LG",
+  "heldout_MAE": null,
+  "heldout_MAPE": null,
+  "heldout_R2": null,
+  "heldout_predictions": [],
+  "magnetic_law": "V_mag=-chi_v*V_m*B^2/(2*mu0); F_mag=chi_v*V_m*B*grad(B)/mu0",
+  "mass_boundary_numerics": "NOT_RUN_DEPENDENCY_BLOCKED",
+  "parameter_fit_performed": false,
+  "phase": "B",
+  "schema": "mechanistic_mv.mv_physical_validation.phase_b_magnetic_drift",
+  "schema_version": 1,
+  "status": "BLOCKED_PHASE_A_TRANSPORT_NOT_LOCKED"
+}

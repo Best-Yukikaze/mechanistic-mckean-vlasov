@@ -1,0 +1,122 @@
+{
+  "acceptance_gate": {
+    "0.25_lt_CV_M_eff_le_0.40": "MARGINAL",
+    "CV_M_eff_gt_0.40": "FAIL_LINEAR_MOBILITY",
+    "CV_M_eff_le_0.25": "PASS_LINEAR_MOBILITY",
+    "result": "NOT_EVALUABLE"
+  },
+  "blockers": [
+    "S1 LG/IG/HG observations do not have condition-specific, batch-matched magnetic force tuples.",
+    "S1b parameters cannot be transferred to S1 without batch, coating and field-geometry compatibility evidence.",
+    "No same-system D is available for a Stokes-Einstein hindrance check."
+  ],
+  "descriptive_velocity_cv": {
+    "11nm": {
+      "constant_mobility_gate_applied": false,
+      "meaning": "DESCRIPTIVE_CV_OF_RAW_VELOCITY_NOT_CV_OF_MOBILITY",
+      "value": 0.5286834334831253
+    },
+    "8nm": {
+      "constant_mobility_gate_applied": false,
+      "meaning": "DESCRIPTIVE_CV_OF_RAW_VELOCITY_NOT_CV_OF_MOBILITY",
+      "value": 0.4390389156277078
+    }
+  },
+  "formulae": {
+    "einstein": "D_Einstein = M_eff*k_B*T",
+    "free_solution": "D0 = k_B*T/(3*pi*eta*d_hyd)",
+    "mobility": "M_eff = v_exp/F_mag"
+  },
+  "hindrance_evidence": {
+    "S2": "INDEPENDENT_REGIME_EVIDENCE_ONLY",
+    "S2b": "INDEPENDENT_REGIME_EVIDENCE_ONLY_POINTWISE_DIFFUSION_TABLE_NOT_ACQUIRED"
+  },
+  "observations": [
+    {
+      "condition": "LG",
+      "einstein_diffusivity_m2_per_s": null,
+      "force_newton": null,
+      "mobility_m_per_N_s": null,
+      "particle_class": "8nm",
+      "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+      "velocity_m_per_s": 1.1666666666666667e-07,
+      "velocity_mm_per_h": 0.42,
+      "velocity_uncertainty_m_per_s": 5.555555555555556e-09,
+      "velocity_uncertainty_mm_per_h": 0.02
+    },
+    {
+      "condition": "IG",
+      "einstein_diffusivity_m2_per_s": null,
+      "force_newton": null,
+      "mobility_m_per_N_s": null,
+      "particle_class": "8nm",
+      "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+      "velocity_m_per_s": 2.0277777777777776e-07,
+      "velocity_mm_per_h": 0.73,
+      "velocity_uncertainty_m_per_s": 1.1111111111111112e-08,
+      "velocity_uncertainty_mm_per_h": 0.04
+    },
+    {
+      "condition": "HG",
+      "einstein_diffusivity_m2_per_s": null,
+      "force_newton": null,
+      "mobility_m_per_N_s": null,
+      "particle_class": "8nm",
+      "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+      "velocity_m_per_s": 3.555555555555556e-07,
+      "velocity_mm_per_h": 1.28,
+      "velocity_uncertainty_m_per_s": 3.3333333333333334e-08,
+      "velocity_uncertainty_mm_per_h": 0.12
+    },
+    {
+      "condition": "LG",
+      "einstein_diffusivity_m2_per_s": null,
+      "force_newton": null,
+      "mobility_m_per_N_s": null,
+      "particle_class": "11nm",
+      "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+      "velocity_m_per_s": 1.1111111111111112e-07,
+      "velocity_mm_per_h": 0.4,
+      "velocity_uncertainty_m_per_s": 2.777777777777778e-09,
+      "velocity_uncertainty_mm_per_h": 0.01
+    },
+    {
+      "condition": "IG",
+      "einstein_diffusivity_m2_per_s": null,
+      "force_newton": null,
+      "mobility_m_per_N_s": null,
+      "particle_class": "11nm",
+      "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+      "velocity_m_per_s": 2.1111111111111113e-07,
+      "velocity_mm_per_h": 0.76,
+      "velocity_uncertainty_m_per_s": 3.888888888888889e-08,
+      "velocity_uncertainty_mm_per_h": 0.14
+    },
+    {
+      "condition": "HG",
+      "einstein_diffusivity_m2_per_s": null,
+      "force_newton": null,
+      "mobility_m_per_N_s": null,
+      "particle_class": "11nm",
+      "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+      "velocity_m_per_s": 4.277777777777778e-07,
+      "velocity_mm_per_h": 1.54,
+      "velocity_uncertainty_m_per_s": 7.777777777777778e-08,
+      "velocity_uncertainty_mm_per_h": 0.28
+    }
+  ],
+  "parameter_fit_performed": false,
+  "phase": "A",
+  "s1b_candidate_force": {
+    "formula": "chi_v*V_m*B*grad(B)/mu0",
+    "scope": "S1B_THESIS_CONTEXT_ONLY",
+    "transfer_to_s1_2026": "REJECTED_MISSING_BATCH_AND_FIELD_COMPATIBILITY",
+    "value_newton": 2.042198840664123e-18
+  },
+  "same_system_diffusivity": null,
+  "schema": "mechanistic_mv.mv_physical_validation.phase_a_transport_closure",
+  "schema_version": 1,
+  "simulation_run": false,
+  "status": "BLOCKED_SAME_BATCH_MAGNETIC_FORCE_UNAVAILABLE",
+  "stokes_einstein_check": "NOT_EVALUABLE_WITHOUT_ADMISSIBLE_D_AND_MATCHED_TEMPERATURE_VISCOSITY"
+}

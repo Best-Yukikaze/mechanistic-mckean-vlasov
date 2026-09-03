@@ -1,0 +1,350 @@
+{
+  "environment": {
+    "numpy": "2.2.6",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.20",
+    "repo_head": "236459440694c1bb58fb8b1e1e4b95ce2423c858"
+  },
+  "evidence_status": "COMPLETED_FAIL_CLOSED_SOURCE_AND_ADMISSION_AUDIT",
+  "failure_cause": [
+    "The Physics-owned 2-D closure guard rejects the actual frozen source record because slab depth, vertical distribution, physical contact/cell closure, transport D/M and magnetic particle law are unresolved.",
+    "S1 supplies drift observations but not same-batch condition-specific magnetic forces, so constant mobility cannot be tested or locked.",
+    "S4 supplies a qualitative optical proxy without a calibrated rho observation model, so no parameter-free joint comparison is currently admissible."
+  ],
+  "final_decision": "CURRENT_2D_MV_PHYSICAL_REDUCTION_INVALID",
+  "final_decision_is_exclusive": true,
+  "generated_at_utc": "2026-09-03T13:46:03.506676+00:00",
+  "joint_evidence_sufficiency": "BLOCKED_SAME_BATCH_AND_OBSERVATION_DATA_GAPS",
+  "next_milestone": "Obtain one auditable same-batch S1 data package containing condition-specific B and grad(B), magnetic moment/susceptibility and material volume with uncertainty; do not proceed to PDE validation before that package passes provenance review.",
+  "numerics": {
+    "grid_convergence": "NOT_RUN_DEPENDENCY_BLOCKED",
+    "magnetic_pde_run": false,
+    "mass_conservation": "NOT_RUN_DEPENDENCY_BLOCKED",
+    "no_flux": "NOT_RUN_DEPENDENCY_BLOCKED",
+    "nonnegativity": "NOT_RUN_DEPENDENCY_BLOCKED",
+    "timestep_convergence": "NOT_RUN_DEPENDENCY_BLOCKED"
+  },
+  "phase_a": {
+    "acceptance_gate": {
+      "0.25_lt_CV_M_eff_le_0.40": "MARGINAL",
+      "CV_M_eff_gt_0.40": "FAIL_LINEAR_MOBILITY",
+      "CV_M_eff_le_0.25": "PASS_LINEAR_MOBILITY",
+      "result": "NOT_EVALUABLE"
+    },
+    "blockers": [
+      "S1 LG/IG/HG observations do not have condition-specific, batch-matched magnetic force tuples.",
+      "S1b parameters cannot be transferred to S1 without batch, coating and field-geometry compatibility evidence.",
+      "No same-system D is available for a Stokes-Einstein hindrance check."
+    ],
+    "descriptive_velocity_cv": {
+      "11nm": {
+        "constant_mobility_gate_applied": false,
+        "meaning": "DESCRIPTIVE_CV_OF_RAW_VELOCITY_NOT_CV_OF_MOBILITY",
+        "value": 0.5286834334831253
+      },
+      "8nm": {
+        "constant_mobility_gate_applied": false,
+        "meaning": "DESCRIPTIVE_CV_OF_RAW_VELOCITY_NOT_CV_OF_MOBILITY",
+        "value": 0.4390389156277078
+      }
+    },
+    "formulae": {
+      "einstein": "D_Einstein = M_eff*k_B*T",
+      "free_solution": "D0 = k_B*T/(3*pi*eta*d_hyd)",
+      "mobility": "M_eff = v_exp/F_mag"
+    },
+    "hindrance_evidence": {
+      "S2": "INDEPENDENT_REGIME_EVIDENCE_ONLY",
+      "S2b": "INDEPENDENT_REGIME_EVIDENCE_ONLY_POINTWISE_DIFFUSION_TABLE_NOT_ACQUIRED"
+    },
+    "observations": [
+      {
+        "condition": "LG",
+        "einstein_diffusivity_m2_per_s": null,
+        "force_newton": null,
+        "mobility_m_per_N_s": null,
+        "particle_class": "8nm",
+        "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+        "velocity_m_per_s": 1.1666666666666667e-07,
+        "velocity_mm_per_h": 0.42,
+        "velocity_uncertainty_m_per_s": 5.555555555555556e-09,
+        "velocity_uncertainty_mm_per_h": 0.02
+      },
+      {
+        "condition": "IG",
+        "einstein_diffusivity_m2_per_s": null,
+        "force_newton": null,
+        "mobility_m_per_N_s": null,
+        "particle_class": "8nm",
+        "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+        "velocity_m_per_s": 2.0277777777777776e-07,
+        "velocity_mm_per_h": 0.73,
+        "velocity_uncertainty_m_per_s": 1.1111111111111112e-08,
+        "velocity_uncertainty_mm_per_h": 0.04
+      },
+      {
+        "condition": "HG",
+        "einstein_diffusivity_m2_per_s": null,
+        "force_newton": null,
+        "mobility_m_per_N_s": null,
+        "particle_class": "8nm",
+        "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+        "velocity_m_per_s": 3.555555555555556e-07,
+        "velocity_mm_per_h": 1.28,
+        "velocity_uncertainty_m_per_s": 3.3333333333333334e-08,
+        "velocity_uncertainty_mm_per_h": 0.12
+      },
+      {
+        "condition": "LG",
+        "einstein_diffusivity_m2_per_s": null,
+        "force_newton": null,
+        "mobility_m_per_N_s": null,
+        "particle_class": "11nm",
+        "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+        "velocity_m_per_s": 1.1111111111111112e-07,
+        "velocity_mm_per_h": 0.4,
+        "velocity_uncertainty_m_per_s": 2.777777777777778e-09,
+        "velocity_uncertainty_mm_per_h": 0.01
+      },
+      {
+        "condition": "IG",
+        "einstein_diffusivity_m2_per_s": null,
+        "force_newton": null,
+        "mobility_m_per_N_s": null,
+        "particle_class": "11nm",
+        "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+        "velocity_m_per_s": 2.1111111111111113e-07,
+        "velocity_mm_per_h": 0.76,
+        "velocity_uncertainty_m_per_s": 3.888888888888889e-08,
+        "velocity_uncertainty_mm_per_h": 0.14
+      },
+      {
+        "condition": "HG",
+        "einstein_diffusivity_m2_per_s": null,
+        "force_newton": null,
+        "mobility_m_per_N_s": null,
+        "particle_class": "11nm",
+        "status": "BLOCKED_SAME_CONDITION_MAGNETIC_FORCE_UNAVAILABLE",
+        "velocity_m_per_s": 4.277777777777778e-07,
+        "velocity_mm_per_h": 1.54,
+        "velocity_uncertainty_m_per_s": 7.777777777777778e-08,
+        "velocity_uncertainty_mm_per_h": 0.28
+      }
+    ],
+    "parameter_fit_performed": false,
+    "phase": "A",
+    "s1b_candidate_force": {
+      "formula": "chi_v*V_m*B*grad(B)/mu0",
+      "scope": "S1B_THESIS_CONTEXT_ONLY",
+      "transfer_to_s1_2026": "REJECTED_MISSING_BATCH_AND_FIELD_COMPATIBILITY",
+      "value_newton": 2.042198840664123e-18
+    },
+    "same_system_diffusivity": null,
+    "schema": "mechanistic_mv.mv_physical_validation.phase_a_transport_closure",
+    "schema_version": 1,
+    "simulation_run": false,
+    "status": "BLOCKED_SAME_BATCH_MAGNETIC_FORCE_UNAVAILABLE",
+    "stokes_einstein_check": "NOT_EVALUABLE_WITHOUT_ADMISSIBLE_D_AND_MATCHED_TEMPERATURE_VISCOSITY"
+  },
+  "phase_b": {
+    "actual_pde_run": false,
+    "anchor_mobility": null,
+    "blockers": [
+      "Phase A did not produce an admissible locked D/M pair.",
+      "Condition-specific S1 magnetic field/force data are unavailable."
+    ],
+    "calibration_anchor": "8 nm PEG2000 LG",
+    "heldout_MAE": null,
+    "heldout_MAPE": null,
+    "heldout_R2": null,
+    "heldout_predictions": [],
+    "magnetic_law": "V_mag=-chi_v*V_m*B^2/(2*mu0); F_mag=chi_v*V_m*B*grad(B)/mu0",
+    "mass_boundary_numerics": "NOT_RUN_DEPENDENCY_BLOCKED",
+    "parameter_fit_performed": false,
+    "phase": "B",
+    "schema": "mechanistic_mv.mv_physical_validation.phase_b_magnetic_drift",
+    "schema_version": 1,
+    "status": "BLOCKED_PHASE_A_TRANSPORT_NOT_LOCKED"
+  },
+  "phase_c": {
+    "blockers": [
+      "No source-backed particle moment/magnetization law and physical contact distance are jointly available for S3 10 nm and 40 nm cases.",
+      "Mass concentration cannot be converted to number density without admitted particle density/volume and aggregation state.",
+      "The 3-D dipolar law has no source-backed depth-integrated 2-D closure in the current source register."
+    ],
+    "continuum_metrics": null,
+    "continuum_run": false,
+    "free_interaction_multiplier_used": false,
+    "interaction_law": "W_dd(r,theta)=mu0*m^2*(1-3*cos(theta)^2)/(4*pi*r^3)",
+    "lambda_dd_10nm": null,
+    "lambda_dd_40nm": null,
+    "lambda_order_gate": "NOT_EVALUABLE",
+    "phase": "C",
+    "physics_2d_closure": {
+      "closure": null,
+      "missing_or_invalid": [
+        "source physical_status itself declares required same-system inputs missing",
+        "source-backed slab_thickness_m [m] is missing",
+        "source-backed uniform vertical distribution is missing",
+        "source-backed zero-separation/contact cell closure is missing",
+        "same-system magnetic material volume [m^3] is missing",
+        "same-system susceptibility or nonlinear moment law is missing",
+        "source-backed magnetic field orientation is missing",
+        "same-system B(x) and grad(B)(x), or B*grad(B), with uncertainty are missing",
+        "same-system in-gel diffusivity D [m^2/s] is missing",
+        "same-system in-gel mobility M [m/(N s)] is missing",
+        "Phase C mass concentrations lack source-backed particle-number-density conversion"
+      ],
+      "physical_simulation_allowed": false,
+      "required_inputs": [
+        "source_id and non-empty provenance_class",
+        "closure.kind=DEPTH_INTEGRATED_UNIFORM_SLAB",
+        "closure.slab_thickness_m [m] with source_locator",
+        "closure.vertical_distribution=UNIFORM with source_locator",
+        "closure.contact_zero_separation_closure with source locator",
+        "particle.diameter_m [m], volume_m3 [m^3], contact_diameter_m [m]",
+        "particle either chi_v_dimensionless or sourced nonlinear magnetization table",
+        "particle and contact source locators",
+        "field.orientation_unit_vector_3d and source locator",
+        "field source-backed B(x) and grad(B)(x), or a condition-specific equivalent with uncertainty",
+        "transport.diffusivity_m2_per_s [m^2/s] and mobility_m_per_newton_second [m/(N s)]",
+        "phase_c_cases carrying source-backed 10/40 nm, 1/2/4 mg/mL, and 40 mT conditions"
+      ],
+      "source_path": "D:\\projects\\gym_distribution\\mechanistic_mckean_vlasov\\data\\external\\mv_physical_validation\\source_provenance_v1.json",
+      "status": "CURRENT_2D_MV_PHYSICAL_REDUCTION_INVALID",
+      "unit_audit": {
+        "F_mag": "chi_v*V_m*B*grad(B)/mu0 [N]",
+        "V_mag": "-chi_v*V_m*B^2/(2*mu0) [J]",
+        "W_2D": "vertical average of W_3D [J], not raw 1/r^3",
+        "W_2D_convolution": "integral W_2D(R-R') rho_2D(R') dA' [J]",
+        "W_3D": "dipolar pair energy [J]",
+        "rho_2D": "number density [m^-2]; integral rho_2D dA = N",
+        "rho_3D": "rho_2D/h [m^-3] for a source-backed uniform slab"
+      }
+    },
+    "schema": "mechanistic_mv.mv_physical_validation.phase_c_dipolar_w",
+    "schema_version": 1,
+    "source_regime_evidence": {
+      "field_tesla": 0.04,
+      "mnp_concentrations_mg_per_mL": [
+        1.0,
+        2.0,
+        4.0
+      ],
+      "particle_diameters_m": [
+        1e-08,
+        4e-08
+      ],
+      "role": "W_FORM_AND_REGIME_EVIDENCE_NOT_FIXED_GEL_QUANTITATIVE_VALIDATION",
+      "source": "S3_MYROVALI_2016",
+      "verified_ordering": [
+        "40 nm particles show substantially stronger chain formation than 10 nm particles.",
+        "For 40 nm simulations, chain length/density grows with concentration.",
+        "Agarose content changes particle mobility and chain formation."
+      ]
+    },
+    "status": "BLOCKED_SOURCE_BACKED_MOMENT_CONTACT_AND_2D_CLOSURE_UNAVAILABLE"
+  },
+  "phase_d": {
+    "ablations": {
+      "D_only": "NOT_RUN",
+      "D_plus_V_mag": "NOT_RUN",
+      "D_plus_V_mag_plus_W_dd": "NOT_RUN",
+      "D_plus_W_dd": "NOT_RUN"
+    },
+    "blockers": [
+      "No independently locked D/M, V_mag and W_dd parameter set exists.",
+      "S4 magnetic moment/susceptibility and exact cluster number density are unresolved.",
+      "Normalized optical intensity is not calibrated to particle-number density and lacks pointwise uncertainty."
+    ],
+    "conditions": {
+      "agarose_fraction": 0.006,
+      "field_gradients_T_per_m": [
+        0.0,
+        0.55,
+        8.0
+      ],
+      "particle_sizes_m": [
+        1.3e-07,
+        2.5e-07
+      ],
+      "times_h": [
+        0.0,
+        3.0,
+        6.0,
+        16.0,
+        32.0,
+        48.0
+      ]
+    },
+    "field_ordering_gate": "NOT_EVALUABLE",
+    "joint_predictions": [],
+    "locked_parameter_transfer": {
+      "D_M": "BLOCKED_SAME_BATCH_MAGNETIC_FORCE_UNAVAILABLE",
+      "V_mag": "BLOCKED_PHASE_A_TRANSPORT_NOT_LOCKED",
+      "W_dd": "BLOCKED_SOURCE_BACKED_MOMENT_CONTACT_AND_2D_CLOSURE_UNAVAILABLE",
+      "all_locked": false
+    },
+    "observation": {
+      "digitization_audit": {
+        "admissible_as_particle_number_density": false,
+        "blockers": [
+          "No calibrated observation model maps normalized mean pixel value to particle-number density rho.",
+          "No plotted uncertainty bars or pointwise uncertainty table are supplied.",
+          "Image acquisition changes gel orientation temporarily and averages a finite optical field of view.",
+          "Upstream D/M, magnetic force and W parameters are not independently locked, so digitizing the curve cannot enable a parameter-free joint validation."
+        ],
+        "curve_axes": "time [h] versus average normalized pixel value",
+        "digitization_status": "NOT_DIGITIZED_QUANTITATIVE_RHO_GATE_BLOCKED",
+        "fabricated_numeric_records": 0,
+        "manual_digitization_legally_and_technically_possible": true,
+        "published_curve_is_accessible": true,
+        "raw_images_found": false,
+        "raw_numeric_table_found": false,
+        "reported_times_h": [
+          0.0,
+          3.0,
+          6.0,
+          16.0,
+          32.0,
+          48.0
+        ],
+        "source_curve": "S4 Figure 7"
+      },
+      "digitized_records": [],
+      "fabricated_records": 0,
+      "particle_number_density_mapping": null,
+      "published_quantity": "average normalized microscope pixel value"
+    },
+    "parameter_refit_performed": false,
+    "phase": "D",
+    "quantitative_curve_gate": "NOT_EVALUABLE",
+    "schema": "mechanistic_mv.mv_physical_validation.phase_d_joint_mv",
+    "schema_version": 1,
+    "simulation_run": false,
+    "source": "S4_BASAK_2009",
+    "status": "BLOCKED_NO_LOCKED_UPSTREAM_PARAMETERS_AND_NO_CALIBRATED_S4_OBSERVATION_MODEL"
+  },
+  "physical_system": {
+    "domain": "one fixed macroscopic gel with closed-gel no-flux baseline",
+    "flux": "J=-D*grad(rho)-M*rho*grad(V_base+V_mag+W_dd*rho)",
+    "physical_execution": "BLOCKED",
+    "rho": "internal mobile magnetic-particle number density in one fixed hydrogel"
+  },
+  "provenance": {
+    "path": "D:\\projects\\gym_distribution\\mechanistic_mckean_vlasov\\data\\external\\mv_physical_validation\\source_provenance_v1.json",
+    "scalar_record_count": 35,
+    "sha256": "c4debb2d48146f5b69fe855f30d3050a0b2cc054e3c5bd3c0644f815d30febf7",
+    "sha256_role": "OPTIONAL_ARCHIVAL_PROVENANCE_NOT_AN_ADMISSION_GATE",
+    "source_count": 6
+  },
+  "schema": "mechanistic_mv.mv_physical_validation.report",
+  "schema_version": 1,
+  "scope": {
+    "gym_rl_dqn_run": false,
+    "magnetic_simulation_run": false,
+    "old_D8_evidence_modified": false,
+    "parameter_fit_performed": false,
+    "training_run": false
+  }
+}
