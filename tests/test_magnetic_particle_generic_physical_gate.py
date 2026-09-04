@@ -9,12 +9,16 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from scripts import run_mv_physical_validation as validation
+from scripts import run_magnetic_particle_generic_physical_gate as validation
+from scripts import run_mv_physical_validation as legacy_validation
 
 
-class MVPhysicalValidationTests(unittest.TestCase):
+class MagneticParticleGenericPhysicalGateTests(unittest.TestCase):
+    def test_legacy_generic_cli_module_reexports_the_canonical_entrypoint(self) -> None:
+        self.assertIs(legacy_validation.main, validation.main)
+
     def _copy_provenance(self, root: Path) -> Path:
-        target = root / "source_provenance_v1.json"
+        target = root / "generic__source_provenance__r1.json"
         shutil.copy2(validation.DEFAULT_PROVENANCE, target)
         return target
 
@@ -101,20 +105,20 @@ class MVPhysicalValidationTests(unittest.TestCase):
             return_code, output = self._run(root, provenance)
             self.assertEqual(return_code, 0)
             expected_stems = (
-                "phase_a_transport_closure_v1",
-                "phase_b_magnetic_drift_validation_v1",
-                "phase_c_dipolar_w_validation_v1",
-                "phase_d_joint_mv_validation_v1",
+                "generic__transport_closure__r1",
+                "generic__magnetic_drift__r1",
+                "generic__dipolar_interaction__r1",
+                "generic__joint_mv__r1",
             )
             for stem in expected_stems:
                 self.assertTrue((output / f"{stem}.json").is_file())
                 self.assertTrue((output / f"{stem}.csv").is_file())
                 self.assertTrue((output / f"{stem}.md").is_file())
-            report = self._json(output / "mv_physical_validation_v1.json")
+            report = self._json(output / f"{validation.REPORT_ARTIFACT_STEM}.json")
             self.assertEqual(report["provenance"]["sha256_role"], "OPTIONAL_ARCHIVAL_PROVENANCE_NOT_AN_ADMISSION_GATE")
             self.assertEqual(report["phase_d"]["observation"]["digitized_records"], [])
             self.assertEqual(report["phase_d"]["observation"]["fabricated_records"], 0)
-            with (output / "phase_a_transport_closure_v1.csv").open(
+            with (output / f"{validation.PHASE_ARTIFACT_STEMS['phase_a']}.csv").open(
                 "r", encoding="utf-8", newline=""
             ) as stream:
                 rows = list(csv.DictReader(stream))
@@ -137,7 +141,7 @@ class MVPhysicalValidationTests(unittest.TestCase):
                     provenance.write_text(json.dumps(payload), encoding="utf-8")
                     return_code, output = self._run(case_root, provenance)
                     self.assertEqual(return_code, 2)
-                    report = self._json(output / "mv_physical_validation_v1.json")
+                    report = self._json(output / f"{validation.REPORT_ARTIFACT_STEM}.json")
                     self.assertEqual(report["evidence_status"], "BLOCKED_INVALID_SOURCE_PROVENANCE")
                     self.assertEqual(report["physical_execution"], "NOT_RUN")
 
@@ -155,7 +159,7 @@ class MVPhysicalValidationTests(unittest.TestCase):
                     provenance.write_text(content, encoding="utf-8")
                     return_code, output = self._run(case_root, provenance)
                     self.assertEqual(return_code, 2)
-                    report = self._json(output / "mv_physical_validation_v1.json")
+                    report = self._json(output / f"{validation.REPORT_ARTIFACT_STEM}.json")
                     self.assertEqual(report["evidence_status"], "BLOCKED_INVALID_SOURCE_PROVENANCE")
                     self.assertFalse(report["scope"]["magnetic_simulation_run"])
 

@@ -13,21 +13,24 @@ from pathlib import Path
 
 import numpy as np
 
-from mechanistic_mv.mechanics.magnetic_dipole_interaction import (
+from mechanistic_mv.mechanics.magnetic_particle.dipolar_pair import (
     FieldOrientedDipoleInteraction,
     SourceBackedContactGeometry,
     sphere_volume_m3,
 )
-from mechanistic_mv.mechanics.magnetic_particle_potential import (
+from mechanistic_mv.mechanics.magnetic_particle.potential import (
     LinearMagneticParticle,
     MagneticParticlePotential,
     TabulatedMagnetizationLaw,
 )
-from mechanistic_mv.mechanics.magnetic_validation import (
+from mechanistic_mv.mechanics.magnetic_particle.continuum_admission import (
     CURRENT_2D_MV_PHYSICAL_REDUCTION_INVALID,
     Current2DMVPhysicalReductionInvalid,
     assess_magnetic_2d_closure,
 )
+from mechanistic_mv.mechanics import magnetic_dipole_interaction as legacy_dipolar
+from mechanistic_mv.mechanics import magnetic_particle_potential as legacy_potential
+from mechanistic_mv.mechanics import magnetic_validation as legacy_admission
 
 
 class _LinearMagnitudeField:
@@ -50,7 +53,16 @@ class _LinearMagnitudeField:
         return gradient
 
 
-class MagneticPhysicalValidationTests(unittest.TestCase):
+class MagneticParticlePhysicsGuardTests(unittest.TestCase):
+    def test_legacy_physics_imports_reexport_the_canonical_api(self) -> None:
+        self.assertIs(legacy_potential.LinearMagneticParticle, LinearMagneticParticle)
+        self.assertIs(legacy_potential.MagneticParticlePotential, MagneticParticlePotential)
+        self.assertIs(legacy_dipolar.FieldOrientedDipoleInteraction, FieldOrientedDipoleInteraction)
+        self.assertIs(
+            legacy_admission.assess_magnetic_2d_closure,
+            assess_magnetic_2d_closure,
+        )
+
     def test_missing_source_blocks_2d_reduction_and_any_continuum_claim(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             missing = Path(directory) / "missing_source_provenance_v1.json"

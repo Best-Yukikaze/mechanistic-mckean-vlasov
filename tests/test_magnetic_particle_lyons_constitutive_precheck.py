@@ -10,22 +10,26 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from scripts import run_lyons_constitutive_precheck_v2 as audit
+from scripts import run_magnetic_particle_lyons_constitutive_precheck as audit
+from scripts import run_lyons_constitutive_precheck_v2 as legacy_audit
 
 
-class LyonsConstitutivePrecheckV2Tests(unittest.TestCase):
+class MagneticParticleLyonsConstitutivePrecheckTests(unittest.TestCase):
+    def test_legacy_lyons_cli_module_reexports_the_canonical_entrypoint(self) -> None:
+        self.assertIs(legacy_audit.main, audit.main)
+
     def setUp(self) -> None:
         self.source = audit.load_source(audit.DEFAULT_SOURCE)
 
     def run_cli(self, folder: Path, source: Path) -> tuple[int, dict]:
         with patch("builtins.print"):
             code = audit.main(["--source", str(source), "--output-dir", str(folder)])
-        report = json.loads((folder / "lyons_constitutive_precheck_v2.json").read_text(encoding="utf-8"))
+        report = json.loads((folder / f"{audit.ARTIFACT_STEM}.json").read_text(encoding="utf-8"))
         return code, report
 
     def test_normal_evidence_exit_two_is_scientific_insufficiency(self) -> None:
         # Historical evidence must remain byte-for-byte untouched by this CLI.
-        historical = {p: p.read_bytes() for p in audit.DEFAULT_OUTPUT.glob("*v1.*")}
+        historical = {p: p.read_bytes() for p in audit.DEFAULT_OUTPUT.glob("generic__*__r1.*")}
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             code, report = self.run_cli(folder, audit.DEFAULT_SOURCE)
@@ -37,7 +41,7 @@ class LyonsConstitutivePrecheckV2Tests(unittest.TestCase):
             self.assertEqual(report["sources"], self.source["sources"])
             self.assertEqual(report["lineage"], self.source["lineage"])
             self.assertTrue(all(v is False for v in report["scope"].values()))
-            md = (folder / "lyons_constitutive_precheck_v2.md").read_text(encoding="utf-8")
+            md = (folder / f"{audit.ARTIFACT_STEM}.md").read_text(encoding="utf-8")
             for label in (audit.INSUFFICIENT, audit.PROJECT_STATUS, "NOT SENT", "0.281", "0.289", "0.23 T", "0.55 T"):
                 self.assertIn(label, md)
             self.assertFalse(report["author_request"]["sent"])
@@ -111,7 +115,7 @@ class LyonsConstitutivePrecheckV2Tests(unittest.TestCase):
                 self.assertEqual(report["status"], audit.INSUFFICIENT)
                 self.assertEqual(report["generated_data_files"], [])
                 self.assertEqual(list(folder.glob("*.csv")), [])
-                self.assertTrue((folder / "lyons_constitutive_precheck_v2.md").is_file())
+                self.assertTrue((folder / f"{audit.ARTIFACT_STEM}.md").is_file())
 
     def test_missing_source_writes_status_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
