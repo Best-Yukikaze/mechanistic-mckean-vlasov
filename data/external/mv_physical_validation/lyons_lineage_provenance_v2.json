@@ -1,0 +1,151 @@
+{
+  "schema": "mechanistic_mv.lyons_lineage_provenance",
+  "version": 2,
+  "lineage_id": "LYONS_BROUGHAM_2020_PEG1000_CORE8P9_AGAROSE0P3",
+  "status": "PRIMARY_SOURCES_AUDITED_CONSTITUTIVE_INPUTS_INCOMPLETE",
+  "lineage": {
+    "coating": "PEG1000",
+    "nominal_core_diameter_nm": 8.9,
+    "hydrodynamic_diameter_nm": 24.0,
+    "agarose_percent_wv": 0.3,
+    "agarose_grade": "low EEO",
+    "solvent": "DI water",
+    "relation_to_thesis": "Same study lineage: thesis lists the 2020 article and chapters 2-3 reproduce its method and PEG1000 observations. This does not prove that every figure uses the identical synthesis batch.",
+    "excluded_lineage": "2026 D6NA00088F PEG2000 8.1/10.5 nm core datasets",
+    "cross_lineage_parameter_transfer_allowed": false
+  },
+  "sources": [
+    {
+      "id": "RSC2020",
+      "title": "Electrostatically modulated magnetophoretic transport of functionalised iron-oxide nanoparticles through hydrated networks",
+      "doi": "10.1039/D0NR01602K",
+      "url": "https://pubs.rsc.org/en/content/articlelanding/2020/nr/d0nr01602k",
+      "status": "PUBLISHER_METADATA_CHECKED_FULL_PUBLISHER_TEXT_NOT_RETRIEVED",
+      "locator": "Nanoscale 12 (2020), 10550-10558; author manuscript and official ESI used for accessible details"
+    },
+    {
+      "id": "MANUSCRIPT2020",
+      "title": "Author-deposited manuscript of D0NR01602K",
+      "doi": "10.1039/D0NR01602K",
+      "url": "https://doras.dcu.ie/25059/1/DORAS%20submission.pdf",
+      "status": "PRIMARY_AUTHOR_MANUSCRIPT_TEXT_AND_PDF_PAGES3_4_VISUALLY_CHECKED",
+      "locator": "DORAS item 25059; 8-page manuscript; PDF pp.3-5, Eq.1, Fig.1, Table1",
+      "version_caution": "PDF retains prepublication placeholders. It is not asserted byte-identical to publisher version of record."
+    },
+    {
+      "id": "ESI2020",
+      "title": "Official Electronic Supplementary Information for D0NR01602K",
+      "doi": "10.1039/D0NR01602K",
+      "url": "https://www.rsc.org/suppdata/d0/nr/d0nr01602k/d0nr01602k1.pdf",
+      "status": "PRIMARY_INDEXED_PDF_TEXT_CHECKED_ALL_11_PAGES_LIVE_DOWNLOAD_RETURNED_404",
+      "locator": "p.2 Figs.S1-S2; p.7 Figs.S7-S8; p.8 Figs.S9-S10; p.9 Figs.S11-S12; p.10 Fig.S14"
+    },
+    {
+      "id": "THESIS2020",
+      "title": "Functionalised Iron Oxide Nanoparticles for Magnetophoretic Transport in the Extracellular Matrix",
+      "doi": null,
+      "url": "https://doras.dcu.ie/25019/2/Stephen%20Lyons%20Thesis%20Sept%2015th.pdf",
+      "status": "PRIMARY_THESIS_TEXT_CHECKED",
+      "locator": "PDF p.17 publication list; p.71 core size; p.78 Fig.2.13; p.79 Fig.2.14; pp.95-96 Eq.3.1 and comparison; p.98 Table3.1. PDF page is 1-based, distinct from printed page."
+    },
+    {
+      "id": "CORRECTION2021",
+      "title": "Correction: Electrostatically modulated magnetophoretic transport of functionalised iron-oxide nanoparticles through hydrated networks",
+      "doi": "10.1039/D0NR90262D",
+      "url": "https://pubs.rsc.org/en/content/articlehtml/2021/nr/d0nr90262d",
+      "status": "PRIMARY_CORRECTION_INDEXED_TEXT_CHECKED",
+      "locator": "Nanoscale 13 (2021), 1365-1366; corrections to Fig.3/Fig.4 and p.10555"
+    }
+  ],
+  "quantities": {
+    "core_diameter": {"value": 8.9, "unit": "nm", "source": "ESI2020", "locator": "p.2 Fig.S1", "uncertainty": {"value": 0.8, "kind": "reported_particle_size_spread_not_force_standard_uncertainty", "unit": "nm"}, "role": "particle_descriptor", "note": "ESI n=205; thesis PDF p.71 says n=208; retain version discrepancy, do not divide by sqrt(n)."},
+    "hydrodynamic_diameter": {"value": 24.0, "unit": "nm", "source": "MANUSCRIPT2020", "locator": "p.3 DLS and p.5 Table1 PEG1000", "uncertainty": null, "role": "conditional_stokes_reference"},
+    "magnetic_volume": {"value": 3.69e-25, "unit": "m^3", "source": "MANUSCRIPT2020", "locator": "p.3 Eq.1 definitions; also thesis PDF p.95", "uncertainty": null, "role": "source_reported_core_volume"},
+    "chi_manuscript": {"value": 0.289, "unit": "1", "source": "MANUSCRIPT2020", "locator": "p.3 Eq.1 definitions; official ESI p.2 Fig.S2", "uncertainty": null, "role": "source_specific_candidate_not_selected"},
+    "chi_thesis": {"value": 0.281, "unit": "1", "source": "THESIS2020", "locator": "PDF p.95 (printed p.76), Eq.3.1 definitions", "uncertainty": null, "role": "source_specific_candidate_not_selected"},
+    "susceptibility_reference_B": {"value": 0.23, "unit": "T", "source": "ESI2020", "locator": "p.2 Fig.S2 caption; reference top of 6 mm gel; field attribution to Kuhn et al. 2006", "uncertainty": null, "role": "susceptibility_reference_only_not_magnet_nominal"},
+    "nominal_magnet_B": {"value": 0.55, "unit": "T", "source": "MANUSCRIPT2020", "locator": "p.3 Eq.1 definitions; distributor specification, also thesis PDF p.95", "uncertainty": null, "role": "magnet_nominal_only_not_local_B_profile"},
+    "cited_gradient": {"value": 45.0, "unit": "T/m", "source": "MANUSCRIPT2020", "locator": "p.3 Eq.1 definitions citing earlier literature; thesis PDF p.95", "uncertainty": null, "role": "cited_scalar_not_measured_same_run_gradient_profile"},
+    "water_viscosity": {"value": 0.00089, "unit": "Pa s", "source": "MANUSCRIPT2020", "locator": "p.4 Fig.1 discussion; thesis PDF p.95", "uncertainty": null, "role": "conditional_water_reference_not_bulk_gel_viscosity"},
+    "characterization_temperature": {"value": 298.0, "unit": "K", "source": "ESI2020", "locator": "p.2 Fig.S2 magnetometry and p.5 Fig.S5 DLS", "uncertainty": null, "role": "characterization_only_not_transport_temperature"},
+    "transport_temperature": {"value": null, "unit": "K", "source": "MANUSCRIPT2020", "locator": "pp.3-4 transport protocol", "uncertainty": null, "role": "NOT_REPORTED_FOR_TRANSPORT_RUNS"},
+    "front_velocity": {"value": 0.37, "unit": "mm/h", "source": "MANUSCRIPT2020", "locator": "p.4 Fig.1 discussion; 0.5-8 h fit, n=16 gels", "uncertainty": {"value": 0.02, "unit": "mm/h", "kind": "SD_across_16_gel_velocities_not_SEM"}, "role": "OPTICAL_FRONT_VELOCITY_NOT_YET_MEAN_PARTICLE_DRIFT"},
+    "agarose_concentration": {"value": 0.3, "unit": "% w/v", "source": "MANUSCRIPT2020", "locator": "p.3 gel preparation; Fig.1", "uncertainty": null, "role": "same_lineage_gel_condition"},
+    "gel_depth": {"value": 6.0, "unit": "mm", "source": "MANUSCRIPT2020", "locator": "p.3 gel preparation and imaging", "uncertainty": null, "role": "gel_height_not_2D_out_of_plane_slab_closure"},
+    "injected_volume": {"value": 100.0, "unit": "uL", "source": "MANUSCRIPT2020", "locator": "p.3 imaging protocol", "uncertainty": null, "role": "top_surface_loading"},
+    "particle_concentration": {"value": 1.0, "unit": "mg/mL", "source": "MANUSCRIPT2020", "locator": "p.3 imaging protocol and Fig.1; approximately", "uncertainty": null, "role": "source_mass_concentration_not_number_density"},
+    "published_vth_manuscript": {"value": 0.0101, "unit": "mm/h", "source": "MANUSCRIPT2020", "locator": "p.5 Table1 PEG1000", "uncertainty": null, "role": "SOURCE_REPORTED_THEORY_NOT_USED_AS_CALIBRATION"},
+    "published_vth_thesis": {"value": 0.0149, "unit": "mm/h", "source": "THESIS2020", "locator": "PDF p.96 (printed p.77), unmodified Eq.3.1 comparison", "uncertainty": null, "role": "SOURCE_REPORTED_THEORY_NOT_USED_AS_CALIBRATION"}
+  },
+  "unresolved_source_conflicts": [
+    "chi_v 0.281 in thesis versus 0.289 in manuscript/ESI: no averaging or silent selection",
+    "B=0.23 T is the ESI susceptibility reference at gel top, while B=0.55 T is a distributor nominal value; neither is a measured B(x), gradB(x) pair along each front trajectory",
+    "TEM sample count n=205 in ESI versus n=208 in thesis; size population spread is not an uncertainty on the effective moment",
+    "author manuscript and thesis quote differing theoretical velocities; independent SI arithmetic is audited without fitting phi"
+  ],
+  "correction": {
+    "source": "CORRECTION2021",
+    "observable": "v_exp * d_hyd",
+    "unit": "mm^2/h",
+    "reject_observable": "v_exp / d_hyd",
+    "numeric_values_changed": false,
+    "scope": "Fig.3/Fig.4 axes and associated p.10555 text, not a new field calibration"
+  },
+  "front_observation": {
+    "kind": "OPTICAL_MIGRATION_FRONT",
+    "source": "MANUSCRIPT2020",
+    "locator": "pp.3-4 Fig.1 and imaging methods",
+    "sampling_interval_h": 0.5,
+    "fit_window_h": [0.5, 8.0],
+    "initial_point_excluded": true,
+    "field_on_replicates": 16,
+    "no_field_replicates": 4,
+    "field_removed_at_4h_replicates": 4,
+    "field_to_drift_mapping_validated": false,
+    "raw_profiles_available": false,
+    "front_threshold_definition_available": false,
+    "spatial_resolution_claims": "Manuscript p.4 ~200 um optical length scale; thesis PDF p.78 claims 0.001 mm front-position precision. Accuracy versus precision is unresolved.",
+    "supporting_not_decisive_controls": ["field-off front nearly stationary", "field removal at 4 h arrests front", "0.5-2 mg/mL concentration variation gives similar velocity (ESI S8)", "DLS before/after transit similar (ESI S14)"],
+    "mapping_required": ["same-run density or calibrated intensity profiles with front threshold", "centroid or independently measured mean drift", "front broadening/no-field diffusion", "local B and gradB along the sampled trajectory"]
+  },
+  "data_availability_audit": {
+    "status": "RAW_FIGURE_CSV_NOT_LOCATED_DIGITIZED_MANUSCRIPT_FIGURE_AVAILABLE",
+    "checked": [
+      {"location": "RSC DOI landing", "result": "2020 paper identified; publisher full-text fetch unavailable during audit"},
+      {"location": "DORAS 25059", "result": "one 8-page author manuscript download, no linked raw CSV or repository identifier"},
+      {"location": "official ESI d0nr01602k1.pdf", "result": "11-page indexed PDF contains plots S8-S10/S12-S13 and characterization tables, no pointwise front-position table; live download returned 404"},
+      {"location": "DORAS 25019 thesis", "result": "Figures 2.13/2.14, chapter 3 and chapter 4 located; no linked same-run front CSV plus calibrated multi-field map recovered"},
+      {"location": "DOI/title search with csv, figure data and supporting information", "result": "2026 D6NA00088F CSV availability statement surfaced; rejected as a different lineage, not imported"}
+    ],
+    "search_limit": "Public audit, not proof that no author-held or unindexed data exist. Search service became unavailable near end; retained successful primary-source findings.",
+    "raw_csv_recovered": false,
+    "raw_replicates_recovered": false,
+    "author_request_sent": false
+  },
+  "figure_digitization": {
+    "status": "DIGITIZED_AUTHOR_MANUSCRIPT_NOT_RAW_DATA",
+    "source": "MANUSCRIPT2020",
+    "locator": "PDF p.4 Fig.1 blue field-on markers, 16 points excluding t=0",
+    "render_command": "pdftoppm -f 4 -l 4 -scale-to 1600 -png lyons_2020_manuscript.pdf manuscript",
+    "image_size_px": [1131, 1600],
+    "calibration": {"x_pixel": [130.0, 386.0], "time_h": [0.0, 8.0], "y_pixel": [644.0, 454.0], "distance_mm": [2.0, 6.0]},
+    "method": "Blue marker connected-component centroids inside x=[130,402), y=[445,650); B>170,R<100,G<170; components >=5 pixels, sorted in x; only field-on series extracted.",
+    "pixel_localization_bound_px": 1.5,
+    "uncertainty_class": "ANALYST_DIGITIZATION_BOUND_NOT_EXPERIMENTAL_SD",
+    "calibration_uncertainty": "Additional systematic axis-scale uncertainty is not estimated; no full regression confidence interval is claimed.",
+    "marker_centres_xy_px": [[145.842,463.5],[161.8,472.925],[177.816,482.316],[193.925,487.2],[209.842,501.5],[226.0,511.0],[241.921,520.632],[258.0,525.154],[274.075,534.8],[290.077,539.462],[306.2,548.925],[322.146,563.146],[338.2,572.925],[354.179,582.41],[370.244,587.0],[386.231,596.564]],
+    "raw_replicate_reconstruction_allowed": false,
+    "mean_drift_promotion_allowed": false
+  },
+  "admission": {
+    "force_spatial_calibration_available": false,
+    "complete_force_uncertainty_available": false,
+    "multiple_independent_force_levels_available": false,
+    "transport_temperature_confirmed": false,
+    "front_to_mean_drift_confirmed": false,
+    "passive_diffusivity_measured": false,
+    "phi_fitting_allowed": false,
+    "physical_parameter_lock_allowed": false
+  },
+  "source_sha256": null
+}

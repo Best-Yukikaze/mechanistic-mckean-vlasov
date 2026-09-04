@@ -1,12 +1,104 @@
-# Controller contract — no controller implemented yet
+# Controller contract — source-parameterized magnetic command/field interface
 
-This document fixes the mathematical and ownership boundary for future
-controller work. It does not implement reinforcement learning, authorize
-training, or select a final actuator.
+This document fixes the mathematical and ownership boundary for Controller
+work.  The active scientific direction is one fixed macroscopic Hydrogel domain
+containing mobile magnetic nanoparticles.  During the present physical-
+validation milestone there is no Gym, RL, DQN, task construction, or training.
 
-Magnetic actuation is outside this project's scope. The eventual real
-non-magnetic actuator is also still undecided: this contract must not be read as
-an automatic choice of an electric, acoustic, optical, or other mechanism.
+The active Controller boundary is a source-labelled, SI-audited chain from a
+physical command to a magnetic field and its gradient.  The Physics-owned
+magnetic particle law then produces the one-particle potential and force.
+Historic non-magnetic RH, affine-potential, D8 moving-Gaussian, and MV-GEN-0
+V1--V4 material below are preserved only to explain immutable historical
+evidence.  None is a magnetic-control backend or a substitute for `V_mag`.
+
+## Active fixed-Hydrogel magnetic-particle control path
+
+For the active internal magnetic-particle model, the Controller owns only the
+immutable physical command and the command-to-field adapter:
+
+```text
+u = CoilCurrentCommand(current_ampere)
+-> MagneticFieldControlAdapter
+-> BoundMagneticFieldSnapshot
+-> B(x; u) [T], grad_xy B(x; u) [T/m]
+-> Physics-owned MagneticParticlePotential
+-> V_mag(x; u) [J], F_mag(x; u) = -grad_xy V_mag [N]
+-> Physics-owned MV flux/evolution.
+```
+
+The canonical Physics module
+`src/mechanistic_mv/mechanics/magnetic_particle_potential.py` supports two
+source-backed, reversible magnetic-law routes behind this unchanged command and
+field interface.  The linear induced-moment route is:
+
+```text
+m_induced = chi_v * V_particle * B / mu0                         [A m^2]
+V_mag     = -chi_v * V_particle * B^2 / (2 mu0)                  [J]
+F_mag     = chi_v * V_particle * B * grad_xy(B) / mu0            [N].
+```
+
+The alternative is a Physics-owned source table `M(B)` with field samples in
+`T` and magnetization samples in `A/m`:
+
+```text
+V_mag = -V_particle * integral_0^B M(b) db                       [J]
+F_mag =  V_particle * M(B) * grad_xy(B)                          [N].
+```
+
+Here `B` is the non-negative magnetic-flux-density magnitude in tesla,
+`grad_xy(B)` has two in-plane components in `T/m`, `chi_v` is the dimensionless
+source-defined volume susceptibility, `V_particle` is in `m^3`, and `mu0` is
+in `N/A^2`.  The factor one half in energy is the reversible induced-dipole
+factor.  The Controller does **not** reimplement either equation: it binds a
+command to the field snapshot, and the canonical Physics law evaluates
+`V_mag` and `F_mag`.
+
+`LinearMagneticControlSourcePayload` is mandatory for the linear route. It
+contains the Physics-owned `LinearMagneticParticle` (therefore its sourced
+`chi_v`, particle volume, linear-magnetization source locator, and provenance
+class), plus separate non-empty source references for the `B` map and the
+`grad_xy(B)` map. `TabulatedMagneticControlSourcePayload` is mandatory for the
+table route. It accepts only the Physics-owned `TabulatedMagnetizationLaw` and
+requires a separately source-labelled particle volume, `B` map, and `grad_xy(B)`
+map. The Controller passes the immutable law to Physics; it does not
+interpolate, fit, scale, or correct `M(B)`.
+
+`MagneticSourceReference` records source ID, locator, quantity, units, and
+provenance class. Missing payload components, blank provenance, non-finite
+commands, out-of-range current, non-finite field values, or a negative scalar
+field magnitude fail closed. No default `chi_v`, `M(B)`, particle volume, field
+map, or field gradient is supplied.
+
+`SourceBackedAffineCoilMagneticFieldMap` is the narrow controller-side map
+implementation used for direct contract tests:
+
+```text
+B(x; I)       = B0 + I * (B_per_A + grad_B_per_A dot x)          [T]
+grad_xy B(x;I)= I * grad_B_per_A                                  [T/m].
+```
+
+It is labelled `SOURCE_PARAMETERIZED_MAGNETIC_CONTROL_REQUIRES_PHYSICS_VALIDATION`.
+That label means the map carries mandatory source metadata but is not by itself
+a held-out magnetic-drift validation, field-calibration pass, or an approval to
+run a Gym.  A more detailed sourced field-map implementation may replace this
+affine adapter only if it still returns the same immutable, finite `B`/
+`grad_xy(B)` snapshot to the canonical Physics potential.  The replacement
+must satisfy the explicit `SourceBackedMagneticFieldMap` contract with the
+same complete payload; a generic `ControlledPotentialBackend` cannot substitute
+for it merely because it returns joules and newtons.
+
+The Controller may not read or modify `rho`, particle positions, Hydrogel
+state, `D`, `M`, the dipolar `W_dd`, contact geometry, pair data, source tables,
+or the thin-slab/depth reduction. It may not choose or modify a magnetic law:
+this adapter accepts only the Physics-owned `LinearMagneticParticle` or
+`TabulatedMagnetizationLaw` objects.
+Physics remains responsible for the field-map scientific validation, the
+two-dimensional reduction, the D/M closure, and all dipolar-interaction gates.
+
+## Historical non-magnetic backends
+
+The historical non-magnetic backends are retained only as context for earlier evidence. They cannot populate or replace the physical magnetic-field map, `V_mag` surrogate, or magnetic actuator. They authorize no Gym, RL, DQN, task construction, or training.
 
 ## Mathematical control path
 

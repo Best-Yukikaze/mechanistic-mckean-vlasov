@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from dataclasses import fields
 from pathlib import Path
 import unittest
 
@@ -16,12 +17,14 @@ from mechanistic_mv.mechanics.controlled_potential import (
     MagneticSourceReference,
     SOURCE_PARAMETERIZED_MAGNETIC_CONTROL_STATUS,
     SourceBackedAffineCoilMagneticFieldMap,
+    TabulatedMagneticControlSourcePayload,
     TestOnlyUniformFieldPotential,
 )
 from mechanistic_mv.mechanics.magnetic_particle_potential import (
     MU0_N_PER_A2,
     LinearMagneticParticle,
     MagneticParticlePotential,
+    TabulatedMagnetizationLaw,
 )
 
 
@@ -57,6 +60,26 @@ class MagneticControlAdapterTests(unittest.TestCase):
             flux_density_gradient_per_ampere_tesla_per_m=(100.0, -50.0),
             minimum_current_ampere=-0.5,
             maximum_current_ampere=0.5,
+        )
+
+    @staticmethod
+    def _field_source_reference() -> MagneticSourceReference:
+        return MagneticSourceReference(
+            source_id="unit-field-map",
+            locator="unit-fixture://B-map",
+            quantity="B(x; I)",
+            units="T",
+            provenance_class="TEST_ONLY_NOT_CALIBRATED",
+        )
+
+    @staticmethod
+    def _gradient_source_reference() -> MagneticSourceReference:
+        return MagneticSourceReference(
+            source_id="unit-gradient-map",
+            locator="unit-fixture://grad-B-map",
+            quantity="grad_xy(B)(x; I)",
+            units="T/m",
+            provenance_class="TEST_ONLY_NOT_CALIBRATED",
         )
 
     def test_command_field_snapshot_is_consumed_by_canonical_physics_law(self) -> None:
@@ -170,6 +193,86 @@ class MagneticControlAdapterTests(unittest.TestCase):
                 np.asarray([[0.0, 0.0]])
             )
 
+    def test_tabulated_magnetization_law_uses_same_command_field_boundary(self) -> None:
+        table = TabulatedMagnetizationLaw(
+            flux_density_samples_tesla=(0.0, 0.10, 0.20),
+            magnetization_samples_A_per_m=(0.0, 10.0, 30.0),
+            source_locator="unit-fixture://tabulated-M-of-B",
+            provenance_class="TEST_ONLY_NOT_CALIBRATED",
+        )
+        payload = TabulatedMagneticControlSourcePayload(
+            particle_law=table,
+            particle_volume_m3=3.0e-18,
+            particle_volume_provenance=MagneticSourceReference(
+                source_id="unit-particle-volume",
+                locator="unit-fixture://particle-volume",
+                quantity="magnetic particle volume",
+                units="m^3",
+                provenance_class="TEST_ONLY_NOT_CALIBRATED",
+            ),
+            flux_density_provenance=self._field_source_reference(),
+            flux_density_gradient_provenance=self._gradient_source_reference(),
+        )
+        field_map = SourceBackedAffineCoilMagneticFieldMap(
+            source_payload=payload,
+            zero_current_flux_density_tesla=0.05,
+            flux_density_per_ampere_tesla=0.01,
+            flux_density_gradient_per_ampere_tesla_per_m=(100.0, -50.0),
+            minimum_current_ampere=-0.5,
+            maximum_current_ampere=0.5,
+        )
+        adapter = MagneticFieldControlAdapter(field_map=field_map)
+        command = CoilCurrentCommand(0.2)
+        potential = adapter.physics_potential_for(command)
+        points = np.asarray([[1.0e-6, 2.0e-6], [3.0e-6, -1.0e-6]])
+        snapshot = adapter.adapt_command(command)
+        field = snapshot.flux_density_tesla(points)
+        gradient = snapshot.gradient_flux_density_tesla_per_m(points)
+
+        self.assertIs(potential.particle_law, table)
+        self.assertEqual(potential.particle_volume_m3, 3.0e-18)
+        np.testing.assert_allclose(
+            potential.potential_joule(points),
+            -3.0e-18 * table.integral_magnetization_A_T_per_m(field),
+        )
+        np.testing.assert_allclose(
+            potential.force_newton(points),
+            3.0e-18
+            * table.magnetization_A_per_m(field)[..., np.newaxis]
+            * gradient,
+        )
+        metadata = adapter.configuration_as_jsonable()["source_payload"]
+        self.assertEqual(metadata["magnetic_law_owner"], "Physics.TabulatedMagnetizationLaw")
+        self.assertEqual(metadata["magnetization_table_field_units"], "T")
+        self.assertEqual(metadata["magnetization_table_value_units"], "A/m")
+        self.assertEqual(metadata["particle_volume_provenance"]["units"], "m^3")
+        payload_fields = {field.name for field in fields(TabulatedMagneticControlSourcePayload)}
+        self.assertFalse(
+            {"phi", "rho", "diffusion", "mobility", "empirical_correction"}
+            & payload_fields
+        )
+
+        with self.assertRaises(ValueError):
+            TabulatedMagneticControlSourcePayload(
+                particle_law=table,
+                particle_volume_m3=0.0,
+                particle_volume_provenance=payload.particle_volume_provenance,
+                flux_density_provenance=payload.flux_density_provenance,
+                flux_density_gradient_provenance=(
+                    payload.flux_density_gradient_provenance
+                ),
+            )
+        with self.assertRaises(TypeError):
+            TabulatedMagneticControlSourcePayload(  # type: ignore[arg-type]
+                particle_law=table,
+                particle_volume_m3=3.0e-18,
+                particle_volume_provenance=None,
+                flux_density_provenance=payload.flux_density_provenance,
+                flux_density_gradient_provenance=(
+                    payload.flux_density_gradient_provenance
+                ),
+            )
+
     def test_controller_has_no_density_or_transport_state_path(self) -> None:
         field_map = self._field_map()
         adapter = MagneticFieldControlAdapter(field_map=field_map)
@@ -186,7 +289,9 @@ class MagneticControlAdapterTests(unittest.TestCase):
         )
         metadata = adapter.configuration_as_jsonable()
         self.assertFalse(metadata["contains_density"])
+        self.assertFalse(metadata["contains_phi"])
         self.assertFalse(metadata["contains_diffusion_or_mobility"])
+        self.assertFalse(metadata["contains_empirical_correction"])
         self.assertFalse(metadata["contains_pair_interaction"])
         adapter.physics_potential_for(CoilCurrentCommand(0.0)).potential_joule(
             np.asarray([[0.0, 0.0]])
@@ -203,6 +308,7 @@ class MagneticControlAdapterTests(unittest.TestCase):
             Path(__file__).resolve().parents[1] / "docs" / "CONTROL_INTERFACE.md"
         ).read_text(encoding="utf-8")
         self.assertIn("Physics-owned `LinearMagneticParticle`", contract)
+        self.assertIn("Physics-owned `TabulatedMagnetizationLaw`", contract)
         self.assertIn("cannot populate or replace", contract)
         self.assertIn("magnetic-field map, `V_mag` surrogate", contract)
         self.assertIn("no Gym, RL, DQN, task construction, or training", contract)

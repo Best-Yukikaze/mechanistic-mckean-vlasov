@@ -9,7 +9,11 @@ from typing import Protocol
 
 import numpy as np
 
-from .magnetic_particle_potential import LinearMagneticParticle, MagneticParticlePotential
+from .magnetic_particle_potential import (
+    LinearMagneticParticle,
+    MagneticParticlePotential,
+    TabulatedMagnetizationLaw,
+)
 
 
 class ControlledPotentialBackend(Protocol):
@@ -233,12 +237,92 @@ class LinearMagneticControlSourcePayload:
             ),
             "physical_status": self.physical_status,
             "contains_density": False,
+            "contains_phi": False,
             "contains_material_parameters": False,
             "contains_diffusion_or_mobility": False,
+            "contains_empirical_correction": False,
             "contains_pair_interaction": False,
         }
 
 
+
+    @property
+    def particle_volume_m3(self) -> float:
+        """Expose the sourced volume without making it a controller command."""
+
+        return self.particle_law.particle_volume_m3
+
+@dataclass(frozen=True, slots=True)
+class TabulatedMagneticControlSourcePayload:
+    """Source envelope for the Physics-owned reversible table ``M(B)`` route.
+
+    The table itself is immutable Physics-owned data.  Unlike the linear law,
+    it does not embed a particle volume, so this Controller-side envelope
+    requires a separately sourced particle volume before it can bind a field
+    command.  It deliberately has no density, phi, transport, or empirical
+    correction input.
+    """
+
+    particle_law: TabulatedMagnetizationLaw
+    particle_volume_m3: float
+    particle_volume_provenance: MagneticSourceReference
+    flux_density_provenance: MagneticSourceReference
+    flux_density_gradient_provenance: MagneticSourceReference
+    physical_status: str = field(
+        default=SOURCE_PARAMETERIZED_MAGNETIC_CONTROL_STATUS, init=False
+    )
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.particle_law, TabulatedMagnetizationLaw):
+            raise TypeError(
+                "particle_law must be the Physics-owned TabulatedMagnetizationLaw"
+            )
+        particle_volume = _finite_scalar(
+            self.particle_volume_m3, name="particle_volume_m3"
+        )
+        if particle_volume <= 0.0:
+            raise ValueError("particle_volume_m3 must be finite and positive")
+        object.__setattr__(self, "particle_volume_m3", particle_volume)
+        for field_name in (
+            "particle_volume_provenance",
+            "flux_density_provenance",
+            "flux_density_gradient_provenance",
+        ):
+            if not isinstance(getattr(self, field_name), MagneticSourceReference):
+                raise TypeError(f"{field_name} must be a MagneticSourceReference")
+
+    def as_jsonable(self) -> dict[str, object]:
+        particle_law = self.particle_law
+        return {
+            "magnetic_law_owner": "Physics.TabulatedMagnetizationLaw",
+            "magnetic_law_status": particle_law.physical_status,
+            "magnetization_law": "SOURCE_TABULATED_M_OF_B",
+            "magnetization_table_field_units": "T",
+            "magnetization_table_value_units": "A/m",
+            "magnetization_table_source_locator": particle_law.source_locator,
+            "magnetization_table_provenance_class": particle_law.provenance_class,
+            "magnetic_particle_volume_m3": self.particle_volume_m3,
+            "particle_volume_provenance": self.particle_volume_provenance.as_jsonable(),
+            "flux_density_provenance": self.flux_density_provenance.as_jsonable(),
+            "flux_density_gradient_provenance": (
+                self.flux_density_gradient_provenance.as_jsonable()
+            ),
+            "physical_status": self.physical_status,
+            "contains_density": False,
+            "contains_phi": False,
+            "contains_diffusion_or_mobility": False,
+            "contains_empirical_correction": False,
+            "contains_pair_interaction": False,
+        }
+
+
+MagneticControlSourcePayload = (
+    LinearMagneticControlSourcePayload | TabulatedMagneticControlSourcePayload
+)
+_MAGNETIC_CONTROL_SOURCE_PAYLOAD_TYPES = (
+    LinearMagneticControlSourcePayload,
+    TabulatedMagneticControlSourcePayload,
+)
 @dataclass(frozen=True, slots=True)
 class CoilCurrentCommand:
     """One immutable, SI-valued field-map command ``u`` for a single coil."""
@@ -267,7 +351,7 @@ class SourceBackedMagneticFieldSnapshot(Protocol):
 
     name: str
     physical_status: str
-    source_payload: LinearMagneticControlSourcePayload
+    source_payload: MagneticControlSourcePayload
 
     def flux_density_tesla(self, positions_m: np.ndarray) -> np.ndarray: ...
 
@@ -281,7 +365,7 @@ class SourceBackedMagneticFieldMap(Protocol):
 
     name: str
     physical_status: str
-    source_payload: LinearMagneticControlSourcePayload
+    source_payload: MagneticControlSourcePayload
 
     def bind_command(
         self, command: CoilCurrentCommand
@@ -306,7 +390,7 @@ class SourceBackedAffineCoilMagneticFieldMap:
     retaining the same bound snapshot interface.
     """
 
-    source_payload: LinearMagneticControlSourcePayload
+    source_payload: MagneticControlSourcePayload
     zero_current_flux_density_tesla: float
     flux_density_per_ampere_tesla: float
     flux_density_gradient_per_ampere_tesla_per_m: tuple[float, float]
@@ -320,8 +404,10 @@ class SourceBackedAffineCoilMagneticFieldMap:
     )
 
     def __post_init__(self) -> None:
-        if not isinstance(self.source_payload, LinearMagneticControlSourcePayload):
-            raise TypeError("source_payload must be LinearMagneticControlSourcePayload")
+        if not isinstance(self.source_payload, _MAGNETIC_CONTROL_SOURCE_PAYLOAD_TYPES):
+            raise TypeError(
+                "source_payload must be a source-backed linear or tabulated magnetic payload"
+            )
         zero_current = _finite_scalar(
             self.zero_current_flux_density_tesla,
             name="zero_current_flux_density_tesla",
@@ -382,7 +468,9 @@ class SourceBackedAffineCoilMagneticFieldMap:
             "source_payload": self.source_payload.as_jsonable(),
             "contains_density": False,
             "contains_particle_positions": False,
+            "contains_phi": False,
             "contains_diffusion_or_mobility": False,
+            "contains_empirical_correction": False,
             "contains_pair_interaction": False,
         }
 
@@ -412,7 +500,7 @@ class BoundMagneticFieldSnapshot:
         self.field_map._current_ampere(self.command)
 
     @property
-    def source_payload(self) -> LinearMagneticControlSourcePayload:
+    def source_payload(self) -> MagneticControlSourcePayload:
         return self.field_map.source_payload
 
     def flux_density_tesla(self, positions_m: np.ndarray) -> np.ndarray:
@@ -452,7 +540,9 @@ class BoundMagneticFieldSnapshot:
             "field_map": self.field_map.configuration_as_jsonable(),
             "contains_density": False,
             "contains_particle_positions": False,
+            "contains_phi": False,
             "contains_diffusion_or_mobility": False,
+            "contains_empirical_correction": False,
             "contains_pair_interaction": False,
         }
 
@@ -473,9 +563,9 @@ class MagneticFieldControlAdapter:
 
     def __init__(self, *, field_map: SourceBackedMagneticFieldMap) -> None:
         source_payload = getattr(field_map, "source_payload", None)
-        if not isinstance(source_payload, LinearMagneticControlSourcePayload):
+        if not isinstance(source_payload, _MAGNETIC_CONTROL_SOURCE_PAYLOAD_TYPES):
             raise TypeError(
-                "field_map must expose a complete LinearMagneticControlSourcePayload"
+                "field_map must expose a complete source-backed linear or tabulated magnetic payload"
             )
         for method_name in ("bind_command", "configuration_as_jsonable"):
             if not callable(getattr(field_map, method_name, None)):
@@ -483,7 +573,7 @@ class MagneticFieldControlAdapter:
         self.field_map = field_map
 
     @property
-    def source_payload(self) -> LinearMagneticControlSourcePayload:
+    def source_payload(self) -> MagneticControlSourcePayload:
         return self.field_map.source_payload
 
     def adapt_command(self, command: CoilCurrentCommand) -> SourceBackedMagneticFieldSnapshot:
@@ -507,10 +597,11 @@ class MagneticFieldControlAdapter:
         """Build the canonical Physics potential for one immutable field command."""
 
         field = self.adapt_command(command)
-        particle_law = self.source_payload.particle_law
+        source_payload = self.source_payload
+        particle_law = source_payload.particle_law
         return MagneticParticlePotential(
             particle_law=particle_law,
-            particle_volume_m3=particle_law.particle_volume_m3,
+            particle_volume_m3=source_payload.particle_volume_m3,
             magnetic_field=field,
         )
 
@@ -525,7 +616,9 @@ class MagneticFieldControlAdapter:
             "field_map": self.field_map.configuration_as_jsonable(),
             "contains_density": False,
             "contains_particle_positions": False,
+            "contains_phi": False,
             "contains_diffusion_or_mobility": False,
+            "contains_empirical_correction": False,
             "contains_pair_interaction": False,
             "direct_state_mutation": False,
         }
